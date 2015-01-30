@@ -1,0 +1,84 @@
+/*
+ * Copyright 2015 Boris Smus. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var PositionSensorVRDevice = require('./base.js').PositionSensorVRDevice;
+var THREE = require('./three-math.js');
+
+/**
+ * The positional sensor, implemented using web DeviceOrientation APIs.
+ */
+function GyroPositionSensorVRDevice() {
+  // Subscribe to deviceorientation events.
+  window.addEventListener('deviceorientation', this.onDeviceOrientationChange.bind(this));
+  window.addEventListener('orientationchange', this.onScreenOrientationChange.bind(this));
+  this.deviceOrientation = null;
+  this.screenOrientation = window.orientation;
+
+  // Helper objects for calculating orientation.
+  this.finalQuaternion = new THREE.Quaternion();
+  this.deviceEuler = new THREE.Euler();
+  this.screenTransform = new THREE.Quaternion();
+  // -PI/2 around the x-axis.
+  this.worldTransform = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
+}
+GyroPositionSensorVRDevice.prototype = new PositionSensorVRDevice();
+
+/**
+ * Returns {orientation: {x,y,z,w}, position: null}.
+ * Position is not supported since we can't do 6DOF.
+ */
+GyroPositionSensorVRDevice.prototype.getState = function() {
+  return {
+    orientation: this.getOrientation(),
+    position: null
+  }
+};
+
+GyroPositionSensorVRDevice.prototype.onDeviceOrientationChange =
+    function(deviceOrientation) {
+  this.deviceOrientation = deviceOrientation;
+};
+
+GyroPositionSensorVRDevice.prototype.onScreenOrientationChange =
+    function(screenOrientation) {
+  this.screenOrientation = window.orientation;
+};
+
+GyroPositionSensorVRDevice.prototype.getOrientation = function() {
+  if (this.deviceOrientation == null) {
+    return null;
+  }
+
+  // Rotation around the z-axis.
+  var alpha = THREE.Math.degToRad(this.deviceOrientation.alpha);
+  // Front-to-back (in portrait) rotation (x-axis).
+  var beta = THREE.Math.degToRad(this.deviceOrientation.beta);
+  // Left to right (in portrait) rotation (y-axis).
+  var gamma = THREE.Math.degToRad(this.deviceOrientation.gamma);
+  var orient = THREE.Math.degToRad(this.screenOrientation);
+
+  // Use three.js to convert to quaternion. Lifted from
+  // https://github.com/richtr/threeVR/blob/master/js/DeviceOrientationController.js
+  this.deviceEuler.set(beta, alpha, -gamma, 'YXZ');
+  this.finalQuaternion.setFromEuler(this.deviceEuler);
+  this.minusHalfAngle = -orient / 2;
+  this.screenTransform.set(0, Math.sin(this.minusHalfAngle), 0, Math.cos(this.minusHalfAngle));
+  this.finalQuaternion.multiply(this.screenTransform);
+  this.finalQuaternion.multiply(this.worldTransform);
+
+  return this.finalQuaternion;
+};
+
+
+module.exports = GyroPositionSensorVRDevice;
