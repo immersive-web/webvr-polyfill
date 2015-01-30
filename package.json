@@ -1,0 +1,25 @@
+{
+  "name": "webvr-polyfill",
+  "version": "0.0.1",
+  "description": "Polyfill for WebVR, enables Cardboard and fallbacks to mobile/desktop.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/borismus/webvr-polyfill.git"
+  },
+  "keywords": [
+    "webvr",
+    "vr",
+    "polyfill",
+    "webgl"
+  ],
+  "author": "Boris Smus <boris@smus.com> (http://smus.com)",
+  "license": "Apache2",
+  "bugs": {
+    "url": "https://github.com/borismus/webvr-polyfill/issues"
+  },
+  "homepage": "https://github.com/borismus/webvr-polyfill"
+}
