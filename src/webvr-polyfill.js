@@ -22,7 +22,7 @@ function WebVRPolyfill() {
   this.devices = [];
 
   // Feature detect for existing WebVR API.
-  if (navigator.getVRDevices) {
+  if ('getVRDevices' in navigator) {
     return;
   }
 

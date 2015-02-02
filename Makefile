@@ -1,8 +1,6 @@
 default:
 	mkdir -p build
-	browserify main.js > build/webvr-polyfill.js
-	# Temporary, for testing only.
-	cp build/webvr-polyfill.js ../webvr-boilerplate/js
+	browserify src/main.js > build/webvr-polyfill.js
 
 clean:
 	rm build/webvr-polyfill.js
