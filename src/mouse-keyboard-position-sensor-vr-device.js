@@ -121,10 +121,17 @@ MouseKeyboardPositionSensorVRDevice.prototype.onMouseDown_ = function(e) {
 
 // Very similar to https://gist.github.com/mrflix/8351020
 MouseKeyboardPositionSensorVRDevice.prototype.onMouseMove_ = function(e) {
-  if (!this.isDragging) {
+  if (!this.isDragging && !this.isPointerLocked_()) {
     return;
   }
-  this.rotateEnd.set(e.clientX, e.clientY);
+  // Support pointer lock API.
+  if (this.isPointerLocked_()) {
+    var movementX = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
+    var movementY = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
+    this.rotateEnd.set(this.rotateStart.x + movementX, this.rotateStart.y + movementY);
+  } else {
+    this.rotateEnd.set(e.clientX, e.clientY);
+  }
   // Calculate how much we moved in mouse space.
   this.rotateDelta.subVectors(this.rotateEnd, this.rotateStart);
   this.rotateStart.copy(this.rotateEnd);
@@ -144,6 +151,12 @@ MouseKeyboardPositionSensorVRDevice.prototype.onMouseUp_ = function(e) {
 
 MouseKeyboardPositionSensorVRDevice.prototype.clamp_ = function(value, min, max) {
   return Math.min(Math.max(min, value), max);
+};
+
+MouseKeyboardPositionSensorVRDevice.prototype.isPointerLocked_ = function() {
+  var el = document.pointerLockElement || document.mozPointerLockElement ||
+      document.webkitPointerLockElement;
+  return el !== undefined;
 };
 
 module.exports = MouseKeyboardPositionSensorVRDevice;

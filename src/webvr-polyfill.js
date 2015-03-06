@@ -21,11 +21,13 @@ var PositionSensorVRDevice = require('./base.js').PositionSensorVRDevice;
 function WebVRPolyfill() {
   this.devices = [];
 
-  // Feature detect for existing WebVR API.
-  if ('getVRDevices' in navigator) {
-    return;
+  if (!('getVRDevices' in navigator)) {
+    // If the WebVR API doesn't exist, we should enable the polyfill.
+    this.enablePolyfill();
   }
+}
 
+WebVRPolyfill.prototype.enablePolyfill = function() {
   // Initialize our virtual VR devices.
   if (this.isCardboardCompatible()) {
     this.devices.push(new CardboardHMDVRDevice());
@@ -44,7 +46,7 @@ function WebVRPolyfill() {
   // Provide the CardboardHMDVRDevice and PositionSensorVRDevice objects.
   window.HMDVRDevice = HMDVRDevice;
   window.PositionSensorVRDevice = PositionSensorVRDevice;
-}
+};
 
 WebVRPolyfill.prototype.getVRDevices = function() {
   var devices = this.devices;
