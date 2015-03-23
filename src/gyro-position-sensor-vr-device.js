@@ -40,7 +40,9 @@ GyroPositionSensorVRDevice.prototype = new PositionSensorVRDevice();
  */
 GyroPositionSensorVRDevice.prototype.getState = function() {
   return {
+    hasOrientation: true,
     orientation: this.getOrientation(),
+    hasPosition: false,
     position: null
   }
 };

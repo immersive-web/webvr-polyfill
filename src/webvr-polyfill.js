@@ -15,6 +15,8 @@
 var CardboardHMDVRDevice = require('./cardboard-hmd-vr-device.js');
 var GyroPositionSensorVRDevice = require('./gyro-position-sensor-vr-device.js');
 var MouseKeyboardPositionSensorVRDevice = require('./mouse-keyboard-position-sensor-vr-device.js');
+// Uncomment to add positional tracking via webcam.
+//var WebcamPositionSensorVRDevice = require('./webcam-position-sensor-vr-device.js');
 var HMDVRDevice = require('./base.js').HMDVRDevice;
 var PositionSensorVRDevice = require('./base.js').PositionSensorVRDevice;
 
@@ -38,6 +40,8 @@ WebVRPolyfill.prototype.enablePolyfill = function() {
     this.devices.push(new GyroPositionSensorVRDevice());
   } else {
     this.devices.push(new MouseKeyboardPositionSensorVRDevice());
+    // Uncomment to add positional tracking via webcam.
+    //this.devices.push(new WebcamPositionSensorVRDevice());
   }
 
   // Provide navigator.getVRDevices.

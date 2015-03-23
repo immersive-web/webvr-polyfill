@@ -61,7 +61,9 @@ MouseKeyboardPositionSensorVRDevice.prototype.getState = function() {
   this.orientation.setFromEuler(this.euler);
 
   return {
+    hasOrientation: true,
     orientation: this.orientation,
+    hasPosition: false,
     position: null
   }
 };
