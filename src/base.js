@@ -17,7 +17,9 @@
  * The base class for all VR devices.
  */
 function VRDevice() {
-  this.hardwareUnitId = 'polyfill';
+  this.hardwareUnitId = 'webvr-polyfill hardwareUnitId';
+  this.deviceId = 'webvr-polyfill deviceId';
+  this.deviceName = 'webvr-polyfill deviceName';
 }
 
 /**

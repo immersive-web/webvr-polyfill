@@ -24,11 +24,14 @@ var MOUSE_SPEED_X = 0.5;
 var MOUSE_SPEED_Y = 0.3;
 
 /**
- * Another virtual position sensor, this time implemented using keyboard and
+ * A virtual position sensor, implemented using keyboard and
  * mouse APIs. This is designed as for desktops/laptops where no Device*
  * events work.
  */
 function MouseKeyboardPositionSensorVRDevice() {
+  this.deviceId = 'webvr-polyfill:mouse-keyboard';
+  this.deviceName = 'VR Position Device (webvr-polyfill:mouse-keyboard)';
+
   // Attach to mouse and keyboard events.
   window.addEventListener('keydown', this.onKeyDown_.bind(this));
   window.addEventListener('mousemove', this.onMouseMove_.bind(this));
@@ -86,8 +89,8 @@ MouseKeyboardPositionSensorVRDevice.prototype.animateTheta_ = function(targetAng
 };
 
 MouseKeyboardPositionSensorVRDevice.prototype.animatePhi_ = function(targetAngle) {
-  // Clamp phi to be in [-Math.PI, Math.PI].
-  targetAngle = this.clamp_(targetAngle, -Math.PI, Math.PI);
+  // Prevent looking too far up or down.
+  targetAngle = this.clamp_(targetAngle, -Math.PI/2, Math.PI/2);
   this.animateKeyTransitions_('phi', targetAngle);
 };
 
@@ -143,8 +146,8 @@ MouseKeyboardPositionSensorVRDevice.prototype.onMouseMove_ = function(e) {
   this.phi += 2 * Math.PI * this.rotateDelta.y / element.clientHeight * MOUSE_SPEED_Y;
   this.theta += 2 * Math.PI * this.rotateDelta.x / element.clientWidth * MOUSE_SPEED_X;
 
-  // Clamp phi to be in [-Math.PI, Math.PI].
-  this.phi = this.clamp_(this.phi, -Math.PI, Math.PI);
+  // Prevent looking too far up or down.
+  this.phi = this.clamp_(this.phi, -Math.PI/2, Math.PI/2);
 };
 
 MouseKeyboardPositionSensorVRDevice.prototype.onMouseUp_ = function(e) {

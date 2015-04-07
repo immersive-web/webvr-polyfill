@@ -8,6 +8,9 @@ var Y_SCALE = 1;
 var ALPHA = 0.3;
 
 function WebcamPositionSensorVRDevice() {
+  this.deviceId = 'webvr-polyfill:webcam';
+  this.deviceName = 'VR Position Device (webvr-polyfill:webcam)';
+
   this.position = new THREE.Vector3();
 
   var videoInput = document.createElement('video');

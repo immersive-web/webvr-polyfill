@@ -19,6 +19,9 @@ var THREE = require('./three-math.js');
  * The positional sensor, implemented using web DeviceOrientation APIs.
  */
 function GyroPositionSensorVRDevice() {
+  this.deviceId = 'webvr-polyfill:gyro';
+  this.deviceName = 'VR Position Device (webvr-polyfill:gyro)';
+
   // Subscribe to deviceorientation events.
   window.addEventListener('deviceorientation', this.onDeviceOrientationChange.bind(this));
   window.addEventListener('orientationchange', this.onScreenOrientationChange.bind(this));

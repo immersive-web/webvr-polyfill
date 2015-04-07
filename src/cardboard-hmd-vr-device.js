@@ -24,6 +24,13 @@ var DEFAULT_MAX_FOV_TOP = 40;
  * The HMD itself, providing rendering parameters.
  */
 function CardboardHMDVRDevice() {
+  // From com/google/vrtoolkit/cardboard/FieldOfView.java.
+  this.fov = {
+    upDegrees: DEFAULT_MAX_FOV_TOP,
+    downDegrees: DEFAULT_MAX_FOV_BOTTOM,
+    leftDegrees: DEFAULT_MAX_FOV_LEFT_RIGHT,
+    rightDegrees: DEFAULT_MAX_FOV_LEFT_RIGHT
+  };
   // Set display constants.
   this.eyeTranslationLeft = {
     x: INTERPUPILLARY_DISTANCE * -0.5,
@@ -35,28 +42,23 @@ function CardboardHMDVRDevice() {
     y: 0,
     z: 0
   };
-
-  // From com/google/vrtoolkit/cardboard/FieldOfView.java.
-  this.recommendedFOV = {
-    upDegrees: DEFAULT_MAX_FOV_TOP,
-    downDegrees: DEFAULT_MAX_FOV_BOTTOM,
-    leftDegrees: DEFAULT_MAX_FOV_LEFT_RIGHT,
-    rightDegrees: DEFAULT_MAX_FOV_LEFT_RIGHT
-  };
 }
 CardboardHMDVRDevice.prototype = new HMDVRDevice();
 
-CardboardHMDVRDevice.prototype.getRecommendedEyeFieldOfView = function(whichEye) {
-  return this.recommendedFOV;
-};
-
-CardboardHMDVRDevice.prototype.getEyeTranslation = function(whichEye) {
+CardboardHMDVRDevice.prototype.getEyeParameters = function(whichEye) {
+  var eyeTranslation;
   if (whichEye == 'left') {
-    return this.eyeTranslationLeft;
+    eyeTranslation = this.eyeTranslationLeft;
+  } else if (whichEye == 'right') {
+    eyeTranslation = this.eyeTranslationRight;
+  } else {
+    console.error('Invalid eye provided: %s', whichEye);
+    return null;
   }
-  if (whichEye == 'right') {
-    return this.eyeTranslationRight;
-  }
+  return {
+    recommendedFieldOfView: this.fov,
+    eyeTranslation: eyeTranslation
+  };
 };
 
 module.exports = CardboardHMDVRDevice;
