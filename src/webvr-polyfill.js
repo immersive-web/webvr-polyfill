@@ -72,7 +72,7 @@ WebVRPolyfill.prototype.getVRDevices = function() {
  */
 WebVRPolyfill.prototype.isMobile = function() {
   return /Android/i.test(navigator.userAgent) ||
-      /iPhone|iPad|iPod/i.test(navigator.userAgent);;
+      /iPhone|iPad|iPod/i.test(navigator.userAgent);
 };
 
 WebVRPolyfill.prototype.isCardboardCompatible = function() {
