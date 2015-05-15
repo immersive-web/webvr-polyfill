@@ -1,11 +1,14 @@
 # WebVR Polyfill
 
+This project provides a JavaScript implementation of the [WebVR
+spec][spec].
+
 The goal of this project is two fold:
 
-1. Make it possible for developers to use WebVR today, without special
-   browser builds.
-2. Provide good fallbacks for users that don't have VR hardware.
+1. Use WebVR today, without requiring a special browser build.
+2. View (mono) content without a virtual reality headset.
 
+[spec]: http://mozvr.github.io/webvr-spec/webvr.html
 
 ## Implementation
 
@@ -14,17 +17,14 @@ interpupillary distance and headset.
 
 `GyroPositionSensorVRDevice` uses the DeviceMotionEvents (which map
 roughly to the gyroscope) to polyfill head-tracking on mobile devices.
-This is used both in Cardboard, and for Spotlight Stories-style
+This is used both in Cardboard, and for [Spotlight Stories][ss]-style
 experiences.
 
 `MouseKeyboardPositionSensorVRDevice` uses mouse events to allow you to
 do the equivalent of mouselook. It also uses keyboard arrows and WASD
 keys to look around the scene with the keyboard.
 
+Experimental `WebcamPositionSensorVRDevice` uses your laptop's webcam in
+order to introduce translational degrees of freedom.
 
-## Open issues
-
-- Provide a GUI to specify HMD parameters. Possibly a configuration UI
-  for setting them for non-Cardboard devices.
-- Provide new types of tracking, perhaps using the web camera for 3
-  translational degrees of freedom, eg: <http://topheman.github.io/parallax/>
+[ss]: https://play.google.com/store/apps/details?id=com.motorola.avatar
