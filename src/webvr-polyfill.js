@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Boris Smus. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 var CardboardHMDVRDevice = require('./cardboard-hmd-vr-device.js');
 var GyroPositionSensorVRDevice = require('./gyro-position-sensor-vr-device.js');
 var MouseKeyboardPositionSensorVRDevice = require('./mouse-keyboard-position-sensor-vr-device.js');
