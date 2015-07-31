@@ -164,4 +164,8 @@ MouseKeyboardPositionSensorVRDevice.prototype.isPointerLocked_ = function() {
   return el !== undefined;
 };
 
+MouseKeyboardPositionSensorVRDevice.prototype.resetSensor = function() {
+  console.error('Not implemented yet.');
+};
+
 module.exports = MouseKeyboardPositionSensorVRDevice;

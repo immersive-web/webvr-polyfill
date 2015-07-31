@@ -89,5 +89,9 @@ GyroPositionSensorVRDevice.prototype.getOrientation = function() {
   return this.posePredictor.getPrediction(this.finalQuaternion, new Date());
 };
 
+GyroPositionSensorVRDevice.prototype.resetSensor = function() {
+  console.error('Not implemented yet.');
+};
+
 
 module.exports = GyroPositionSensorVRDevice;
