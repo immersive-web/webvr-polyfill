@@ -15,14 +15,14 @@
 
 // How much to interpolate between the current orientation estimate and the
 // previous estimate position. This is helpful for devices with low
-// deviceorientation firing frequency (eg. on iOS, it is 20 Hz).  The larger
-// this value (in [0, 1]), the smoother but more delayed the head tracking is.
+// deviceorientation firing frequency (eg. on iOS8 and below, it is 20 Hz).  The
+// larger this value (in [0, 1]), the smoother but more delayed the head
+// tracking is.
 var INTERPOLATION_SMOOTHING_FACTOR = 0.01;
-var PREDICTION_SMOOTHING_FACTOR = 0.1;
 
 // The smallest quaternion magnitude per frame. If less rotation than this value
 // occurs, we don't do any prediction at all.
-var PREDICTION_THRESHOLD_DEG = 0.001;
+var PREDICTION_THRESHOLD_DEG = 0.01;
 
 // How far into the future to predict.
 var PREDICTION_TIME_MS = 50;
@@ -96,18 +96,14 @@ PosePredictor.prototype.getPrediction = function(currentQ, timestamp) {
 
       // Calculate the prediction delta to apply to the original angle.
       this.deltaQ.setFromAxisAngle(axis, predictAngle);
-      // As a sanity check, use the same axis and angle as before, which should
-      // cause no prediction to happen.
+      // DEBUG ONLY: As a sanity check, use the same axis and angle as before,
+      // which should cause no prediction to happen.
       //this.deltaQ.setFromAxisAngle(axis, angle);
 
       this.outQ.copy(this.lastQ);
       this.outQ.multiply(this.deltaQ);
 
-      // Interpolate between the current position and the predicted one for more
-      // smoothness. This doesn't actually seem to help.
-      this.outQ.slerp(currentQ, PREDICTION_SMOOTHING_FACTOR);
-
-      // For debugging, report the abs. difference between actual and predicted
+      // DEBUG ONLY: report the abs. difference between actual and predicted
       // angles.
       var angleDelta = THREE.Math.radToDeg(predictAngle - angle);
       if (angleDelta > 5) {
