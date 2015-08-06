@@ -15,16 +15,17 @@ The goal of this project is two fold:
 `CardboardHMDVRDevice` provides default parameters for Cardboard's
 interpupillary distance and headset.
 
-`GyroPositionSensorVRDevice` uses the DeviceMotionEvents (which map
-roughly to the gyroscope) to polyfill head-tracking on mobile devices.
-This is used both in Cardboard, and for [Spotlight Stories][ss]-style
-experiences.
+`GyroPositionSensorVRDevice` uses the DeviceMotionEvents (which map roughly to
+the gyroscope) to polyfill head-tracking on mobile devices.  This is used both
+in Cardboard, and for [Spotlight Stories][ss]-style experiences. This input
+device also implements head tracking with prediction, which greatly improves
+head tracking quality.
 
-`MouseKeyboardPositionSensorVRDevice` uses mouse events to allow you to
-do the equivalent of mouselook. It also uses keyboard arrows and WASD
-keys to look around the scene with the keyboard.
+`MouseKeyboardPositionSensorVRDevice` uses mouse events to allow you to do the
+equivalent of mouselook. It also uses keyboard arrows and WASD keys to look
+around the scene with the keyboard.
 
-Experimental `WebcamPositionSensorVRDevice` uses your laptop's webcam in
-order to introduce translational degrees of freedom.
+Experimental `WebcamPositionSensorVRDevice` uses your laptop's webcam in order
+to introduce translational degrees of freedom.
 
 [ss]: https://play.google.com/store/apps/details?id=com.motorola.avatar

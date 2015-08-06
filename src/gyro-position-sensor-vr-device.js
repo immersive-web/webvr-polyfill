@@ -25,6 +25,7 @@ function GyroPositionSensorVRDevice() {
 
   // Subscribe to deviceorientation events.
   window.addEventListener('deviceorientation', this.onDeviceOrientationChange.bind(this));
+  window.addEventListener('devicemotion', this.onDeviceMotionChange.bind(this));
   window.addEventListener('orientationchange', this.onScreenOrientationChange.bind(this));
   this.deviceOrientation = null;
   this.screenOrientation = window.orientation;
@@ -59,6 +60,11 @@ GyroPositionSensorVRDevice.prototype.onDeviceOrientationChange =
   this.deviceOrientation = deviceOrientation;
 };
 
+GyroPositionSensorVRDevice.prototype.onDeviceMotionChange =
+    function(deviceMotion) {
+  this.deviceMotion = deviceMotion;
+};
+
 GyroPositionSensorVRDevice.prototype.onScreenOrientationChange =
     function(screenOrientation) {
   this.screenOrientation = window.orientation;
@@ -86,11 +92,37 @@ GyroPositionSensorVRDevice.prototype.getOrientation = function() {
   this.finalQuaternion.multiply(this.screenTransform);
   this.finalQuaternion.multiply(this.worldTransform);
 
-  return this.posePredictor.getPrediction(this.finalQuaternion, new Date());
+  // DEBUG ONLY: Log rotation rate if it's large enough.
+  /*
+  if (this.deviceMotion) {
+    var rotRate = this.deviceMotion.rotationRate;
+    if (Math.abs(rotRate.alpha) > 5) {
+      console.log('Rotation around Z: %f deg', rotRate.alpha);
+    }
+    if (Math.abs(rotRate.beta) > 5) {
+      console.log('Rotation around X: %f deg', rotRate.beta);
+    }
+    if (Math.abs(rotRate.gamma) > 5) {
+      console.log('Rotation around Y: %f deg', rotRate.gamma);
+    }
+  }
+  */
+  this.posePredictor.setScreenOrientation(this.screenOrientation);
+
+  //var bestTime = this.rafTime || window.performance.now();
+  //var bestTime = window.performance.now();
+  var bestTime = this.deviceOrientation.timeStamp;
+  var rotRate = this.deviceMotion && this.deviceMotion.rotationRate;
+  return this.posePredictor.getPrediction(
+      this.finalQuaternion, rotRate, bestTime);
 };
 
 GyroPositionSensorVRDevice.prototype.resetSensor = function() {
   console.error('Not implemented yet.');
+};
+
+GyroPositionSensorVRDevice.prototype.setAnimationFrameTime = function(rafTime) {
+  this.rafTime = rafTime;
 };
 
 

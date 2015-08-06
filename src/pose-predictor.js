@@ -13,6 +13,12 @@
  * limitations under the License.
  */
 
+var PredictionMode = {
+  NONE: 0,
+  INTERPOLATE: 1,
+  PREDICT: 2
+}
+
 // How much to interpolate between the current orientation estimate and the
 // previous estimate position. This is helpful for devices with low
 // deviceorientation firing frequency (eg. on iOS8 and below, it is 20 Hz).  The
@@ -20,21 +26,16 @@
 // tracking is.
 var INTERPOLATION_SMOOTHING_FACTOR = 0.01;
 
-// The smallest quaternion magnitude per frame. If less rotation than this value
-// occurs, we don't do any prediction at all.
-var PREDICTION_THRESHOLD_DEG = 0.01;
+// Angular threshold, if the angular speed (in deg/s) is less than this, do no
+// prediction. Without it, the screen flickers quite a bit.
+var PREDICTION_THRESHOLD_DEG_PER_S = 0.01;
+//var PREDICTION_THRESHOLD_DEG_PER_S = 0;
 
 // How far into the future to predict.
-var PREDICTION_TIME_MS = 50;
+WEBVR_PREDICTION_TIME_MS = 80;
 
-// Fastest possible angular speed that a human can reasonably produce.
-var MAX_ANGULAR_SPEED_DEG_PER_MS = 1;
-
-var Modes = {
-  NONE: 0,
-  INTERPOLATE: 1,
-  PREDICT: 2
-}
+// Whether to predict or what.
+WEBVR_PREDICTION_MODE = PredictionMode.PREDICT;
 
 function PosePredictor() {
   this.lastQ = new THREE.Quaternion();
@@ -42,11 +43,9 @@ function PosePredictor() {
 
   this.outQ = new THREE.Quaternion();
   this.deltaQ = new THREE.Quaternion();
-
-  this.mode = Modes.PREDICT;
 }
 
-PosePredictor.prototype.getPrediction = function(currentQ, timestamp) {
+PosePredictor.prototype.getPrediction = function(currentQ, rotationRate, timestamp) {
   // If there's no previous quaternion, output the current one and save for
   // later.
   if (!this.lastTimestamp) {
@@ -55,47 +54,45 @@ PosePredictor.prototype.getPrediction = function(currentQ, timestamp) {
     return currentQ;
   }
 
+  // DEBUG ONLY: Try with a fixed 60 Hz update speed.
+  //var elapsedMs = 1000/60;
   var elapsedMs = timestamp - this.lastTimestamp;
 
-  switch (this.mode) {
-    case Modes.INTERPOLATE:
+  switch (WEBVR_PREDICTION_MODE) {
+    case PredictionMode.INTERPOLATE:
       this.outQ.copy(currentQ);
       this.outQ.slerp(this.lastQ, INTERPOLATION_SMOOTHING_FACTOR);
 
       // Save the current quaternion for later.
       this.lastQ.copy(currentQ);
       break;
-    case Modes.PREDICT:
-      // Q_delta = Q_last^-1 * Q_curr
-      this.deltaQ.copy(this.lastQ);
-      this.deltaQ.inverse();
-      this.deltaQ.multiply(currentQ);
-
-      // Convert from delta quaternion to axis-angle.
-      var axis = this.getAxis_(this.deltaQ);
-      var angle = this.getAngle_(this.deltaQ);
-
-      // If there wasn't much rotation over the last frame, don't do prediction.
-      if (THREE.Math.radToDeg(angle) < PREDICTION_THRESHOLD_DEG) {
-        this.outQ.copy(currentQ);
-        break;
+    case PredictionMode.PREDICT:
+      var axisAngle;
+      if (rotationRate) {
+        axisAngle = this.getAxisAngularSpeedFromRotationRate_(rotationRate);
+      } else {
+        axisAngle = this.getAxisAngularSpeedFromGyroDelta_(currentQ, elapsedMs);
       }
 
-      // It took `elapsed` ms to travel the angle amount over the axis. Now,
-      // we make a new quaternion based how far in the future we want to
-      // calculate.
-      var angularSpeed = angle / elapsedMs;
-      var predictAngle = PREDICTION_TIME_MS * angularSpeed;
-
-      // Sanity check angular speed. If it is insane (eg. greater than 1 degree
-      // per millisecond), treat as an outlier and don't predict.
-      if (THREE.Math.radToDeg(angularSpeed) > MAX_ANGULAR_SPEED_DEG_PER_MS) {
+      // If there is no predicted axis/angle, don't do prediction.
+      if (!axisAngle) {
         this.outQ.copy(currentQ);
+        this.lastQ.copy(currentQ);
+        break;
+      }
+      var angularSpeedDegS = axisAngle.speed;
+      var axis = axisAngle.axis;
+      var predictAngleDeg = (WEBVR_PREDICTION_TIME_MS / 1000) * angularSpeedDegS;
+
+      // If we're rotating slowly, don't do prediction.
+      if (angularSpeedDegS < PREDICTION_THRESHOLD_DEG_PER_S) {
+        this.outQ.copy(currentQ);
+        this.lastQ.copy(currentQ);
         break;
       }
 
       // Calculate the prediction delta to apply to the original angle.
-      this.deltaQ.setFromAxisAngle(axis, predictAngle);
+      this.deltaQ.setFromAxisAngle(axis, THREE.Math.degToRad(predictAngleDeg));
       // DEBUG ONLY: As a sanity check, use the same axis and angle as before,
       // which should cause no prediction to happen.
       //this.deltaQ.setFromAxisAngle(axis, angle);
@@ -105,21 +102,28 @@ PosePredictor.prototype.getPrediction = function(currentQ, timestamp) {
 
       // DEBUG ONLY: report the abs. difference between actual and predicted
       // angles.
-      var angleDelta = THREE.Math.radToDeg(predictAngle - angle);
-      if (angleDelta > 5) {
-        console.log('|Actual-Predicted| = %d deg', angleDelta);
+      /*
+      var angleDelta = predictAngleDeg - THREE.Math.radToDeg(angleRad);
+      if (Math.abs(angleDelta) > 5) {
+        console.log('|Actual-Predicted| = %f deg', angleDelta);
       }
+      */
 
-      // Save the current quaternion for later.
+      // Use the predicted quaternion as the new last one.
+      //this.lastQ.copy(this.outQ);
       this.lastQ.copy(currentQ);
       break;
-    case Modes.NONE:
+    case PredictionMode.NONE:
     default:
       this.outQ.copy(currentQ);
   }
   this.lastTimestamp = timestamp;
 
   return this.outQ;
+};
+
+PosePredictor.prototype.setScreenOrientation = function(screenOrientation) {
+  this.screenOrientation = screenOrientation;
 };
 
 PosePredictor.prototype.getAxis_ = function(quat) {
@@ -142,6 +146,129 @@ PosePredictor.prototype.getAngle_ = function(quat) {
     angle -= 2 * Math.PI;
   }
   return angle;
+};
+
+PosePredictor.prototype.getAxisAngularSpeedFromRotationRate_ = function(rotationRate) {
+  if (!rotationRate) {
+    return null;
+  }
+  var screenRotationRate;
+  if (/iPad|iPhone|iPod/.test(navigator.platform)) {
+    // iOS: angular speed in deg/s.
+    var screenRotationRate = this.getScreenAdjustedRotationRateIOS_(rotationRate);
+  } else {
+    // Android: angular speed in rad/s, so need to convert.
+    rotationRate.alpha = THREE.Math.radToDeg(rotationRate.alpha);
+    rotationRate.beta = THREE.Math.radToDeg(rotationRate.beta);
+    rotationRate.gamma = THREE.Math.radToDeg(rotationRate.gamma);
+    var screenRotationRate = this.getScreenAdjustedRotationRate_(rotationRate);
+  }
+  var vec = new THREE.Vector3(
+      screenRotationRate.beta, screenRotationRate.alpha, screenRotationRate.gamma);
+
+  /*
+  var vec;
+  if (/iPad|iPhone|iPod/.test(navigator.platform)) {
+    vec = new THREE.Vector3(rotationRate.gamma, rotationRate.alpha, rotationRate.beta);
+  } else {
+    vec = new THREE.Vector3(rotationRate.beta, rotationRate.alpha, rotationRate.gamma);
+  }
+  // Take into account the screen orientation too!
+  vec.applyQuaternion(this.screenTransform);
+  */
+
+  // Angular speed in deg/s.
+  var angularSpeedDegS = vec.length();
+
+  var axis = vec.normalize();
+  return {
+    speed: angularSpeedDegS,
+    axis: axis
+  }
+};
+
+PosePredictor.prototype.getScreenAdjustedRotationRate_ = function(rotationRate) {
+  var screenRotationRate = {
+    alpha: -rotationRate.alpha,
+    beta: rotationRate.beta,
+    gamma: rotationRate.gamma
+  };
+  switch (this.screenOrientation) {
+    case 90:
+      screenRotationRate.beta  = - rotationRate.gamma;
+      screenRotationRate.gamma =   rotationRate.beta;
+      break;
+    case 180:
+      screenRotationRate.beta  = - rotationRate.beta;
+      screenRotationRate.gamma = - rotationRate.gamma;
+      break;
+    case 270:
+    case -90:
+      screenRotationRate.beta  =   rotationRate.gamma;
+      screenRotationRate.gamma = - rotationRate.beta;
+      break;
+    default: // SCREEN_ROTATION_0
+      screenRotationRate.beta  =   rotationRate.beta;
+      screenRotationRate.gamma =   rotationRate.gamma;
+      break;
+  }
+  return screenRotationRate;
+};
+
+PosePredictor.prototype.getScreenAdjustedRotationRateIOS_ = function(rotationRate) {
+  var screenRotationRate = {
+    alpha: rotationRate.alpha,
+    beta: rotationRate.beta,
+    gamma: rotationRate.gamma
+  };
+  // Values empirically derived.
+  switch (this.screenOrientation) {
+    case 90:
+      screenRotationRate.beta  = -rotationRate.beta;
+      screenRotationRate.gamma =  rotationRate.gamma;
+      break;
+    case 180:
+      // You can't even do this on iOS.
+      break;
+    case 270:
+    case -90:
+      screenRotationRate.alpha = -rotationRate.alpha;
+      screenRotationRate.beta  =  rotationRate.beta;
+      screenRotationRate.gamma =  rotationRate.gamma;
+      break;
+    default: // SCREEN_ROTATION_0
+      screenRotationRate.alpha =  rotationRate.beta;
+      screenRotationRate.beta  =  rotationRate.alpha;
+      screenRotationRate.gamma =  rotationRate.gamma;
+      break;
+  }
+  return screenRotationRate;
+};
+
+PosePredictor.prototype.getAxisAngularSpeedFromGyroDelta_ = function(currentQ, elapsedMs) {
+  // Sometimes we use the same sensor timestamp, in which case prediction
+  // won't work.
+  if (elapsedMs == 0) {
+    return null;
+  }
+  // Q_delta = Q_last^-1 * Q_curr
+  this.deltaQ.copy(this.lastQ);
+  this.deltaQ.inverse();
+  this.deltaQ.multiply(currentQ);
+
+  // Convert from delta quaternion to axis-angle.
+  var axis = this.getAxis_(this.deltaQ);
+  var angleRad = this.getAngle_(this.deltaQ);
+  // It took `elapsed` ms to travel the angle amount over the axis. Now,
+  // we make a new quaternion based how far in the future we want to
+  // calculate.
+  var angularSpeedRadMs = angleRad / elapsedMs;
+  var angularSpeedDegS = THREE.Math.radToDeg(angularSpeedRadMs) * 1000;
+  // If no rotation rate is provided, do no prediction.
+  return {
+    speed: angularSpeedDegS,
+    axis: axis
+  };
 };
 
 module.exports = PosePredictor;
