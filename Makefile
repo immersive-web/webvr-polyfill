@@ -6,6 +6,5 @@ default:
 watch:
 	watchify src/main.js -v -d -o build/webvr-polyfill.js
 
-clean:
-	rm build/webvr-polyfill.js
-	rmdir build
+lint:
+	jscs src/*.js
