@@ -8,6 +8,7 @@
   "description": "Use WebVR today, on mobile or desktop, without requiring a special browser build.",
   "main": "build/webvr-polyfill.js",
   "keywords": [
+    "vr",
     "webvr"
   ],
   "license": "Apache2",
