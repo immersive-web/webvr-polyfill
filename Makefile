@@ -4,7 +4,7 @@ default:
 	cp build/webvr-polyfill.js ../webvr-boilerplate/js/deps
 
 watch:
-	watchify src/main.js -o build/webvr-polyfill.js
+	watchify src/main.js -v -d -o build/webvr-polyfill.js
 
 clean:
 	rm build/webvr-polyfill.js
