@@ -445,11 +445,12 @@ module.exports = MouseKeyboardPositionSensorVRDevice;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var THREE = require('./three-math.js');
 
 var PredictionMode = {
-  NONE: 0,
-  INTERPOLATE: 1,
-  PREDICT: 2
+  NONE: 'none',
+  INTERPOLATE: 'interpolate',
+  PREDICT: 'predict'
 }
 
 // How much to interpolate between the current orientation estimate and the
@@ -532,15 +533,6 @@ PosePredictor.prototype.getPrediction = function(currentQ, rotationRate, timesta
 
       this.outQ.copy(this.lastQ);
       this.outQ.multiply(this.deltaQ);
-
-      // DEBUG ONLY: report the abs. difference between actual and predicted
-      // angles.
-      /*
-      var angleDelta = predictAngleDeg - THREE.Math.radToDeg(angleRad);
-      if (Math.abs(angleDelta) > 5) {
-        console.log('|Actual-Predicted| = %f deg', angleDelta);
-      }
-      */
 
       // Use the predicted quaternion as the new last one.
       //this.lastQ.copy(this.outQ);
@@ -706,7 +698,7 @@ PosePredictor.prototype.getAxisAngularSpeedFromGyroDelta_ = function(currentQ, e
 
 module.exports = PosePredictor;
 
-},{}],7:[function(require,module,exports){
+},{"./three-math.js":7}],7:[function(require,module,exports){
 /*
  * A subset of THREE.js, providing mostly quaternion and euler-related
  * operations, manually lifted from
