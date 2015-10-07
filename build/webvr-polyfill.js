@@ -391,8 +391,8 @@ MouseKeyboardPositionSensorVRDevice.prototype.onMouseMove_ = function(e) {
   }
   // Support pointer lock API.
   if (this.isPointerLocked_()) {
-    var movementX = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
-    var movementY = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
+    var movementX = e.movementX || e.mozMovementX || 0;
+    var movementY = e.movementY || e.mozMovementY || 0;
     this.rotateEnd.set(this.rotateStart.x - movementX, this.rotateStart.y - movementY);
   } else {
     this.rotateEnd.set(e.clientX, e.clientY);
