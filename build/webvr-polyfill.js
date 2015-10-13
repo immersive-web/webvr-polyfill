@@ -148,6 +148,10 @@ function GyroPositionSensorVRDevice() {
   // -PI/2 around the x-axis.
   this.worldTransform = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
 
+  // The quaternion for taking into account the reset position.
+  this.resetTransform = new THREE.Quaternion();
+  this.resetAngle = 0;
+
   this.posePredictor = new PosePredictor();
 }
 GyroPositionSensorVRDevice.prototype = new PositionSensorVRDevice();
@@ -195,7 +199,7 @@ GyroPositionSensorVRDevice.prototype.getOrientation = function() {
 
   // Use three.js to convert to quaternion. Lifted from
   // https://github.com/richtr/threeVR/blob/master/js/DeviceOrientationController.js
-  this.deviceEuler.set(beta, alpha, -gamma, 'YXZ');
+  this.deviceEuler.set(beta, alpha + this.resetAngle, -gamma, 'YXZ');
   this.finalQuaternion.setFromEuler(this.deviceEuler);
   this.minusHalfAngle = -orient / 2;
   this.screenTransform.set(0, Math.sin(this.minusHalfAngle), 0, Math.cos(this.minusHalfAngle));
@@ -228,7 +232,9 @@ GyroPositionSensorVRDevice.prototype.getOrientation = function() {
 };
 
 GyroPositionSensorVRDevice.prototype.resetSensor = function() {
-  console.error('Not implemented yet.');
+  var angle = -THREE.Math.degToRad(this.deviceOrientation.alpha);
+  console.log('Normalizing yaw to %f', angle);
+  this.resetAngle = this.resetAngle - angle;
 };
 
 GyroPositionSensorVRDevice.prototype.setAnimationFrameTime = function(rafTime) {
@@ -333,13 +339,13 @@ MouseKeyboardPositionSensorVRDevice.prototype.getState = function() {
 
 MouseKeyboardPositionSensorVRDevice.prototype.onKeyDown_ = function(e) {
   // Track WASD and arrow keys.
-  if (e.keyCode == 38) { // Up key.
+  if (e.keyCode == 38 || e.keyCode == 87) { // W or Up key.
     this.animatePhi_(this.phi + KEY_SPEED);
-  } else if (e.keyCode == 39) { // Right key.
+  } else if (e.keyCode == 39 || e.keyCode == 68) { // D or Right key.
     this.animateTheta_(this.theta - KEY_SPEED);
-  } else if (e.keyCode == 40) { // Down key.
+  } else if (e.keyCode == 40 || e.keyCode == 83) { // S or Down key.
     this.animatePhi_(this.phi - KEY_SPEED);
-  } else if (e.keyCode == 37) { // Left key.
+  } else if (e.keyCode == 37 || e.keyCode == 65) { // A or Left key.
     this.animateTheta_(this.theta + KEY_SPEED);
   }
 };

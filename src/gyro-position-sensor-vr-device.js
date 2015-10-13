@@ -38,6 +38,10 @@ function GyroPositionSensorVRDevice() {
   // -PI/2 around the x-axis.
   this.worldTransform = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
 
+  // The quaternion for taking into account the reset position.
+  this.resetTransform = new THREE.Quaternion();
+  this.resetAngle = 0;
+
   this.posePredictor = new PosePredictor();
 }
 GyroPositionSensorVRDevice.prototype = new PositionSensorVRDevice();
@@ -85,7 +89,7 @@ GyroPositionSensorVRDevice.prototype.getOrientation = function() {
 
   // Use three.js to convert to quaternion. Lifted from
   // https://github.com/richtr/threeVR/blob/master/js/DeviceOrientationController.js
-  this.deviceEuler.set(beta, alpha, -gamma, 'YXZ');
+  this.deviceEuler.set(beta, alpha + this.resetAngle, -gamma, 'YXZ');
   this.finalQuaternion.setFromEuler(this.deviceEuler);
   this.minusHalfAngle = -orient / 2;
   this.screenTransform.set(0, Math.sin(this.minusHalfAngle), 0, Math.cos(this.minusHalfAngle));
@@ -118,7 +122,9 @@ GyroPositionSensorVRDevice.prototype.getOrientation = function() {
 };
 
 GyroPositionSensorVRDevice.prototype.resetSensor = function() {
-  console.error('Not implemented yet.');
+  var angle = THREE.Math.degToRad(this.deviceOrientation.alpha);
+  console.log('Normalizing yaw to %f', angle);
+  this.resetAngle = this.resetAngle - angle;
 };
 
 GyroPositionSensorVRDevice.prototype.setAnimationFrameTime = function(rafTime) {
