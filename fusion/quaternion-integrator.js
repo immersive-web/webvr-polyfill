@@ -13,6 +13,10 @@ QuaternionIntegrator.prototype.integrate = function(currentQ, adjustedGyro, delt
   return nextQ;
 };
 
+/**
+ * NOTE: this may be way less accurate with 60 Hz compared to the native 200 Hz.
+ * Consider using Runge-Kutta.
+ */
 QuaternionIntegrator.prototype.eulerStateTransition_ =
     function(previousQ, adjustedGyro, stepSize) {
   
