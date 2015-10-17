@@ -126,6 +126,9 @@ var PositionSensorVRDevice = require('./base.js').PositionSensorVRDevice;
 var PosePredictor = require('./pose-predictor.js');
 var THREE = require('./three-math.js');
 var TouchPanner = require('./touch-panner.js');
+var Util = require('./util.js');
+
+WEBVR_YAW_ONLY = false;
 
 /**
  * The positional sensor, implemented using web DeviceOrientation APIs.
@@ -213,29 +216,20 @@ GyroPositionSensorVRDevice.prototype.getOrientation = function() {
   this.finalQuaternion.multiply(this.screenTransform);
   this.finalQuaternion.multiply(this.worldTransform);
 
-  // DEBUG ONLY: Log rotation rate if it's large enough.
-  /*
-  if (this.deviceMotion) {
-    var rotRate = this.deviceMotion.rotationRate;
-    if (Math.abs(rotRate.alpha) > 5) {
-      console.log('Rotation around Z: %f deg', rotRate.alpha);
-    }
-    if (Math.abs(rotRate.beta) > 5) {
-      console.log('Rotation around X: %f deg', rotRate.beta);
-    }
-    if (Math.abs(rotRate.gamma) > 5) {
-      console.log('Rotation around Y: %f deg', rotRate.gamma);
-    }
-  }
-  */
   this.posePredictor.setScreenOrientation(this.screenOrientation);
 
-  //var bestTime = this.rafTime || window.performance.now();
-  //var bestTime = window.performance.now();
   var bestTime = this.deviceOrientation.timeStamp;
   var rotRate = this.deviceMotion && this.deviceMotion.rotationRate;
-  return this.posePredictor.getPrediction(
+  var out = this.posePredictor.getPrediction(
       this.finalQuaternion, rotRate, bestTime);
+
+  // Adjust for pitch constraints (for non-spherical panos).
+  if (WEBVR_YAW_ONLY) {
+    out.x = 0;
+    out.z = 0;
+    out.normalize();
+  }
+  return out;
 };
 
 GyroPositionSensorVRDevice.prototype.resetSensor = function() {
@@ -246,7 +240,7 @@ GyroPositionSensorVRDevice.prototype.resetSensor = function() {
 
 module.exports = GyroPositionSensorVRDevice;
 
-},{"./base.js":1,"./pose-predictor.js":6,"./three-math.js":7,"./touch-panner.js":8}],4:[function(require,module,exports){
+},{"./base.js":1,"./pose-predictor.js":6,"./three-math.js":7,"./touch-panner.js":8,"./util.js":9}],4:[function(require,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -3015,7 +3009,7 @@ module.exports = THREE;
  */
 var THREE = require('./three-math.js');
 
-var ROTATE_SPEED = -0.5;
+var ROTATE_SPEED = 0.5;
 /**
  * Provides a quaternion responsible for pre-panning the scene before further
  * transformations due to device sensors.
@@ -3087,6 +3081,14 @@ var Util = window.Util || {};
 
 Util.clamp = function(value, min, max) {
   return Math.min(Math.max(min, value), max);
+};
+
+Util.mapRange = function(value, minDomain, maxDomain, minRange, maxRange) {
+  // If we're out of range, return an invalid value.
+  var percent = (value - minDomain) / (maxDomain - minDomain);
+  // Clamp percent to [0, 1].
+  percent = Util.clamp(percent, 0, 1);
+  return minRange + percent * (maxRange - minRange);
 };
 
 module.exports = Util;

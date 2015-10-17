@@ -16,6 +16,9 @@ var PositionSensorVRDevice = require('./base.js').PositionSensorVRDevice;
 var PosePredictor = require('./pose-predictor.js');
 var THREE = require('./three-math.js');
 var TouchPanner = require('./touch-panner.js');
+var Util = require('./util.js');
+
+WEBVR_YAW_ONLY = false;
 
 /**
  * The positional sensor, implemented using web DeviceOrientation APIs.
@@ -103,29 +106,20 @@ GyroPositionSensorVRDevice.prototype.getOrientation = function() {
   this.finalQuaternion.multiply(this.screenTransform);
   this.finalQuaternion.multiply(this.worldTransform);
 
-  // DEBUG ONLY: Log rotation rate if it's large enough.
-  /*
-  if (this.deviceMotion) {
-    var rotRate = this.deviceMotion.rotationRate;
-    if (Math.abs(rotRate.alpha) > 5) {
-      console.log('Rotation around Z: %f deg', rotRate.alpha);
-    }
-    if (Math.abs(rotRate.beta) > 5) {
-      console.log('Rotation around X: %f deg', rotRate.beta);
-    }
-    if (Math.abs(rotRate.gamma) > 5) {
-      console.log('Rotation around Y: %f deg', rotRate.gamma);
-    }
-  }
-  */
   this.posePredictor.setScreenOrientation(this.screenOrientation);
 
-  //var bestTime = this.rafTime || window.performance.now();
-  //var bestTime = window.performance.now();
   var bestTime = this.deviceOrientation.timeStamp;
   var rotRate = this.deviceMotion && this.deviceMotion.rotationRate;
-  return this.posePredictor.getPrediction(
+  var out = this.posePredictor.getPrediction(
       this.finalQuaternion, rotRate, bestTime);
+
+  // Adjust for pitch constraints (for non-spherical panos).
+  if (WEBVR_YAW_ONLY) {
+    out.x = 0;
+    out.z = 0;
+    out.normalize();
+  }
+  return out;
 };
 
 GyroPositionSensorVRDevice.prototype.resetSensor = function() {
