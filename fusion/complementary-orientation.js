@@ -14,7 +14,12 @@ function ComplementaryOrientation() {
   this.posePredictor = new PosePredictor(0.050);
 
   this.filterToWorldQ = new THREE.Quaternion();
-  this.filterToWorldQ.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
+
+  // Set the filter to world transform.
+  if (Util.isIOS()) {
+  } else {
+    this.filterToWorldQ.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
+  }
 
   this.worldToScreenQ = new THREE.Quaternion();
   this.setScreenTransform_();
