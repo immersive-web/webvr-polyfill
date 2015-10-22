@@ -17,6 +17,7 @@ function ComplementaryOrientation() {
 
   // Set the filter to world transform.
   if (Util.isIOS()) {
+    this.filterToWorldQ.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
   } else {
     this.filterToWorldQ.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
   }
