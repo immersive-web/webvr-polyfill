@@ -15,10 +15,8 @@ function ComplementaryOrientation() {
 
   this.filterToWorldQ = new THREE.Quaternion();
 
-  // Set the filter to world transform.
-  if (Util.isIOS()) {
-    //this.filterToWorldQ.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
-  } else {
+  // Set the filter to world transform, but only for Android.
+  if (!Util.isIOS()) {
     this.filterToWorldQ.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
   }
 
