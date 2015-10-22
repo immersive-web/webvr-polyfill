@@ -8,10 +8,15 @@
     <meta name="viewport" content="initial-scale=1, maximum-scale=1">
   </head>
   <body>
+    <script src="bower_components/cbuffer/cbuffer.js"></script>
+    <script src="util.js"></script>
+    <script src="sensor-sample.js"></script>
     <script src="device-orientation.js"></script>
     <script src="quaternion-integrator.js"></script>
     <script src="orientation-filter.js"></script>
-    <script src="device-motion.js"></script>
+    <script src="mahony-orientation.js"></script>
+    <script src="complementary-filter.js"></script>
+    <script src="complementary-orientation.js"></script>
     <script>
 mathbox = mathBox({
   plugins: ['core', 'controls', 'cursor'],
@@ -24,7 +29,7 @@ mathbox = mathBox({
 });
 three = mathbox.three;
 
-three.camera.position.set(8, 8, 8);
+three.camera.position.set(0, 12, 0);
 three.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1.0);
 
 view = mathbox.set('focus', 6).cartesian({
@@ -32,14 +37,16 @@ view = mathbox.set('focus', 6).cartesian({
   scale: [3, 3, 3],
 });
 
-var deviceMotion = new DeviceMotion();
+var mahony = new MahonyOrientation();
 var sensorToScreen = new THREE.Quaternion();
 sensorToScreen.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
+
+var complementary = new ComplementaryOrientation();
 
 var gravityPlot = {
   getOrientation: function() {
     var norm = new THREE.Vector3();
-    var sample = deviceMotion.orientationFilter.currentAccelMeasurement.sample;
+    var sample = mahony.orientationFilter.currentAccelMeasurement.sample;
     if (!sample) {
       return norm;
     }
@@ -146,12 +153,13 @@ view.ticks({
   zBias: 3,
 });
 
+/*
 // Show device orientation as a point.
 view.interval({
   id: 'devicemotion',
   length: 1,
   expr: function(emit) {
-    var orientation = deviceMotion.getOrientation();
+    var orientation = mahony.getOrientation();
     emit(orientation.x, orientation.y, orientation.z);
     //emit(.5, .5, .5);
   },
@@ -170,7 +178,7 @@ view.point({
   height: 5,
   depth:  2,
   expr: function (emit, i, j) {
-    emit('orientationfilter');
+    emit('mahony');
   },
 })
 .label({
@@ -182,6 +190,46 @@ view.point({
   depth: .5,
   zIndex: 1,
 });
+*/
+
+
+// Show device orientation as a point.
+view.interval({
+  id: 'complementary',
+  length: 1,
+  expr: function(emit) {
+    var orientation = complementary.getOrientation();
+    emit(orientation.x, orientation.y, orientation.z);
+    //emit(.5, .5, .5);
+  },
+  channels: 3
+});
+
+view.point({
+  color: 0xFF3090,
+  size: 10,
+})
+
+.text({
+  font: 'Helvetica',
+  style: 'bold',
+  width:  6,
+  height: 5,
+  depth:  2,
+  expr: function (emit, i, j) {
+    emit('complementary');
+  },
+})
+.label({
+  color: 0x010101,
+  snap: false,
+  outline: 2,
+  size: 20,
+  offset: [0, -20],
+  depth: .5,
+  zIndex: 1,
+});
+
 
 /*
 // Show gravity.
@@ -223,7 +271,7 @@ view.point({
 view.interval({
   id: 'estimated',
   expr: function(emit) {
-    var filter = deviceMotion.orientationFilter;
+    var filter = mahony.orientationFilter;
     if (!filter.measuredToEstimatedVector) {
       return;
     }

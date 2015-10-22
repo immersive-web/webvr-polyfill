@@ -19,6 +19,15 @@ function DeviceOrientation() {
 }
 
 DeviceOrientation.prototype.getOrientation = function() {
+  this.getQuaternion();
+
+  this.output.set(0, 0, -1);
+  this.output.applyQuaternion(this.finalQuaternion);
+
+  return this.output;
+};
+
+DeviceOrientation.prototype.getQuaternion = function() {
   // Rotation around the z-axis.
   var alpha = THREE.Math.degToRad(this.deviceOrientation.alpha);
   // Front-to-back (in portrait) rotation (x-axis).
@@ -35,11 +44,7 @@ DeviceOrientation.prototype.getOrientation = function() {
   this.screenTransform.set(0, Math.sin(this.minusHalfAngle), 0, Math.cos(this.minusHalfAngle));
   this.finalQuaternion.multiply(this.screenTransform);
   this.finalQuaternion.multiply(this.worldTransform);
-
-  this.output.set(0, 0, -1);
-  this.output.applyQuaternion(this.finalQuaternion);
-
-  return this.output;
+  return this.finalQuaternion;
 };
 
 DeviceOrientation.prototype.onDeviceOrientationChange =

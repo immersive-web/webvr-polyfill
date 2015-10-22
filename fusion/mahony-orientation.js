@@ -1,11 +1,13 @@
+// Amplified constants since they are from native code, which updates at 200 Hz.
+// Here we get updates at 60 Hz.
 const GRAVITY_ESTIMATION = 0.4;
 const BIAS_ESTIMATION = 0.2;
 
-const MIN_TIMESTEP = 0.001;
-const MAX_TIMESTEP = 1;
+MIN_TIMESTEP = 0.001;
+MAX_TIMESTEP = 1;
 
-function DeviceMotion() {
-  this.out = new THREE.Vector3(1,1,1);
+function MahonyOrientation() {
+  this.out = new THREE.Vector3(0, 0, -1);
   this.accelerometer = new THREE.Vector3();
   this.gyroscope = new THREE.Vector3();
 
@@ -21,7 +23,7 @@ function DeviceMotion() {
   this.lastSensorTimestampS = null;
 }
 
-DeviceMotion.prototype.onDeviceMotionChange_ = function(deviceMotion) {
+MahonyOrientation.prototype.onDeviceMotionChange_ = function(deviceMotion) {
   var accGravity = deviceMotion.accelerationIncludingGravity;
   var rotRate = deviceMotion.rotationRate;
   var timestampS = deviceMotion.timeStamp / 1000;
@@ -52,26 +54,24 @@ DeviceMotion.prototype.onDeviceMotionChange_ = function(deviceMotion) {
   this.lastTimestampS = timestampS;
 };
 
-DeviceMotion.prototype.onScreenOrientationChange_ =
+MahonyOrientation.prototype.onScreenOrientationChange_ =
     function(screenOrientation) {
   this.screenOrientation = window.orientation;
 };
 
-DeviceMotion.prototype.getOrientation = function() {
+MahonyOrientation.prototype.getOrientation = function() {
   var filterQuaternion = this.orientationFilter.getOrientation();
   this.finalQuaternion.copy(filterQuaternion);
-  /*
+  this.finalQuaternion.x = filterQuaternion.y;
   this.finalQuaternion.y = filterQuaternion.z;
-  this.finalQuaternion.z = filterQuaternion.y;
-  this.q1 = new THREE.Quaternion();
-  this.q1.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
-  this.q2 = new THREE.Quaternion();
-  //this.q2.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2);
-  this.finalQuaternion.multiply(this.q1);
-  this.finalQuaternion.multiply(this.q2);
-  */
+  this.finalQuaternion.z = filterQuaternion.x;
 
-  this.out.set(0, 0, 1);
+  this.q1 = new THREE.Quaternion();
+  this.q1.setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0));
+  this.finalQuaternion.multiply(this.q1);
+  //this.finalQuaternion.multiply(this.q2);
+
+  this.out.set(0, 0, -1);
   this.out.applyQuaternion(this.finalQuaternion);
   return this.out;
 };

@@ -233,6 +233,7 @@ OrientationFilter.prototype.filterPropagate_ = function() {
   this.nextGyroBias.multiplyScalar(-this.kInt * deltaT)
   this.nextGyroBias.add(this.currentGyroBias);
 
+  /*
   if (this.currentAccelMeasurement.sample.length() > EPSILON) {
     // Slow movements in yaw direction can impair the bias estimate.  The
     // projection onto the gravity plane resets the yaw bias estimation to zero.
@@ -240,10 +241,14 @@ OrientationFilter.prototype.filterPropagate_ = function() {
     normalized.copy(this.currentAccelMeasurement.sample).normalize();
     this.nextGyroBias = projectToPlane(this.nextGyroBias, normalized);
   }
+  */
 
   // state_ = next_state_;
   this.currentGyroBias.copy(this.nextGyroBias);
   this.currentQuaternion.copy(this.nextQuaternion);
+
+  var bias = this.currentGyroBias;
+  //console.log('Gyro bias: [%f, %f, %f]', bias.x, bias.y, bias.z);
 };
 
 OrientationFilter.prototype.computeRateCorrection_ = function() {
@@ -291,19 +296,4 @@ OrientationFilter.prototype.computeRateCorrection_ = function() {
   // Pick out the omega coefficients out of the Omega matrix.
   var elts = omegaAccel.elements;
   return new THREE.Vector3(-elts[6], -elts[8], -elts[1]);
-};
-
-
-
-function SensorSample(sample, timestampS) {
-  this.set(sample, timestampS);
-};
-
-SensorSample.prototype.set = function(sample, timestampS) {
-  this.sample = sample;
-  this.timestampS = timestampS;
-};
-
-SensorSample.prototype.copy = function(sensorSample) {
-  this.set(sensorSample.sample, sensorSample.timestampS);
 };
