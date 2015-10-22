@@ -209,37 +209,31 @@ OrientationFilter.prototype.filterPropagate_ = function() {
   // [prev_x, prev_y, prev_z, curr_x, curr_y, curr_z] this can be accomplished
   // by subtracting the bias_x, bias_y, bias_z from the appropriate elements.
   var rateCorrection = this.computeRateCorrection_();
-  var prev = new THREE.Vector3();
-  var curr = new THREE.Vector3();
+
+  // gyro_measurements.head<3>() = previous_gyro_measurement_.sample;
+  // gyro_measurements.head<3>() +=
+  //     (-state_.tail<3>() + k_prop_ * rate_correction);
+  var adjustedGyro = new THREE.Vector3();
+  // TODO: Switched to currentGyroMeasurement, maybe this is better.
+  adjustedGyro.copy(this.currentGyroMeasurement.sample);
   var gyroDelta = new THREE.Vector3();
   gyroDelta.copy(rateCorrection);
   gyroDelta.multiplyScalar(this.kProp);
-  gyroDelta.sub(this.currentGyroBias);
-  
-  // gyro_measurements.head<3>() +=
-  //     (-state_.tail<3>() + k_prop_ * rate_correction);
-  // gyro_measurements.tail<3>() +=
-  //     (-state_.tail<3>() + k_prop_ * rate_correction);
-  prev.copy(this.previousGyroMeasurement.sample);
-  prev.add(gyroDelta);
-  curr.copy(this.currentGyroMeasurement.sample);
-  curr.add(gyroDelta);
+  gyroDelta.sub(rateCorrection);
+  adjustedGyro.add(gyroDelta);
 
-
-  var currentQ = new THREE.Quaternion();
-  var nextQ = new THREE.Quaternion();
-  currentQ.copy(this.currentQuaternion);
-  nextQ.copy(this.currentQuaternion);
   //quaternion_integrator_.Integrate(current_q, gyro_measurements, delta_t,
   //                                 &next_q);
-  this.quaternionIntegrator.integrate(currentQ, curr, prev, deltaT, nextQ);
+  var nextQ = this.quaternionIntegrator.integrate(
+      this.currentQuaternion, adjustedGyro, deltaT);
 
   this.nextQuaternion.copy(nextQ);
   // next_state_.tail<3>() = state_.tail<3>() - k_int_ * delta_t * rate_correction;
-  this.nextGyroBias.copy(this.currentGyroBias);
-  rateCorrection.multiplyScalar(this.kInt * deltaT)
-  this.nextGyroBias.sub(rateCorrection);
+  this.nextGyroBias.copy(rateCorrection);
+  this.nextGyroBias.multiplyScalar(-this.kInt * deltaT)
+  this.nextGyroBias.add(this.currentGyroBias);
 
+  /*
   if (this.currentAccelMeasurement.sample.length() > EPSILON) {
     // Slow movements in yaw direction can impair the bias estimate.  The
     // projection onto the gravity plane resets the yaw bias estimation to zero.
@@ -247,10 +241,14 @@ OrientationFilter.prototype.filterPropagate_ = function() {
     normalized.copy(this.currentAccelMeasurement.sample).normalize();
     this.nextGyroBias = projectToPlane(this.nextGyroBias, normalized);
   }
+  */
 
   // state_ = next_state_;
   this.currentGyroBias.copy(this.nextGyroBias);
   this.currentQuaternion.copy(this.nextQuaternion);
+
+  var bias = this.currentGyroBias;
+  //console.log('Gyro bias: [%f, %f, %f]', bias.x, bias.y, bias.z);
 };
 
 OrientationFilter.prototype.computeRateCorrection_ = function() {
@@ -280,6 +278,7 @@ OrientationFilter.prototype.computeRateCorrection_ = function() {
 
   // Create the angular velocity tensor and get the omega vector out of it.
   // TODO: Figure this out... 
+  // Plot the vector difference between estimated and measured vectors.
   var omegaAccel = subtractMatrices(
       outerProduct4(accelMeasured, accelEstimated),
       outerProduct4(accelEstimated, accelMeasured));
@@ -288,25 +287,13 @@ OrientationFilter.prototype.computeRateCorrection_ = function() {
   // Debug only.
   if (DEBUG) {
     this.angleDeltaAccelEstimate = accelEstimated.angleTo(accelMeasured);
+    this.accelEstimated = accelEstimated;
+    this.measuredToEstimatedVector = new THREE.Vector3();
+    this.measuredToEstimatedVector.subVectors(accelMeasured, accelEstimated);
   }
 
   // Vector should be ( -[2, 1], -[0, 2], -[1, 0] ).
   // Pick out the omega coefficients out of the Omega matrix.
   var elts = omegaAccel.elements;
   return new THREE.Vector3(-elts[6], -elts[8], -elts[1]);
-};
-
-
-
-function SensorSample(sample, timestampS) {
-  this.set(sample, timestampS);
-};
-
-SensorSample.prototype.set = function(sample, timestampS) {
-  this.sample = sample;
-  this.timestampS = timestampS;
-};
-
-SensorSample.prototype.copy = function(sensorSample) {
-  this.set(sensorSample.sample, sensorSample.timestampS);
 };

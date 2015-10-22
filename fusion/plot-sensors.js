@@ -1,6 +1,5 @@
 var AXES = ['x', 'y', 'z'];
 var HISTORY_SIZE = 100;
-var axis_index = 0;
 var co = new ComplementaryOrientation();
 
 var gyroHistory = new CBuffer(HISTORY_SIZE);
@@ -43,10 +42,31 @@ function loop() {
 }
 loop();
 
-window.addEventListener('touchend', function() {
-  axis_index = (axis_index + 1) % AXES.length;
-  console.log('New axis: %s', AXES[axis_index]);
-});
+
+function onKFilterChanged(value) {
+  co.filter.kFilter = value;
+}
+
+function onPredictionTimeChanged(value) {
+  co.posePredictor.predictionTimeS = value;
+}
+
+function onAxisChanged(value) {
+  console.log('onAxisChanged', value);
+}
+
+
+var SensorFusion = function() {
+  this.kFilter = 0.98;
+  this.predictionTime = 0.05;
+  this.axis = 'x';
+};
+
+var fusion = new SensorFusion();
+var gui = new dat.GUI();
+gui.add(fusion, 'kFilter').min(0).max(1).step(0.01).onChange(onKFilterChanged);
+gui.add(fusion, 'predictionTime').min(0).max(0.2).step(0.01).onChange(onPredictionTimeChanged);
+gui.add(fusion, 'axis', AXES).onChange(onAxisChanged);
 
 mathbox = mathBox({
   plugins: ['core', 'cursor'],
@@ -59,14 +79,9 @@ three = mathbox.three;
 three.camera.position.set(0, 0, 10);
 three.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1.0);
 
-time = 0
-three.on('update', function () {
-  time = three.Time.now
-});
-
 view = mathbox.set('focus', 6).cartesian({
   range: [[-3, 3], [-Math.PI, Math.PI], [-1, 1]],
-  scale: [1.5, 2, 1],
+  scale: [1.5, Math.PI, 1],
 });
 
 // Plot accelerometer.
@@ -75,7 +90,7 @@ view.interval({
   expr: function (emit, x, i, t) {
     var accel = accelHistory.get(i);
     if (accel) {
-      emit(x, accel[AXES[axis_index]]);
+      emit(x, accel[fusion.axis]);
     }
   },
   items: 1,
@@ -97,7 +112,7 @@ view.interval({
   expr: function (emit, x, i, t) {
     var gyro = gyroHistory.get(i);
     if (gyro) {
-      emit(x, gyro[AXES[axis_index]]);
+      emit(x, gyro[fusion.axis]);
     }
   },
   items: 1,
@@ -118,7 +133,7 @@ view.interval({
   expr: function (emit, x, i, t) {
     var filter = filterHistory.get(i);
     if (filter) {
-      emit(x, filter[AXES[axis_index]]);
+      emit(x, filter[fusion.axis]);
     }
   },
   items: 1,
@@ -139,7 +154,7 @@ view.interval({
   expr: function (emit, x, i, t) {
     var predict = predictHistory.get(i);
     if (predict) {
-      emit(x, predict[AXES[axis_index]]);
+      emit(x, predict[fusion.axis]);
     }
   },
   items: 1,

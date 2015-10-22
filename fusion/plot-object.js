@@ -55,14 +55,18 @@ var material = new THREE.MeshBasicMaterial({
 var skybox = new THREE.Mesh(geometry, material);
 scene.add(skybox);
 
-var transform = new THREE.Quaternion();
-//transform.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
 function render() {
-  camera.quaternion.copy(transform);
-  camera.quaternion.multiply(co.getOrientation());
+  camera.quaternion.copy(co.getOrientation());
 
   requestAnimationFrame( render );
   renderer.render( scene, camera );
 }
 render();
 
+
+window.addEventListener('resize', function() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize( window.innerWidth, window.innerHeight );
+});

@@ -7,16 +7,17 @@ function ComplementaryOrientation() {
   this.accelerometer = new THREE.Vector3();
   this.gyroscope = new THREE.Vector3();
 
-  this.screenOrientation = window.orientation;
-
   window.addEventListener('devicemotion', this.onDeviceMotionChange_.bind(this));
   window.addEventListener('orientationchange', this.onScreenOrientationChange_.bind(this));
 
   this.filter = new ComplementaryFilter(0.98);
   this.posePredictor = new PosePredictor(0.050);
 
-  this.filterToWorld = new THREE.Quaternion();
-  this.filterToWorld.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
+  this.filterToWorldQ = new THREE.Quaternion();
+  this.filterToWorldQ.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
+
+  this.worldToScreenQ = new THREE.Quaternion();
+  this.setScreenTransform_();
 }
 
 ComplementaryOrientation.prototype.onDeviceMotionChange_ = function(deviceMotion) {
@@ -42,8 +43,23 @@ ComplementaryOrientation.prototype.onDeviceMotionChange_ = function(deviceMotion
 
 ComplementaryOrientation.prototype.onScreenOrientationChange_ =
     function(screenOrientation) {
-  this.screenOrientation = window.orientation;
-  // TODO: Implement worldToScreen transform.
+  this.setScreenTransform_();
+};
+
+ComplementaryOrientation.prototype.setScreenTransform_ = function() {
+  this.worldToScreenQ.set(0, 0, 0, 1);
+  switch (window.orientation) {
+    case 0:
+      break;
+    case 90:
+      this.worldToScreenQ.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/2);
+      break;
+    case -90: 
+      this.worldToScreenQ.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2);
+      break;
+    case 180:
+      break;
+  }
 };
 
 ComplementaryOrientation.prototype.getOrientation = function() {
@@ -56,7 +72,8 @@ ComplementaryOrientation.prototype.getOrientation = function() {
 
   // Convert to THREE coordinate system: -Z forward, Y up, X right.
   var out = new THREE.Quaternion();
-  out.copy(this.filterToWorld);
+  out.copy(this.filterToWorldQ);
   out.multiply(this.predictedQ);
+  out.multiply(this.worldToScreenQ);
   return out;
 };
