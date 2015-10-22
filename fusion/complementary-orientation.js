@@ -1,5 +1,3 @@
-// Amplified constants since they are from native code, which updates at 200 Hz.
-// Here we get updates at 60 Hz.
 MIN_TIMESTEP = 0.001;
 MAX_TIMESTEP = 1;
 
@@ -16,7 +14,9 @@ function ComplementaryOrientation() {
   this.filterToWorldQ = new THREE.Quaternion();
 
   // Set the filter to world transform, but only for Android.
-  if (!Util.isIOS()) {
+  if (Util.isIOS()) {
+    this.filterToWorldQ.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
+  } else {
     this.filterToWorldQ.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
   }
 
