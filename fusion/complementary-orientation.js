@@ -35,6 +35,12 @@ ComplementaryOrientation.prototype.onDeviceMotionChange_ = function(deviceMotion
   this.accelerometer.set(-accGravity.x, -accGravity.y, -accGravity.z);
   this.gyroscope.set(rotRate.alpha, rotRate.beta, rotRate.gamma);
 
+  // In iOS, rotationRate is reported in degrees, so we first convert to
+  // radians.
+  if (Util.isIOS()) {
+    this.gyroscope.multiplyScalar(Math.PI / 180);
+  }
+
   this.filter.addAccelMeasurement(this.accelerometer, timestampS);
   this.filter.addGyroMeasurement(this.gyroscope, timestampS);
 
