@@ -14,16 +14,29 @@
  */
 var Util = window.Util || {};
 
+Util.MIN_TIMESTEP = 0.001;
+Util.MAX_TIMESTEP = 1;
+
 Util.clamp = function(value, min, max) {
   return Math.min(Math.max(min, value), max);
 };
 
-Util.mapRange = function(value, minDomain, maxDomain, minRange, maxRange) {
-  // If we're out of range, return an invalid value.
-  var percent = (value - minDomain) / (maxDomain - minDomain);
-  // Clamp percent to [0, 1].
-  percent = Util.clamp(percent, 0, 1);
-  return minRange + percent * (maxRange - minRange);
+Util.isIOS = function() {
+  return /iPad|iPhone|iPod/.test(navigator.platform);
 };
+
+// Helper method to validate the time steps of sensor timestamps.
+Util.isTimestampDeltaValid = function(timestampDeltaS) {
+  if (isNaN(timestampDeltaS)) {
+    return false;
+  }
+  if (timestampDeltaS <= Util.MIN_TIMESTEP) {
+    return false;
+  }
+  if (timestampDeltaS > Util.MAX_TIMESTEP) {
+    return false;
+  }
+  return true;
+}
 
 module.exports = Util;

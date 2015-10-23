@@ -31,13 +31,15 @@ function TouchPanner() {
 
   this.theta = 0;
   this.orientation = new THREE.Quaternion();
-  this.euler = new THREE.Euler();
 }
 
 TouchPanner.prototype.getOrientation = function() {
-  this.euler.set(0, this.theta, 0, 'YXZ');
-  this.orientation.setFromEuler(this.euler);
+  this.orientation.setFromEuler(new THREE.Euler(0, 0, this.theta));
   return this.orientation;
+};
+
+TouchPanner.prototype.resetSensor = function() {
+  this.theta = 0;
 };
 
 TouchPanner.prototype.onTouchStart_ = function(e) {
