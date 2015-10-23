@@ -441,7 +441,7 @@ module.exports = FusionPositionSensorVRDevice;
 var WebVRPolyfill = require('./webvr-polyfill.js');
 
 // Initialize a WebVRConfig just in case.
-var WebVRConfig = window.WebVRConfig || {};
+window.WebVRConfig = window.WebVRConfig || {};
 new WebVRPolyfill();
 
 },{"./webvr-polyfill.js":12}],6:[function(require,module,exports){
