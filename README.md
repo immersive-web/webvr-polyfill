@@ -28,8 +28,8 @@ around the scene with the keyboard.
 complementary filter which does sensor fusion. This device also implements pose
 prediction, which greatly improves head tracking performance.
 
-**Deprecated**: `GyroPositionSensorVRDevice` uses DeviceOrientationEvents to
-polyfill head-tracking on mobile devices.
+**Deprecated**: `OrientationPositionSensorVRDevice` uses DeviceOrientationEvents
+to polyfill head-tracking on mobile devices.
 
 **Experimental**: `WebcamPositionSensorVRDevice` uses your laptop's webcam in
 order to introduce translational degrees of freedom.
