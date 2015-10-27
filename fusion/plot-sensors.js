@@ -111,6 +111,17 @@ view.axis({
   color: new THREE.Color(0xFF4136)
 });
 
+view.array({
+  data: [[1,0,0]],
+  channels: 1, // necessary
+  live: false,
+}).text({
+  data: ['time']
+}).label({
+  color: 0x000000,
+});
+
+
 // Plot accelerometer.
 view.interval({
   length: HISTORY_SIZE,
