@@ -110,11 +110,12 @@ view.grid({
 });
 
 view.axis({
-  color: new THREE.Color(0xFF4136)
+  color: new THREE.Color(0x111111),
+  width: 5
 });
 
 view.array({
-  data: [[1.05,0,0]],
+  data: [[1.02,0,0]],
   channels: 1, // necessary
   live: false,
 }).text({
