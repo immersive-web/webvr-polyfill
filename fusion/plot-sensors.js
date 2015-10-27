@@ -80,8 +80,8 @@ three.camera.position.set(0, 0, 10);
 three.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1.0);
 
 view = mathbox.set('focus', 6).cartesian({
-  range: [[0, 2], [-1, 1], [-1, 1]],
-  scale: [2, 2, 1],
+  range: [[0, 1], [-1, 1], [-1, 1]],
+  scale: [1, 2, 1],
 });
 
 // Setup the scene.
