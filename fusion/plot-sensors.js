@@ -114,11 +114,11 @@ view.axis({
 });
 
 view.array({
-  data: [[1,0,0]],
+  data: [[1.05,0,0]],
   channels: 1, // necessary
   live: false,
 }).text({
-  data: ['time']
+  data: ['t']
 }).label({
   color: 0x000000,
 });
