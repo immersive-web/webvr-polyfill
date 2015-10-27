@@ -83,7 +83,7 @@ three.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1.0);
 
 view = mathbox.set('focus', 6).cartesian({
   range: [[0, 1], [-1, 1], [-1, 1]],
-  scale: [1.5, 2, 1],
+  scale: [2, 1, 1],
 });
 
 // Setup the scene.
@@ -103,7 +103,7 @@ view.scale({
 
 view.grid({
   divideX: 10,
-  divideY: 10,
+  divideY: 5,
   width: 1,
   opacity: 0.5,
   zBias: -5,
