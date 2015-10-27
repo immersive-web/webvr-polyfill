@@ -20,12 +20,12 @@ function loop() {
   invGyroOnly.inverse();
   lastGyro.applyQuaternion(invGyroOnly);
   lastGyro.normalize();
-  gyroHistory.push(lastGyro);
+  //gyroHistory.push(lastGyro);
 
   // Filter is ORANGE.
   var lastFilter = new THREE.Vector3();
   lastFilter.copy(co.filter.estimatedGravity);
-  filterHistory.push(lastFilter);
+  //filterHistory.push(lastFilter);
 
   co.getOrientation();
   // Predicted is RED.
@@ -35,7 +35,7 @@ function loop() {
   invPredicted.inverse();
   predict.applyQuaternion(invPredicted);
   predict.normalize();
-  predictHistory.push(predict);
+  //predictHistory.push(predict);
 
 
   requestAnimationFrame(loop);
@@ -67,6 +67,8 @@ var gui = new dat.GUI();
 gui.add(fusion, 'kFilter').min(0).max(1).step(0.01).onChange(onKFilterChanged);
 gui.add(fusion, 'predictionTime').min(0).max(0.2).step(0.01).onChange(onPredictionTimeChanged);
 gui.add(fusion, 'axis', AXES).onChange(onAxisChanged);
+// For some output, hide the gui.
+gui.destroy();
 
 mathbox = mathBox({
   plugins: ['core', 'cursor'],
@@ -81,7 +83,7 @@ three.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1.0);
 
 view = mathbox.set('focus', 6).cartesian({
   range: [[0, 1], [-1, 1], [-1, 1]],
-  scale: [1, 2, 1],
+  scale: [1.5, 2, 1],
 });
 
 // Setup the scene.
