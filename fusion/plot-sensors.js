@@ -80,8 +80,35 @@ three.camera.position.set(0, 0, 10);
 three.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1.0);
 
 view = mathbox.set('focus', 6).cartesian({
-  range: [[-3, 3], [-Math.PI, Math.PI], [-1, 1]],
-  scale: [1.5, Math.PI, 1],
+  range: [[0, 2], [-1, 1], [-1, 1]],
+  scale: [2, 2, 1],
+});
+
+// Setup the scene.
+view.scale({
+  axis: 2,
+  divide: 5,
+})
+.format({
+  expr: function (x) {
+    return x.toPrecision(1);
+  }
+})
+.label({
+  depth: .5,
+  zIndex: 1
+});
+
+view.grid({
+  divideX: 10,
+  divideY: 10,
+  width: 1,
+  opacity: 0.5,
+  zBias: -5,
+});
+
+view.axis({
+  color: new THREE.Color(0xFF4136)
 });
 
 // Plot accelerometer.
