@@ -51,6 +51,9 @@ function FusionPositionSensorVRDevice() {
 
   // Keep track of a reset transform for resetSensor.
   this.resetQ = new THREE.Quaternion();
+
+  this.isFirefoxAndroid = Util.isFirefoxAndroid();
+  this.isIOS = Util.isIOS();
 }
 FusionPositionSensorVRDevice.prototype = new PositionSensorVRDevice();
 
@@ -99,6 +102,11 @@ FusionPositionSensorVRDevice.prototype.onDeviceMotionChange_ = function(deviceMo
   var rotRate = deviceMotion.rotationRate;
   var timestampS = deviceMotion.timeStamp / 1000;
 
+  // Firefox Android timeStamp returns one thousandth of a millisecond.
+  if (this.isFirefoxAndroid) {
+    timestampS /= 1000;
+  }
+
   var deltaS = timestampS - this.previousTimestampS;
   if (deltaS <= Util.MIN_TIMESTEP || deltaS > Util.MAX_TIMESTEP) {
     console.warn('Invalid timestamps detected. Time step between successive ' +
@@ -109,9 +117,9 @@ FusionPositionSensorVRDevice.prototype.onDeviceMotionChange_ = function(deviceMo
   this.accelerometer.set(-accGravity.x, -accGravity.y, -accGravity.z);
   this.gyroscope.set(rotRate.alpha, rotRate.beta, rotRate.gamma);
 
-  // In iOS, rotationRate is reported in degrees, so we first convert to
-  // radians.
-  if (Util.isIOS()) {
+  // With iOS and Firefox Android, rotationRate is reported in degrees,
+  // so we first convert to radians.
+  if (this.isIOS || this.isFirefoxAndroid) {
     this.gyroscope.multiplyScalar(Math.PI / 180);
   }
 
