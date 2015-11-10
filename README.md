@@ -48,4 +48,6 @@ are supported:
       //K_FILTER: 0.98, // Default: 0.98.
       // How far into the future to predict during fast motion.
       //PREDICTION_TIME_S: 0.050, // Default: 0.050s.
+      // Flag to disable touch panner. In case you have your own touch controls
+      //TOUCH_PANNER_DISABLED: true, // Default: false.
     }
