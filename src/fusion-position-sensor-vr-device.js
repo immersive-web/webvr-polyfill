@@ -35,7 +35,9 @@ function FusionPositionSensorVRDevice() {
 
   this.filter = new ComplementaryFilter(WebVRConfig.K_FILTER || 0.98);
   this.posePredictor = new PosePredictor(WebVRConfig.PREDICTION_TIME_S || 0.050);
-  this.touchPanner = new TouchPanner();
+  if (!WebVRConfig.TOUCH_PANNER_DISABLED) {
+    this.touchPanner = new TouchPanner();
+  }
 
   this.filterToWorldQ = new THREE.Quaternion();
 
@@ -82,7 +84,9 @@ FusionPositionSensorVRDevice.prototype.getOrientation = function() {
   var out = new THREE.Quaternion();
   out.copy(this.filterToWorldQ);
   out.multiply(this.resetQ);
-  out.multiply(this.touchPanner.getOrientation());
+  if (this.touchPanner) {
+    out.multiply(this.touchPanner.getOrientation());
+  }
   out.multiply(this.predictedQ);
   out.multiply(this.worldToScreenQ);
   return out;
@@ -94,7 +98,9 @@ FusionPositionSensorVRDevice.prototype.resetSensor = function() {
   var yaw = euler.y;
   console.log('resetSensor with yaw: %f', yaw);
   this.resetQ.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -yaw);
-  this.touchPanner.resetSensor();
+  if (this.touchPanner) {
+    this.touchPanner.resetSensor();
+  }
 };
 
 FusionPositionSensorVRDevice.prototype.onDeviceMotionChange_ = function(deviceMotion) {
@@ -142,7 +148,7 @@ FusionPositionSensorVRDevice.prototype.setScreenTransform_ = function() {
     case 90:
       this.worldToScreenQ.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/2);
       break;
-    case -90: 
+    case -90:
       this.worldToScreenQ.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2);
       break;
     case 180:
