@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 var THREE = require('./three-math.js');
+var Util = require('./util.js');
 
 var ROTATE_SPEED = 0.5;
 /**
@@ -58,6 +59,11 @@ TouchPanner.prototype.onTouchMove_ = function(e) {
   this.rotateEnd.set(e.touches[0].pageX, e.touches[0].pageY);
   this.rotateDelta.subVectors(this.rotateEnd, this.rotateStart);
   this.rotateStart.copy(this.rotateEnd);
+
+  // On iOS, direction is inverted.
+  if (Util.isIOS()) {
+    this.rotateDelta.x *= -1;
+  }
 
   var element = document.body;
   this.theta += 2 * Math.PI * this.rotateDelta.x / element.clientWidth * ROTATE_SPEED;

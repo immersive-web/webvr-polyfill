@@ -3045,6 +3045,7 @@ module.exports = THREE;
  * limitations under the License.
  */
 var THREE = _dereq_('./three-math.js');
+var Util = _dereq_('./util.js');
 
 var ROTATE_SPEED = 0.5;
 /**
@@ -3091,6 +3092,11 @@ TouchPanner.prototype.onTouchMove_ = function(e) {
   this.rotateDelta.subVectors(this.rotateEnd, this.rotateStart);
   this.rotateStart.copy(this.rotateEnd);
 
+  // On iOS, direction is inverted.
+  if (Util.isIOS()) {
+    this.rotateDelta.x *= -1;
+  }
+
   var element = document.body;
   this.theta += 2 * Math.PI * this.rotateDelta.x / element.clientWidth * ROTATE_SPEED;
 };
@@ -3101,7 +3107,7 @@ TouchPanner.prototype.onTouchEnd_ = function(e) {
 
 module.exports = TouchPanner;
 
-},{"./three-math.js":9}],11:[function(_dereq_,module,exports){
+},{"./three-math.js":9,"./util.js":11}],11:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
