@@ -5,7 +5,8 @@
   "authors": [
     "Boris Smus <boris@smus.com>"
   ],
-  "description": "Use WebVR today, on mobile or desktop, without requiring a special browser build.",
+  "description": "Use WebVR today, on mobile or desktop, without requiring a
+  special browser build (package deprecated, use npm).",
   "main": "build/webvr-polyfill.js",
   "keywords": [
     "vr",
@@ -21,6 +22,5 @@
   ],
   "dependencies": {
     "bower": "*",
-    "promise-polyfill": "~2.1.0"
   }
 }
