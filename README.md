@@ -8,7 +8,7 @@ The goal of this project is two fold:
 1. Use WebVR today, without requiring a special browser build.
 2. View (mono) content without a virtual reality headset.
 
-[spec]: http://mozvr.github.io/webvr-spec/webvr.html
+[spec]: https://mozvr.github.io/webvr-spec/
 
 ## Implementation
 
