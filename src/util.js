@@ -69,17 +69,21 @@ Util.getScreenHeight = function() {
       window.devicePixelRatio;
 };
 
-Util.requestFullscreen = function(element) {
-  if (element.requestFullscreen)
+Util.requestFullscreen = function(domElement) {
+  // Ignore the passed in element, fullscreen the document.body instead. This is
+  // to allow for other UI to be overlaid on top of the WebGL canvas.
+  var element = document.body;
+  if (element.requestFullscreen) {
     element.requestFullscreen();
-  else if (element.webkitRequestFullscreen)
+  } else if (element.webkitRequestFullscreen) {
     element.webkitRequestFullscreen();
-  else if (element.mozRequestFullScreen)
+  } else if (element.mozRequestFullScreen) {
     element.mozRequestFullScreen();
-  else if (element.msRequestFullscreen)
+  } else if (element.msRequestFullscreen) {
     element.msRequestFullscreen();
-  else
+  } else {
     return false;
+  }
 
   return true;
 };
