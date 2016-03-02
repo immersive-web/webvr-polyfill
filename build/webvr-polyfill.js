@@ -262,7 +262,7 @@ module.exports.VRDevice = VRDevice;
 module.exports.HMDVRDevice = HMDVRDevice;
 module.exports.PositionSensorVRDevice = PositionSensorVRDevice;
 
-},{"./util.js":18,"./wakelock.js":19}],2:[function(_dereq_,module,exports){
+},{"./util.js":19,"./wakelock.js":20}],2:[function(_dereq_,module,exports){
 /*
  * Copyright 2016 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -278,49 +278,13 @@ module.exports.PositionSensorVRDevice = PositionSensorVRDevice;
  * limitations under the License.
  */
 
+var CardboardUI = _dereq_('./cardboard-ui.js');
 var Util = _dereq_('./util.js');
 var WGLUPreserveGLState = _dereq_('./deps/wglu-preserve-state.js');
 
 // Ideally should be 1.0 to match screen resolution. Many mobile devices are
 // fill-rate bound, though, so we may scale down for performance.
 var CANVAS_OVERSCALE = 1.0
-
-function linkProgram(gl, vertexSource, fragmentSource, attribLocationMap) {
-  // No error checking for brevity.
-  var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-  gl.shaderSource(vertexShader, vertexSource);
-  gl.compileShader(vertexShader);
-
-  var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  gl.shaderSource(fragmentShader, fragmentSource);
-  gl.compileShader(fragmentShader);
-
-  var program = gl.createProgram();
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragmentShader);
-
-  for (var attribName in attribLocationMap)
-    gl.bindAttribLocation(program, attribLocationMap[attribName], attribName);
-
-  gl.linkProgram(program);
-
-  gl.deleteShader(vertexShader);
-  gl.deleteShader(fragmentShader);
-
-  return program;
-}
-
-function getProgramUniforms(gl, program) {
-  var uniforms = {};
-  var uniformCount = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-  var uniformName = '';
-  for (var i = 0; i < uniformCount; i++) {
-    var uniformInfo = gl.getActiveUniform(program, i);
-    uniformName = uniformInfo.name.replace('[0]', '');
-    uniforms[uniformName] = gl.getUniformLocation(program, uniformName);
-  }
-  return uniforms;
-}
 
 var distortionVS = [
   'attribute vec2 position;',
@@ -371,8 +335,8 @@ function CardboardDistorter(gl) {
     position: 0,
     texCoord: 1
   };
-  this.program = linkProgram(gl, distortionVS, distortionFS, this.attribs);
-  this.uniforms = getProgramUniforms(gl, this.program);
+  this.program = Util.linkProgram(gl, distortionVS, distortionFS, this.attribs);
+  this.uniforms = Util.getProgramUniforms(gl, this.program);
 
   this.viewportOffsetScale = new Float32Array(8);
   this.setTextureBounds();
@@ -397,6 +361,8 @@ function CardboardDistorter(gl) {
 
   this.onResize();
 
+  this.cardboardUI = new CardboardUI(gl);
+
   this.patch();
 };
 
@@ -420,6 +386,8 @@ CardboardDistorter.prototype.destroy = function() {
     gl.deleteRenderbuffer(this.depthBuffer);
   if (this.stencilBuffer)
     gl.deleteRenderbuffer(this.stencilBuffer);
+
+  this.cardboardUI.destroy();
 };
 
 
@@ -488,6 +456,9 @@ CardboardDistorter.prototype.onResize = function() {
       console.error('Framebuffer incomplete!');
     }
   });
+
+  if (this.cardboardUI)
+    this.cardboardUI.onResize();
 };
 
 
@@ -648,6 +619,8 @@ CardboardDistorter.prototype.submitFrame = function() {
     // Draws both eyes
     gl.drawElements(gl.TRIANGLES, self.indexCount, gl.UNSIGNED_SHORT, 0);
 
+    self.cardboardUI.renderNoState();
+
     // Bind the fake default framebuffer again
     self.realBindFramebuffer.call(self.gl, gl.FRAMEBUFFER, self.framebuffer);
 
@@ -784,7 +757,247 @@ CardboardDistorter.prototype.computeMeshIndices_ = function(width, height) {
 }
 
 module.exports = CardboardDistorter;
-},{"./deps/wglu-preserve-state.js":5,"./util.js":18}],3:[function(_dereq_,module,exports){
+},{"./cardboard-ui.js":3,"./deps/wglu-preserve-state.js":6,"./util.js":19}],3:[function(_dereq_,module,exports){
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var Util = _dereq_('./util.js');
+var WGLUPreserveGLState = _dereq_('./deps/wglu-preserve-state.js');
+
+var uiVS = [
+  'attribute vec2 position;',
+
+  'uniform mat4 projectionMat;',
+
+  'void main() {',
+  '  gl_Position = projectionMat * vec4( position, -1.0, 1.0 );',
+  '}',
+].join('\n');
+
+var uiFS = [
+  'precision mediump float;',
+
+  'uniform vec4 color;',
+
+  'void main() {',
+  '  gl_FragColor = color;',
+  '}',
+].join('\n');
+
+var DEG2RAD = Math.PI/180.0;
+
+// The gear has 6 identical sections, each spanning 60 degrees.
+var kAnglePerGearSection = 60;
+
+// Half-angle of the span of the outer rim.
+var kOuterRimEndAngle = 12;
+
+// Angle between the middle of the outer rim and the start of the inner rim.
+var kInnerRimBeginAngle = 20;
+
+// Distance from center to outer rim, normalized so that the entire model
+// fits in a [-1, 1] x [-1, 1] square.
+var kOuterRadius = 1;
+
+// Distance from center to depressed rim, in model units.
+var kMiddleRadius = 0.75;
+
+// Radius of the inner hollow circle, in model units.
+var kInnerRadius = 0.3125;
+
+// Center line thickness in DP.
+var kCenterLineThicknessDp = 4;
+
+// Button width in DP.
+var kButtonWidthDp = 28;
+
+// Factor to scale the touch area that responds to the touch.
+var kTouchSlopFactor = 1.5;
+
+var Angles = [
+  0, kOuterRimEndAngle, kInnerRimBeginAngle,
+  kAnglePerGearSection - kInnerRimBeginAngle,
+  kAnglePerGearSection - kOuterRimEndAngle
+];
+
+/**
+ * Renders the alignment line and "options" gear. It is assumed that the canvas
+ * this is rendered into covers the entire screen (or close to it.)
+ */
+function CardboardUI(gl) {
+  this.gl = gl;
+
+  this.attribs = {
+    position: 0
+  };
+  this.program = Util.linkProgram(gl, uiVS, uiFS, this.attribs);
+  this.uniforms = Util.getProgramUniforms(gl, this.program);
+
+  this.vertexBuffer = gl.createBuffer();
+  this.vertexCount = 0;
+
+  this.projMat = new Float32Array(16);
+
+  this.listener = null;
+
+  this.onResize();
+};
+
+/**
+ * Tears down all the resources created by the UI renderer.
+ */
+CardboardUI.prototype.destroy = function() {
+  var gl = this.gl;
+
+  if (this.listener)
+    gl.canvas.removeEventListener('click', this.listener, false);
+
+  gl.deleteProgram(this.program);
+  gl.deleteBuffer(this.vertexBuffer);
+};
+
+/**
+ * Adds a listener to clicks on the gear icon
+ */
+CardboardUI.prototype.listen = function(callback) {
+  var canvas = this.gl.canvas;
+  this.listener = function(event) {
+    var midline = canvas.clientWidth / 2;
+    var buttonSize = kButtonWidthDp * kTouchSlopFactor;
+    // Check to see if the user clicked on (or around) the gear icon
+    if (event.clientX > midline - buttonSize &&
+        event.clientX < midline + buttonSize &&
+        event.clientY > canvas.clientHeight - buttonSize) {
+      callback(event);
+    }
+  };
+  canvas.addEventListener('click', this.listener, false);
+};
+
+/**
+ * Builds the UI mesh.
+ */
+CardboardUI.prototype.onResize = function() {
+  var gl = this.gl;
+  var self = this;
+
+  var glState = [
+    gl.ARRAY_BUFFER_BINDING
+  ];
+
+  WGLUPreserveGLState(gl, glState, function(gl) {
+    var vertices = [];
+
+    var midline = gl.drawingBufferWidth/2;
+
+    // Assumes your canvas width and height is scaled proportionately.
+    var dps = window.devicePixelRatio * (gl.drawingBufferWidth / (screen.width*window.devicePixelRatio));
+
+    var lineWidth = kCenterLineThicknessDp * dps / 2;
+    var buttonHeight = kButtonWidthDp * kTouchSlopFactor * dps;
+    var buttonScale = kButtonWidthDp * dps / 2;
+
+    // Build centerline
+    vertices.push(midline - lineWidth, buttonHeight);
+    vertices.push(midline - lineWidth, gl.drawingBufferHeight);
+    vertices.push(midline + lineWidth, buttonHeight);
+    vertices.push(midline + lineWidth, gl.drawingBufferHeight);
+
+    function addGearSegment(theta, r) {
+      var angle = (90 - theta) * DEG2RAD;
+      var x = Math.cos(angle);
+      var y = Math.sin(angle);
+      vertices.push(kInnerRadius * x * buttonScale + midline, kInnerRadius * y * buttonScale + buttonScale);
+      vertices.push(r * x * buttonScale + midline, r * y * buttonScale + buttonScale);
+    }
+
+    // Build gear
+    for (var i = 0; i <= 6; i++) {
+      var segmentTheta = i * kAnglePerGearSection;
+
+      addGearSegment(segmentTheta, kOuterRadius);
+      addGearSegment(segmentTheta + kOuterRimEndAngle, kOuterRadius);
+      addGearSegment(segmentTheta + kInnerRimBeginAngle, kMiddleRadius);
+      addGearSegment(segmentTheta + (kAnglePerGearSection - kInnerRimBeginAngle), kMiddleRadius);
+      addGearSegment(segmentTheta + (kAnglePerGearSection - kOuterRimEndAngle), kOuterRadius);
+    }
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, self.vertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+    self.vertexCount = (vertices.length / 2) - 4;
+  });
+};
+
+/**
+ * Performs distortion pass on the injected backbuffer, rendering it to the real
+ * backbuffer.
+ */
+CardboardUI.prototype.render = function() {
+  var gl = this.gl;
+  var self = this;
+
+  var glState = [
+    gl.CULL_FACE,
+    gl.DEPTH_TEST,
+    gl.BLEND,
+    gl.SCISSOR_TEST,
+    gl.STENCIL_TEST,
+    gl.COLOR_WRITEMASK,
+    gl.VIEWPORT,
+
+    gl.CURRENT_PROGRAM,
+    gl.ARRAY_BUFFER_BINDING
+  ];
+
+  WGLUPreserveGLState(gl, glState, function(gl) {
+    // Make sure the GL state is in a good place
+    gl.disable(gl.CULL_FACE);
+    gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.BLEND);
+    gl.disable(gl.SCISSOR_TEST);
+    gl.disable(gl.STENCIL_TEST);
+    gl.colorMask(true, true, true, true);
+    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+
+    self.renderNoState();
+  });
+};
+
+CardboardUI.prototype.renderNoState = function() {
+  var gl = this.gl;
+
+  // Bind distortion program and mesh
+  gl.useProgram(this.program);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+  gl.enableVertexAttribArray(this.attribs.position);
+  gl.vertexAttribPointer(this.attribs.position, 2, gl.FLOAT, false, 8, 0);
+
+  gl.uniform4f(this.uniforms.color, 1.0, 1.0, 1.0, 1.0);
+
+  Util.orthoMatrix(this.projMat, 0, gl.drawingBufferWidth, 0, gl.drawingBufferHeight, 0.1, 1024.0);
+  gl.uniformMatrix4fv(this.uniforms.projectionMat, false, this.projMat);
+
+  // Draws UI element
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 4, this.vertexCount);
+};
+
+module.exports = CardboardUI;
+},{"./deps/wglu-preserve-state.js":6,"./util.js":19}],4:[function(_dereq_,module,exports){
 /*
  * Copyright 2016 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -828,6 +1041,7 @@ function CardboardVRDisplay() {
   // "Private" members.
   this.poseSensor_ = new FusionPoseSensor();
   this.distorter_ = null;
+  this.cardboardUI_ = null;
 
   this.dpdb_ = new Dpdb(true, this.onDeviceParamsUpdated_.bind(this));
   this.deviceInfo_ = new DeviceInfo(this.dpdb_.getDeviceParams());
@@ -886,10 +1100,6 @@ CardboardVRDisplay.prototype.onDeviceParamsUpdated_ = function(newParams) {
 };
 
 CardboardVRDisplay.prototype.beginPresent_ = function() {
-  // Provides a way to opt out of distortion
-  if (this.layer_.predistorted)
-    return;
-
   var gl = this.layer_.source.getContext('webgl');
   if (!gl)
     gl = this.layer_.source.getContext('experimental-webgl');
@@ -899,12 +1109,23 @@ CardboardVRDisplay.prototype.beginPresent_ = function() {
   if (!gl)
     return; // Can't do distortion without a WebGL context.
 
-  // Create a new distorter for the target context
-  this.distorter_ = new CardboardDistorter(gl);
-  this.distorter_.updateDeviceInfo(this.deviceInfo_);
+  // Provides a way to opt out of distortion
+  if (this.layer_.predistorted) {
+    this.cardboardUI_ = new CardboardUI(gl);
+  } else {
+    // Create a new distorter for the target context
+    this.distorter_ = new CardboardDistorter(gl);
+    this.distorter_.updateDeviceInfo(this.deviceInfo_);
+    this.cardboardUI_ = this.distorter_.cardboardUI;
 
-  if (this.layer_.leftBounds || this.layer_.rightBounds)
-    this.distorter_.setTextureBounds(this.layer_.leftBounds, this.layer_.rightBounds);
+    if (this.layer_.leftBounds || this.layer_.rightBounds)
+      this.distorter_.setTextureBounds(this.layer_.leftBounds, this.layer_.rightBounds);
+  }
+
+  // TODO: Add Listener for gear click
+  this.cardboardUI_.listen(function() {
+    console.log("Cardboard configuration not yet implemented.");
+  })
 };
 
 CardboardVRDisplay.prototype.endPresent_ = function() {
@@ -917,12 +1138,14 @@ CardboardVRDisplay.prototype.endPresent_ = function() {
 CardboardVRDisplay.prototype.submitFrame = function(pose) {
   if (this.distorter_) {
     this.distorter_.submitFrame();
+  } else if (this.cardboardUI_) {
+    this.cardboardUI_.render();
   }
 };
 
 module.exports = CardboardVRDisplay;
 
-},{"./base.js":1,"./cardboard-distorter.js":2,"./device-info.js":6,"./dpdb/dpdb.js":10,"./fusion-pose-sensor.js":11}],4:[function(_dereq_,module,exports){
+},{"./base.js":1,"./cardboard-distorter.js":2,"./device-info.js":7,"./dpdb/dpdb.js":11,"./fusion-pose-sensor.js":12}],5:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1090,7 +1313,7 @@ ComplementaryFilter.prototype.gyroToQuaternionDelta_ = function(gyro, dt) {
 
 module.exports = ComplementaryFilter;
 
-},{"./sensor-sample.js":15,"./three-math.js":16,"./util.js":18}],5:[function(_dereq_,module,exports){
+},{"./sensor-sample.js":16,"./three-math.js":17,"./util.js":19}],6:[function(_dereq_,module,exports){
 /*
 Copyright (c) 2016, Brandon Jones.
 
@@ -1255,7 +1478,7 @@ function WGLUPreserveGLState(gl, bindings, callback) {
 }
 
 module.exports = WGLUPreserveGLState;
-},{}],6:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1640,7 +1863,7 @@ function CardboardViewer(params) {
 // Export viewer information.
 DeviceInfo.Viewers = Viewers;
 module.exports = DeviceInfo;
-},{"./distortion/distortion.js":8,"./three-math.js":16,"./util.js":18}],7:[function(_dereq_,module,exports){
+},{"./distortion/distortion.js":9,"./three-math.js":17,"./util.js":19}],8:[function(_dereq_,module,exports){
 /*
  * Copyright 2016 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1732,7 +1955,7 @@ module.exports.VRDisplayHMDDevice = VRDisplayHMDDevice;
 module.exports.VRDisplayPositionSensorDevice = VRDisplayPositionSensorDevice;
 
 
-},{"./base.js":1}],8:[function(_dereq_,module,exports){
+},{"./base.js":1}],9:[function(_dereq_,module,exports){
 /**
  * TODO(smus): Implement coefficient inversion.
  */
@@ -1781,7 +2004,7 @@ Distortion.prototype.distort = function(radius) {
 }
 
 module.exports = Distortion;
-},{}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -2752,7 +2975,7 @@ var DPDB_CACHE = {
 
 module.exports = DPDB_CACHE;
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -2942,7 +3165,7 @@ function DeviceParams(params) {
 }
 
 module.exports = Dpdb;
-},{"../util.js":18,"./dpdb-cache.js":9}],11:[function(_dereq_,module,exports){
+},{"../util.js":19,"./dpdb-cache.js":10}],12:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -3109,7 +3332,7 @@ FusionPoseSensor.prototype.setScreenTransform_ = function() {
 
 module.exports = FusionPoseSensor;
 
-},{"./complementary-filter.js":4,"./pose-predictor.js":14,"./three-math.js":16,"./touch-panner.js":17,"./util.js":18}],12:[function(_dereq_,module,exports){
+},{"./complementary-filter.js":5,"./pose-predictor.js":15,"./three-math.js":17,"./touch-panner.js":18,"./util.js":19}],13:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -3125,6 +3348,7 @@ module.exports = FusionPoseSensor;
  * limitations under the License.
  */
 var WebVRPolyfill = _dereq_('./webvr-polyfill.js');
+window.CardboardUI = _dereq_('./cardboard-ui.js');
 
 // Initialize a WebVRConfig just in case.
 window.WebVRConfig = window.WebVRConfig || {};
@@ -3137,7 +3361,7 @@ if (!window.WebVRConfig.DEFER_INITIALIZATION) {
   }
 }
 
-},{"./webvr-polyfill.js":20}],13:[function(_dereq_,module,exports){
+},{"./cardboard-ui.js":3,"./webvr-polyfill.js":21}],14:[function(_dereq_,module,exports){
 /*
  * Copyright 2016 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -3316,7 +3540,7 @@ MouseKeyboardVRDisplay.prototype.resetPose = function() {
 
 module.exports = MouseKeyboardVRDisplay;
 
-},{"./base.js":1,"./three-math.js":16,"./util.js":18}],14:[function(_dereq_,module,exports){
+},{"./base.js":1,"./three-math.js":17,"./util.js":19}],15:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -3399,7 +3623,7 @@ PosePredictor.prototype.getPrediction = function(currentQ, gyro, timestampS) {
 
 module.exports = PosePredictor;
 
-},{"./three-math.js":16}],15:[function(_dereq_,module,exports){
+},{"./three-math.js":17}],16:[function(_dereq_,module,exports){
 function SensorSample(sample, timestampS) {
   this.set(sample, timestampS);
 };
@@ -3415,7 +3639,7 @@ SensorSample.prototype.copy = function(sensorSample) {
 
 module.exports = SensorSample;
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 /*
  * A subset of THREE.js, providing mostly quaternion and euler-related
  * operations, manually lifted from
@@ -5710,7 +5934,7 @@ THREE.Math = {
 
 module.exports = THREE;
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -5788,7 +6012,7 @@ TouchPanner.prototype.onTouchEnd_ = function(e) {
 
 module.exports = TouchPanner;
 
-},{"./three-math.js":16,"./util.js":18}],18:[function(_dereq_,module,exports){
+},{"./three-math.js":17,"./util.js":19}],19:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -5818,7 +6042,15 @@ Util.clamp = function(value, min, max) {
 
 Util.lerp = function(a, b, t) {
   return a + ((b - a) * t);
-}
+};
+
+Util.pingPong = function(t, length) {
+  if (t < 0) t = -t;
+
+  var mult = Math.floor(t / length);
+  var mod = t - (length * mult);
+  return mult % 2 ? length - mod : mod;
+};
 
 Util.isIOS = function() {
   return /iPad|iPhone|iPod/.test(navigator.platform);
@@ -5889,9 +6121,69 @@ Util.getFullscreenElement = function() {
       document.msFullscreenElement;
 };
 
+Util.linkProgram = function(gl, vertexSource, fragmentSource, attribLocationMap) {
+  // No error checking for brevity.
+  var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(vertexShader, vertexSource);
+  gl.compileShader(vertexShader);
+
+  var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(fragmentShader, fragmentSource);
+  gl.compileShader(fragmentShader);
+
+  var program = gl.createProgram();
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+
+  for (var attribName in attribLocationMap)
+    gl.bindAttribLocation(program, attribLocationMap[attribName], attribName);
+
+  gl.linkProgram(program);
+
+  gl.deleteShader(vertexShader);
+  gl.deleteShader(fragmentShader);
+
+  return program;
+};
+
+Util.getProgramUniforms = function(gl, program) {
+  var uniforms = {};
+  var uniformCount = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+  var uniformName = '';
+  for (var i = 0; i < uniformCount; i++) {
+    var uniformInfo = gl.getActiveUniform(program, i);
+    uniformName = uniformInfo.name.replace('[0]', '');
+    uniforms[uniformName] = gl.getUniformLocation(program, uniformName);
+  }
+  return uniforms;
+};
+
+Util.orthoMatrix = function (out, left, right, bottom, top, near, far) {
+  var lr = 1 / (left - right),
+      bt = 1 / (bottom - top),
+      nf = 1 / (near - far);
+  out[0] = -2 * lr;
+  out[1] = 0;
+  out[2] = 0;
+  out[3] = 0;
+  out[4] = 0;
+  out[5] = -2 * bt;
+  out[6] = 0;
+  out[7] = 0;
+  out[8] = 0;
+  out[9] = 0;
+  out[10] = 2 * nf;
+  out[11] = 0;
+  out[12] = (left + right) * lr;
+  out[13] = (top + bottom) * bt;
+  out[14] = (far + near) * nf;
+  out[15] = 1;
+  return out;
+};
+
 module.exports = Util;
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -5966,7 +6258,7 @@ function getWakeLock() {
 }
 
 module.exports = getWakeLock();
-},{"./util.js":18}],20:[function(_dereq_,module,exports){
+},{"./util.js":19}],21:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -6144,4 +6436,4 @@ WebVRPolyfill.prototype.isCardboardCompatible = function() {
 
 module.exports = WebVRPolyfill;
 
-},{"./base.js":1,"./cardboard-vr-display.js":3,"./display-wrappers.js":7,"./mouse-keyboard-vr-display.js":13}]},{},[12]);
+},{"./base.js":1,"./cardboard-vr-display.js":4,"./display-wrappers.js":8,"./mouse-keyboard-vr-display.js":14}]},{},[13]);
