@@ -19,7 +19,7 @@ var WGLUPreserveGLState = require('./deps/wglu-preserve-state.js');
 
 // Ideally should be 1.0 to match screen resolution. Many mobile devices are
 // fill-rate bound, though, so we may scale down for performance.
-var CANVAS_OVERSCALE = 1.0
+var CANVAS_OVERSCALE = 1.0;
 
 var distortionVS = [
   'attribute vec2 position;',
@@ -87,12 +87,13 @@ function CardboardDistorter(gl) {
   this.depthBuffer = null;
   this.stencilBuffer = null;
 
-  if (this.ctxAttribs.depth && this.ctxAttribs.stencil)
+  if (this.ctxAttribs.depth && this.ctxAttribs.stencil) {
     this.depthStencilBuffer = gl.createRenderbuffer();
-  else if (this.ctxAttribs.depth)
+  } else if (this.ctxAttribs.depth) {
     this.depthBuffer = gl.createRenderbuffer();
-  else if (this.ctxAttribs.stencil)
+  } else if (this.ctxAttribs.stencil) {
     this.stencilBuffer = gl.createRenderbuffer();
+  }
 
   this.onResize();
 
@@ -115,12 +116,15 @@ CardboardDistorter.prototype.destroy = function() {
   gl.deleteBuffer(this.indexBuffer);
   gl.deleteTexture(this.renderTarget);
   gl.deleteFramebuffer(this.framebuffer);
-  if (this.depthStencilBuffer)
+  if (this.depthStencilBuffer) {
     gl.deleteRenderbuffer(this.depthStencilBuffer);
-  if (this.depthBuffer)
+  }
+  if (this.depthBuffer) {
     gl.deleteRenderbuffer(this.depthBuffer);
-  if (this.stencilBuffer)
+  }
+  if (this.stencilBuffer) {
     gl.deleteRenderbuffer(this.stencilBuffer);
+  }
 
   this.cardboardUI.destroy();
 };
@@ -187,15 +191,15 @@ CardboardDistorter.prototype.onResize = function() {
           gl.RENDERBUFFER, self.stencilBuffer);
     }
 
-    if(!gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE) {
+    if (!gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE) {
       console.error('Framebuffer incomplete!');
     }
   });
 
-  if (this.cardboardUI)
+  if (this.cardboardUI) {
     this.cardboardUI.onResize();
+  }
 };
-
 
 CardboardDistorter.prototype.patch = function() {
   if (this.isPatched) {
@@ -240,7 +244,6 @@ CardboardDistorter.prototype.patch = function() {
 
   this.isPatched = true;
 };
-
 
 CardboardDistorter.prototype.unpatch = function() {
   if (!this.isPatched) {
