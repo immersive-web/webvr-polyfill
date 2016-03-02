@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var PositionSensorVRDevice = require('./base.js').PositionSensorVRDevice;
+
 var ComplementaryFilter = require('./complementary-filter.js');
 var PosePredictor = require('./pose-predictor.js');
 var TouchPanner = require('./touch-panner.js');
@@ -19,9 +21,9 @@ var THREE = require('./three-math.js');
 var Util = require('./util.js');
 
 /**
- * The pose sensor, implemented using DeviceMotion APIs.
+ * The positional sensor, implemented using DeviceMotion APIs.
  */
-function FusionPoseSensor() {
+function FusionPositionSensorVRDevice() {
   this.deviceId = 'webvr-polyfill:fused';
   this.deviceName = 'VR Position Device (webvr-polyfill:fused)';
 
@@ -52,16 +54,23 @@ function FusionPoseSensor() {
 
   this.isFirefoxAndroid = Util.isFirefoxAndroid();
   this.isIOS = Util.isIOS();
-
-  this.orientationOut_ = new Float32Array(4);
 }
+FusionPositionSensorVRDevice.prototype = new PositionSensorVRDevice();
 
-FusionPoseSensor.prototype.getPosition = function() {
-  // This PoseSensor doesn't support position
-  return null;
+/**
+ * Returns {orientation: {x,y,z,w}, position: null}.
+ * Position is not supported since we can't do 6DOF.
+ */
+FusionPositionSensorVRDevice.prototype.getState = function() {
+  return {
+    hasOrientation: true,
+    orientation: this.getOrientation(),
+    hasPosition: false,
+    position: null
+  }
 };
 
-FusionPoseSensor.prototype.getOrientation = function() {
+FusionPositionSensorVRDevice.prototype.getOrientation = function() {
   // Convert from filter space to the the same system used by the
   // deviceorientation event.
   var orientation = this.filter.getOrientation();
@@ -86,28 +95,21 @@ FusionPoseSensor.prototype.getOrientation = function() {
     out.z = 0;
     out.normalize();
   }
-
-  this.orientationOut_[0] = out.x;
-  this.orientationOut_[1] = out.y;
-  this.orientationOut_[2] = out.z;
-  this.orientationOut_[3] = out.w;
-  return this.orientationOut_;
+  return out;
 };
 
-FusionPoseSensor.prototype.resetPose = function() {
-  // Reduce to inverted yaw-only
-  this.resetQ.copy(this.filter.getOrientation());
-  this.resetQ.x = 0;
-  this.resetQ.y = 0;
-  this.resetQ.z *= -1;
-  this.resetQ.normalize();
-
+FusionPositionSensorVRDevice.prototype.resetSensor = function() {
+  var euler = new THREE.Euler();
+  euler.setFromQuaternion(this.filter.getOrientation());
+  var yaw = euler.y;
+  console.log('resetSensor with yaw: %f', yaw);
+  this.resetQ.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -yaw);
   if (!WebVRConfig.TOUCH_PANNER_DISABLED) {
     this.touchPanner.resetSensor();
   }
 };
 
-FusionPoseSensor.prototype.onDeviceMotionChange_ = function(deviceMotion) {
+FusionPositionSensorVRDevice.prototype.onDeviceMotionChange_ = function(deviceMotion) {
   var accGravity = deviceMotion.accelerationIncludingGravity;
   var rotRate = deviceMotion.rotationRate;
   var timestampS = deviceMotion.timeStamp / 1000;
@@ -139,12 +141,12 @@ FusionPoseSensor.prototype.onDeviceMotionChange_ = function(deviceMotion) {
   this.previousTimestampS = timestampS;
 };
 
-FusionPoseSensor.prototype.onScreenOrientationChange_ =
+FusionPositionSensorVRDevice.prototype.onScreenOrientationChange_ =
     function(screenOrientation) {
   this.setScreenTransform_();
 };
 
-FusionPoseSensor.prototype.setScreenTransform_ = function() {
+FusionPositionSensorVRDevice.prototype.setScreenTransform_ = function() {
   this.worldToScreenQ.set(0, 0, 0, 1);
   switch (window.orientation) {
     case 0:
@@ -162,4 +164,4 @@ FusionPoseSensor.prototype.setScreenTransform_ = function() {
 };
 
 
-module.exports = FusionPoseSensor;
+module.exports = FusionPositionSensorVRDevice;
