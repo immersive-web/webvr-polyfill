@@ -7,7 +7,9 @@
     "Brandon Jones <tojiro@gmail.com>"
   ],
   "description": "Use WebVR today, on mobile or desktop, without requiring a special browser build.",
-  "dependencies": {},
+  "dependencies": {
+    "es6-promise": "^3.0.2"
+  },
   "devDependencies": {
     "browserify": "latest",
     "derequire": "latest",
