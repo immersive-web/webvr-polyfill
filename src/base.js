@@ -62,6 +62,11 @@ VRDisplay.prototype.cancelAnimationFrame = function(id) {
 };
 
 VRDisplay.prototype.requestPresent = function(layer) {
+  // Always use document.body for the fullscreen element, since we want to be
+  // able to render UI on top of the WebGL canvas.
+  //var fullscreenElement = layer.source;
+  var fullscreenElement = document.body;
+
   var self = this;
   this.layer_ = layer;
 
@@ -74,9 +79,9 @@ VRDisplay.prototype.requestPresent = function(layer) {
     self.waitingForPresent_ = false;
     if (layer && layer.source) {
       function onFullscreenChange() {
-        var fullscreenElement = Util.getFullscreenElement();
+        var actualFullscreenElement = Util.getFullscreenElement();
 
-        self.isPresenting = fullscreenElement === layer.source;
+        self.isPresenting = (fullscreenElement === actualFullscreenElement);
         self.fireVRDisplayPresentChange_();
         if (self.isPresenting) {
           if (screen.orientation && screen.orientation.lock)
@@ -105,10 +110,10 @@ VRDisplay.prototype.requestPresent = function(layer) {
         reject(new Error('Unable to present.'));
       }
 
-      self.addFullscreenListeners_(layer.source,
+      self.addFullscreenListeners_(fullscreenElement,
           onFullscreenChange, onFullscreenError);
 
-      if (Util.requestFullscreen(layer.source)) {
+      if (Util.requestFullscreen(fullscreenElement)) {
         self.wakelock_.request();
         self.waitingForPresent_ = true;
       } else if (Util.isIOS()) {
@@ -159,7 +164,7 @@ VRDisplay.prototype.getLayers = function() {
 };
 
 VRDisplay.prototype.fireVRDisplayPresentChange_ = function() {
-  var event = new CustomEvent('vrdisplaypresentchange', { detail: { vrdisplay: this }});
+  var event = new CustomEvent('vrdisplaypresentchange', {detail: {vrdisplay: this}});
   window.dispatchEvent(event);
 };
 
