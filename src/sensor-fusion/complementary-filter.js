@@ -17,8 +17,8 @@
  * TODO: Fix up all "new THREE" instantiations to improve performance.
  */
 var SensorSample = require('./sensor-sample.js');
-var THREE = require('./three-math.js');
-var Util = require('./util.js');
+var THREE = require('../three-math.js');
+var Util = require('../util.js');
 
 var DEBUG = false;
 

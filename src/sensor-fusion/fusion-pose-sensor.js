@@ -14,9 +14,9 @@
  */
 var ComplementaryFilter = require('./complementary-filter.js');
 var PosePredictor = require('./pose-predictor.js');
-var TouchPanner = require('./touch-panner.js');
-var THREE = require('./three-math.js');
-var Util = require('./util.js');
+var TouchPanner = require('../touch-panner.js');
+var THREE = require('../three-math.js');
+var Util = require('../util.js');
 
 /**
  * The pose sensor, implemented using DeviceMotion APIs.

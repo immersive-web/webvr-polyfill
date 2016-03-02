@@ -16,7 +16,7 @@
 var CardboardDistorter = require('./cardboard-distorter.js');
 var DeviceInfo = require('./device-info.js');
 var Dpdb = require('./dpdb/dpdb.js');
-var FusionPoseSensor = require('./fusion-pose-sensor.js');
+var FusionPoseSensor = require('./sensor-fusion/fusion-pose-sensor.js');
 var VRDisplay = require('./base.js').VRDisplay;
 
 var Eye = {

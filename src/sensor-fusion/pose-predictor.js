@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var THREE = require('./three-math.js');
+var THREE = require('../three-math.js');
 
 var DEBUG = false;
 
