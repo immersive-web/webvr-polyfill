@@ -17,7 +17,10 @@ var CardboardDistorter = require('./cardboard-distorter.js');
 var DeviceInfo = require('./device-info.js');
 var Dpdb = require('./dpdb/dpdb.js');
 var FusionPoseSensor = require('./sensor-fusion/fusion-pose-sensor.js');
+var RotateInstructions = require('./rotate-instructions.js');
+var ViewerSelector = require('./viewer-selector.js');
 var VRDisplay = require('./base.js').VRDisplay;
+var Util = require('./util.js');
 
 var Eye = {
   LEFT: 'left',
@@ -46,9 +49,13 @@ function CardboardVRDisplay() {
   this.dpdb_ = new Dpdb(true, this.onDeviceParamsUpdated_.bind(this));
   this.deviceInfo_ = new DeviceInfo(this.dpdb_.getDeviceParams());
 
-  // TODO: How to handle viewer selection?
-  /*this.deviceInfo.viewer = DeviceInfo.Viewers[this.viewerSelector.selectedKey];
-  console.log('Using the %s viewer.', this.getViewer().label);*/
+  this.viewerSelector_ = new ViewerSelector();
+  this.viewerSelector_.on('change', this.onViewerChanged_.bind(this));
+
+  // Set the correct initial viewer.
+  this.deviceInfo_.setViewer(this.viewerSelector_.getCurrentViewer());
+
+  this.rotateInstructions_ = new RotateInstructions();
 }
 CardboardVRDisplay.prototype = new VRDisplay();
 
@@ -95,8 +102,9 @@ CardboardVRDisplay.prototype.onDeviceParamsUpdated_ = function(newParams) {
   console.log('DPDB reported that device params were updated.');
   this.deviceInfo_.updateDeviceParams(newParams);
 
-  if (this.distorter_)
+  if (this.distorter_) {
     this.distorter.updateDeviceInfo(this.deviceInfo_);
+  }
 };
 
 CardboardVRDisplay.prototype.beginPresent_ = function() {
@@ -118,14 +126,26 @@ CardboardVRDisplay.prototype.beginPresent_ = function() {
     this.distorter_.updateDeviceInfo(this.deviceInfo_);
     this.cardboardUI_ = this.distorter_.cardboardUI;
 
-    if (this.layer_.leftBounds || this.layer_.rightBounds)
+    if (this.layer_.leftBounds || this.layer_.rightBounds) {
       this.distorter_.setTextureBounds(this.layer_.leftBounds, this.layer_.rightBounds);
+    }
   }
 
-  // TODO: Add Listener for gear click
   this.cardboardUI_.listen(function() {
-    console.log("Cardboard configuration not yet implemented.");
-  })
+    this.viewerSelector_.show();
+  }.bind(this));
+
+  if (Util.isLandscapeMode() && Util.isMobile()) {
+    // In landscape mode, temporarily show the "put into Cardboard"
+    // interstitial. Otherwise, do the default thing.
+    this.rotateInstructions_.showTemporarily(3000);
+  } else {
+    this.rotateInstructions_.update();
+  }
+
+  // Listen for orientation change events in order to show interstitial.
+  this.orientationHandler = this.onOrientationChange_.bind(this);
+  window.addEventListener('orientationchange', this.orientationHandler);
 };
 
 CardboardVRDisplay.prototype.endPresent_ = function() {
@@ -133,6 +153,11 @@ CardboardVRDisplay.prototype.endPresent_ = function() {
     this.distorter_.destroy();
     this.distorter_ = null;
   }
+
+  this.rotateInstructions_.hide();
+  this.viewerSelector_.hide();
+
+  window.removeEventListener('orientationchange', this.orientationHandler);
 };
 
 CardboardVRDisplay.prototype.submitFrame = function(pose) {
@@ -141,6 +166,27 @@ CardboardVRDisplay.prototype.submitFrame = function(pose) {
   } else if (this.cardboardUI_) {
     this.cardboardUI_.render();
   }
+};
+
+CardboardVRDisplay.prototype.onOrientationChange_ = function(e) {
+  console.log('onOrientationChange_');
+
+  // Hide the viewer selector.
+  this.viewerSelector_.hide();
+
+  // Update the rotate instructions.
+  this.rotateInstructions_.update();
+};
+
+CardboardVRDisplay.prototype.onViewerChanged_ = function(viewer) {
+  this.deviceInfo_.setViewer(viewer);
+
+  // Update the distortion appropriately.
+  this.distorter_.updateDeviceInfo(this.deviceInfo_);
+
+  // TODO: Emit a custom event which includes device info and viewer info. This
+  // is for clients that want to implement their own geometry-based distortion.
+  //this.emit('viewerchange', viewer);
 };
 
 module.exports = CardboardVRDisplay;
