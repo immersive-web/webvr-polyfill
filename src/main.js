@@ -13,15 +13,7 @@
  * limitations under the License.
  */
 var WebVRPolyfill = require('./webvr-polyfill.js');
-window.CardboardUI = require('./cardboard-ui.js');
 
 // Initialize a WebVRConfig just in case.
 window.WebVRConfig = window.WebVRConfig || {};
-
-if (!window.WebVRConfig.DEFER_INITIALIZATION) {
-  new WebVRPolyfill();
-} else {
-  window.InitializeWebVRPolyfill = function() {
-   new WebVRPolyfill();
-  }
-}
+new WebVRPolyfill();

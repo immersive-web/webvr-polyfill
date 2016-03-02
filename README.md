@@ -54,10 +54,5 @@ are supported:
       // for panoramas with nothing interesting above or below.
       //YAW_ONLY: true, // Default: false.
       // To disable keyboard and mouse controls. If you implement your own.
-      //MOUSE_KEYBOARD_CONTROLS_DISABLED: true, // Default: false
-      // Prevent the polyfill from initializing immediately. Requiures the app
-      // to call InitializeWebVRPolyfill() before it can be used.
-      //DEFER_INITIALIZATION: true, // default: false
-      // Enable the deprecated version of the API (navigator.getVRDevices)
-      //ENABLE_DEPRECATED_API: true // default: false
+      //MOUSE_KEYBOARD_CONTROLS_DISABLED: true // Default: false
     }
