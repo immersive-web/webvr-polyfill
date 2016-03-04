@@ -40,6 +40,9 @@ function VRDisplay() {
   this.waitingForPresent_ = false;
   this.layer_ = null;
 
+  this.fullscreenElement_ = null;
+  this.fullscreenWrapper_ = null;
+
   this.fullscreenEventTarget_ = null;
   this.fullscreenChangeHandler_ = null;
   this.fullscreenErrorHandler_ = null;
@@ -61,11 +64,49 @@ VRDisplay.prototype.cancelAnimationFrame = function(id) {
   return window.cancelAnimationFrame(id);
 };
 
+VRDisplay.prototype.wrapForFullscreen = function(element) {
+  if (Util.isIOS())
+    return element;
+
+  if (!this.fullscreenWrapper_) {
+    this.fullscreenWrapper_ = document.createElement('div');
+    this.fullscreenWrapper_.classList.add('webvr-polyfill-fullscreen-wrapper');
+  }
+
+  if (this.fullscreenElement_ == element)
+    return this.fullscreenWrapper_;
+
+  // Remove any previously applied wrappers
+  this.removeFullscreenWrapper();
+
+  this.fullscreenElement_ = element;
+  var parent = this.fullscreenElement_.parentElement;
+  parent.insertBefore(this.fullscreenWrapper_, this.fullscreenElement_);
+  parent.removeChild(this.fullscreenElement_);
+  this.fullscreenWrapper_.insertBefore(this.fullscreenElement_, this.fullscreenWrapper_.firstChild);
+
+  return this.fullscreenWrapper_;
+};
+
+VRDisplay.prototype.removeFullscreenWrapper = function() {
+  if (!this.fullscreenElement_)
+    return;
+
+  var element = this.fullscreenElement_;
+  this.fullscreenElement_ = null;
+
+  var parent = this.fullscreenWrapper_.parentElement;
+  this.fullscreenWrapper_.removeChild(element);
+  parent.insertBefore(element, this.fullscreenWrapper_);
+  parent.removeChild(this.fullscreenWrapper_);
+
+  return element;
+};
+
 VRDisplay.prototype.requestPresent = function(layer) {
   // Always use document.body for the fullscreen element, since we want to be
   // able to render UI on top of the WebGL canvas.
   //var fullscreenElement = layer.source;
-  var fullscreenElement = document.body;
 
   var self = this;
   this.layer_ = layer;
@@ -78,6 +119,8 @@ VRDisplay.prototype.requestPresent = function(layer) {
 
     self.waitingForPresent_ = false;
     if (layer && layer.source) {
+      var fullscreenElement = self.wrapForFullscreen(layer.source);
+
       function onFullscreenChange() {
         var actualFullscreenElement = Util.getFullscreenElement();
 
@@ -92,6 +135,7 @@ VRDisplay.prototype.requestPresent = function(layer) {
         } else {
           if (screen.orientation && screen.orientation.unlock)
             screen.orientation.unlock();
+          self.removeFullscreenWrapper();
           self.wakelock_.release();
           self.endPresent_();
           self.removeFullscreenListeners_();
@@ -101,6 +145,7 @@ VRDisplay.prototype.requestPresent = function(layer) {
         if (!self.waitingForPresent_)
           return;
 
+        self.removeFullscreenWrapper();
         self.removeFullscreenListeners_();
 
         self.wakelock_.release();
@@ -145,6 +190,8 @@ VRDisplay.prototype.exitPresent = function() {
       if (!Util.exitFullscreen() && Util.isIOS()) {
         self.endPresent_();
       }
+
+      self.removeFullscreenWrapper();
 
       resolve();
     } else {
