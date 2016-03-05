@@ -27,11 +27,6 @@ var Eye = {
   RIGHT: 'right'
 };
 
-// Ideally should be higher than 1.0 to compensate for distortion. That's highly
-// detrimental on fill-rate bound devices, though, so we're actually
-// underreporting the ideal canvas size for the polyfill.
-var CANVAS_OVERSCALE = 1.0;
-
 /**
  * VRDisplay based on mobile device parameters and DeviceMotion APIs.
  */
@@ -42,6 +37,7 @@ function CardboardVRDisplay() {
   this.capabilities.canPresent = true;
 
   // "Private" members.
+  this.bufferScale_ = WebVRConfig.BUFFER_SCALE ? WebVRConfig.BUFFER_SCALE : 1.0;
   this.poseSensor_ = new FusionPoseSensor();
   this.distorter_ = null;
   this.cardboardUI_ = null;
@@ -93,8 +89,8 @@ CardboardVRDisplay.prototype.getEyeParameters = function(whichEye) {
     fieldOfView: fieldOfView,
     offset: offset,
     // TODO: Should be able to provide better values than these.
-    renderWidth: this.deviceInfo_.device.width * 0.5 * CANVAS_OVERSCALE,
-    renderHeight: this.deviceInfo_.device.height * CANVAS_OVERSCALE,
+    renderWidth: this.deviceInfo_.device.width * 0.5 * this.bufferScale_,
+    renderHeight: this.deviceInfo_.device.height * this.bufferScale_,
   };
 };
 

@@ -1292,10 +1292,6 @@ var CardboardUI = _dereq_('./cardboard-ui.js');
 var Util = _dereq_('./util.js');
 var WGLUPreserveGLState = _dereq_('./deps/wglu-preserve-state.js');
 
-// Ideally should be 1.0 to match screen resolution. Many mobile devices are
-// fill-rate bound, though, so we may scale down for performance.
-var CANVAS_OVERSCALE = 1.0;
-
 var distortionVS = [
   'attribute vec2 position;',
   'attribute vec3 texCoord;',
@@ -1331,6 +1327,8 @@ function CardboardDistorter(gl) {
 
   this.meshWidth = 20;
   this.meshHeight = 20;
+
+  this.bufferScale = WebVRConfig.BUFFER_SCALE ? WebVRConfig.BUFFER_SCALE : 1.0;
 
   this.bufferWidth = gl.drawingBufferWidth;
   this.bufferHeight = gl.drawingBufferHeight;
@@ -1419,7 +1417,7 @@ CardboardDistorter.prototype.onResize = function() {
     gl.COLOR_CLEAR_VALUE,
     gl.FRAMEBUFFER_BINDING,
     gl.RENDERBUFFER_BINDING,
-    gl.TEXTURE_BINDING_2D, gl.TEXTURE0,
+    gl.TEXTURE_BINDING_2D, gl.TEXTURE0
   ];
 
   WGLUPreserveGLState(gl, glState, function(gl) {
@@ -1484,8 +1482,8 @@ CardboardDistorter.prototype.patch = function() {
   var self = this;
   var canvas = this.gl.canvas;
 
-  canvas.width = Util.getScreenWidth() * CANVAS_OVERSCALE;
-  canvas.height = Util.getScreenHeight() * CANVAS_OVERSCALE;
+  canvas.width = Util.getScreenWidth() * this.bufferScale;
+  canvas.height = Util.getScreenHeight() * this.bufferScale;
 
   Object.defineProperty(canvas, 'width', {
     configurable: true,
@@ -1579,14 +1577,18 @@ CardboardDistorter.prototype.submitFrame = function() {
     gl.SCISSOR_TEST,
     gl.STENCIL_TEST,
     gl.COLOR_WRITEMASK,
-    gl.VIEWPORT,
-
-    gl.FRAMEBUFFER_BINDING,
-    gl.CURRENT_PROGRAM,
-    gl.ARRAY_BUFFER_BINDING,
-    gl.ELEMENT_ARRAY_BUFFER_BINDING,
-    gl.TEXTURE_BINDING_2D, gl.TEXTURE0
+    gl.VIEWPORT
   ];
+
+  if (!WebVRConfig.DIRTY_SUBMIT_FRAME_BINDINGS) {
+    glState.push(
+      gl.FRAMEBUFFER_BINDING,
+      gl.CURRENT_PROGRAM,
+      gl.ARRAY_BUFFER_BINDING,
+      gl.ELEMENT_ARRAY_BUFFER_BINDING,
+      gl.TEXTURE_BINDING_2D, gl.TEXTURE0
+    );
+  }
 
   if (self.ctxAttribs.alpha) {
     glState.push(gl.COLOR_CLEAR_VALUE);
@@ -2041,11 +2043,6 @@ var Eye = {
   RIGHT: 'right'
 };
 
-// Ideally should be higher than 1.0 to compensate for distortion. That's highly
-// detrimental on fill-rate bound devices, though, so we're actually
-// underreporting the ideal canvas size for the polyfill.
-var CANVAS_OVERSCALE = 1.0;
-
 /**
  * VRDisplay based on mobile device parameters and DeviceMotion APIs.
  */
@@ -2056,6 +2053,7 @@ function CardboardVRDisplay() {
   this.capabilities.canPresent = true;
 
   // "Private" members.
+  this.bufferScale_ = WebVRConfig.BUFFER_SCALE ? WebVRConfig.BUFFER_SCALE : 1.0;
   this.poseSensor_ = new FusionPoseSensor();
   this.distorter_ = null;
   this.cardboardUI_ = null;
@@ -2107,8 +2105,8 @@ CardboardVRDisplay.prototype.getEyeParameters = function(whichEye) {
     fieldOfView: fieldOfView,
     offset: offset,
     // TODO: Should be able to provide better values than these.
-    renderWidth: this.deviceInfo_.device.width * 0.5 * CANVAS_OVERSCALE,
-    renderHeight: this.deviceInfo_.device.height * CANVAS_OVERSCALE,
+    renderWidth: this.deviceInfo_.device.width * 0.5 * this.bufferScale_,
+    renderHeight: this.deviceInfo_.device.height * this.bufferScale_,
   };
 };
 
