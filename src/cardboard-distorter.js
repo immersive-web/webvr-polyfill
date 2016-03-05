@@ -17,10 +17,6 @@ var CardboardUI = require('./cardboard-ui.js');
 var Util = require('./util.js');
 var WGLUPreserveGLState = require('./deps/wglu-preserve-state.js');
 
-// Ideally should be 1.0 to match screen resolution. Many mobile devices are
-// fill-rate bound, though, so we may scale down for performance.
-var CANVAS_OVERSCALE = 1.0;
-
 var distortionVS = [
   'attribute vec2 position;',
   'attribute vec3 texCoord;',
@@ -56,6 +52,8 @@ function CardboardDistorter(gl) {
 
   this.meshWidth = 20;
   this.meshHeight = 20;
+
+  this.bufferScale = WebVRConfig.BUFFER_SCALE ? WebVRConfig.BUFFER_SCALE : 1.0;
 
   this.bufferWidth = gl.drawingBufferWidth;
   this.bufferHeight = gl.drawingBufferHeight;
@@ -144,7 +142,7 @@ CardboardDistorter.prototype.onResize = function() {
     gl.COLOR_CLEAR_VALUE,
     gl.FRAMEBUFFER_BINDING,
     gl.RENDERBUFFER_BINDING,
-    gl.TEXTURE_BINDING_2D, gl.TEXTURE0,
+    gl.TEXTURE_BINDING_2D, gl.TEXTURE0
   ];
 
   WGLUPreserveGLState(gl, glState, function(gl) {
@@ -209,8 +207,8 @@ CardboardDistorter.prototype.patch = function() {
   var self = this;
   var canvas = this.gl.canvas;
 
-  canvas.width = Util.getScreenWidth() * CANVAS_OVERSCALE;
-  canvas.height = Util.getScreenHeight() * CANVAS_OVERSCALE;
+  canvas.width = Util.getScreenWidth() * this.bufferScale;
+  canvas.height = Util.getScreenHeight() * this.bufferScale;
 
   Object.defineProperty(canvas, 'width', {
     configurable: true,
@@ -304,14 +302,18 @@ CardboardDistorter.prototype.submitFrame = function() {
     gl.SCISSOR_TEST,
     gl.STENCIL_TEST,
     gl.COLOR_WRITEMASK,
-    gl.VIEWPORT,
-
-    gl.FRAMEBUFFER_BINDING,
-    gl.CURRENT_PROGRAM,
-    gl.ARRAY_BUFFER_BINDING,
-    gl.ELEMENT_ARRAY_BUFFER_BINDING,
-    gl.TEXTURE_BINDING_2D, gl.TEXTURE0
+    gl.VIEWPORT
   ];
+
+  if (!WebVRConfig.DIRTY_SUBMIT_FRAME_BINDINGS) {
+    glState.push(
+      gl.FRAMEBUFFER_BINDING,
+      gl.CURRENT_PROGRAM,
+      gl.ARRAY_BUFFER_BINDING,
+      gl.ELEMENT_ARRAY_BUFFER_BINDING,
+      gl.TEXTURE_BINDING_2D, gl.TEXTURE0
+    );
+  }
 
   if (self.ctxAttribs.alpha) {
     glState.push(gl.COLOR_CLEAR_VALUE);
