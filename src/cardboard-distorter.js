@@ -58,11 +58,28 @@ function CardboardDistorter(gl) {
   this.bufferWidth = gl.drawingBufferWidth;
   this.bufferHeight = gl.drawingBufferHeight;
 
+  // Patching support
   this.realBindFramebuffer = gl.bindFramebuffer;
+  this.realEnable = gl.enable;
+  this.realDisable = gl.disable;
+  this.realColorMask = gl.colorMask;
+  this.realClearColor = gl.clearColor;
+  this.realViewport = gl.viewport;
   this.realCanvasWidth = Object.getOwnPropertyDescriptor(gl.canvas.__proto__, 'width');
   this.realCanvasHeight = Object.getOwnPropertyDescriptor(gl.canvas.__proto__, 'height');
 
   this.isPatched = false;
+
+  // State tracking
+  this.lastBoundFramebuffer = null;
+  this.cullFace = false;
+  this.depthTest = false;
+  this.blend = false;
+  this.scissorTest = false;
+  this.stencilTest = false;
+  this.viewport = [0, 0, 0, 0];
+  this.colorMask = [true, true, true, true];
+  this.clearColor = [0, 0, 0, 0];
 
   this.attribs = {
     position: 0,
@@ -136,11 +153,6 @@ CardboardDistorter.prototype.onResize = function() {
   var self = this;
 
   var glState = [
-    gl.SCISSOR_TEST,
-    gl.COLOR_WRITEMASK,
-    gl.VIEWPORT,
-    gl.COLOR_CLEAR_VALUE,
-    gl.FRAMEBUFFER_BINDING,
     gl.RENDERBUFFER_BINDING,
     gl.TEXTURE_BINDING_2D, gl.TEXTURE0
   ];
@@ -150,10 +162,12 @@ CardboardDistorter.prototype.onResize = function() {
     // after that because we're overwriting the same area every frame.
     self.realBindFramebuffer.call(gl, gl.FRAMEBUFFER, null);
 
-    gl.disable(gl.SCISSOR_TEST);
-    gl.colorMask(true, true, true, true);
-    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-    gl.clearColor(0, 0, 0, 1);
+    // Put things in a good state
+    if (self.scissorTest) { self.realDisable.call(gl, gl.SCISSOR_TEST); }
+    self.realColorMask.call(gl, true, true, true, true);
+    self.realViewport.call(gl, 0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    self.realClearColor.call(gl, 0, 0, 0, 1);
+
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     // Now bind and resize the fake backbuffer
@@ -192,6 +206,14 @@ CardboardDistorter.prototype.onResize = function() {
     if (!gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE) {
       console.error('Framebuffer incomplete!');
     }
+
+    self.realBindFramebuffer.call(gl, gl.FRAMEBUFFER, self.lastBoundFramebuffer);
+
+    if (self.scissorTest) { self.realEnable.call(gl, gl.SCISSOR_TEST); }
+
+    self.realColorMask.apply(gl, self.colorMask);
+    self.realViewport.apply(gl, self.viewport);
+    self.realClearColor.apply(gl, self.clearColor);
   });
 
   if (this.cardboardUI) {
@@ -206,6 +228,7 @@ CardboardDistorter.prototype.patch = function() {
 
   var self = this;
   var canvas = this.gl.canvas;
+  var gl = this.gl;
 
   canvas.width = Util.getScreenWidth() * this.bufferScale;
   canvas.height = Util.getScreenHeight() * this.bufferScale;
@@ -234,10 +257,72 @@ CardboardDistorter.prototype.patch = function() {
     }
   });
 
+  this.lastBoundFramebuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING);
+
+  if (this.lastBoundFramebuffer == null) {
+    this.lastBoundFramebuffer = this.framebuffer;
+    this.gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+  }
+
   this.gl.bindFramebuffer = function(target, framebuffer) {
+    self.lastBoundFramebuffer = framebuffer ? framebuffer : self.framebuffer;
     // Silently make calls to bind the default framebuffer bind ours instead.
-    self.realBindFramebuffer.call(self.gl, target,
-        framebuffer ? framebuffer : self.framebuffer);
+    self.realBindFramebuffer.call(gl, target, self.lastBoundFramebuffer);
+  };
+
+  this.cullFace = gl.getParameter(gl.CULL_FACE);
+  this.depthTest = gl.getParameter(gl.DEPTH_TEST);
+  this.blend = gl.getParameter(gl.BLEND);
+  this.scissorTest = gl.getParameter(gl.SCISSOR_TEST);
+  this.stencilTest = gl.getParameter(gl.STENCIL_TEST);
+
+  gl.enable = function(pname) {
+    switch(pname) {
+      case gl.CULL_FACE: self.cullFace = true; break;
+      case gl.DEPTH_TEST: self.depthTest = true; break;
+      case gl.BLEND: self.blend = true; break;
+      case gl.SCISSOR_TEST: self.scissorTest = true; break;
+      case gl.STENCIL_TEST: self.stencilTest = true; break;
+    }
+    self.realEnable.call(gl, pname);
+  };
+
+  gl.disable = function(pname) {
+    switch(pname) {
+      case gl.CULL_FACE: self.cullFace = false; break;
+      case gl.DEPTH_TEST: self.depthTest = false; break;
+      case gl.BLEND: self.blend = false; break;
+      case gl.SCISSOR_TEST: self.scissorTest = false; break;
+      case gl.STENCIL_TEST: self.stencilTest = false; break;
+    }
+    self.realDisable.call(gl, pname);
+  };
+
+  this.colorMask = gl.getParameter(gl.COLOR_WRITEMASK);
+  gl.colorMask = function(r, g, b, a) {
+    self.colorMask[0] = r;
+    self.colorMask[1] = g;
+    self.colorMask[2] = b;
+    self.colorMask[3] = a;
+    self.realColorMask.call(gl, r, g, b, a);
+  };
+
+  this.clearColor = gl.getParameter(gl.COLOR_CLEAR_VALUE);
+  gl.clearColor = function(r, g, b, a) {
+    self.clearColor[0] = r;
+    self.clearColor[1] = g;
+    self.clearColor[2] = b;
+    self.clearColor[3] = a;
+    self.realClearColor.call(gl, r, g, b, a);
+  };
+
+  this.viewport = gl.getParameter(gl.VIEWPORT);
+  gl.viewport = function(x, y, w, h) {
+    self.viewport[0] = x;
+    self.viewport[1] = y;
+    self.viewport[2] = w;
+    self.viewport[3] = h;
+    self.realViewport.call(gl, x, y, w, h);
   };
 
   this.isPatched = true;
@@ -257,10 +342,15 @@ CardboardDistorter.prototype.unpatch = function() {
   canvas.height = this.bufferHeight;
 
   gl.bindFramebuffer = this.realBindFramebuffer;
+  gl.enable = this.realEnable;
+  gl.disable = this.realDisable;
+  gl.colorMask = this.realColorMask;
+  gl.clearColor = this.realClearColor;
+  gl.viewport = this.realViewport;
+
   // Check to see if our fake backbuffer is bound and bind the real backbuffer
   // if that's the case.
-  var framebufferBinding = gl.getParameter(gl.FRAMEBUFFER_BINDING);
-  if (framebufferBinding == this.framebuffer) {
+  if (this.lastBoundFramebuffer == this.framebuffer) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
@@ -295,19 +385,10 @@ CardboardDistorter.prototype.submitFrame = function() {
   var gl = this.gl;
   var self = this;
 
-  var glState = [
-    gl.CULL_FACE,
-    gl.DEPTH_TEST,
-    gl.BLEND,
-    gl.SCISSOR_TEST,
-    gl.STENCIL_TEST,
-    gl.COLOR_WRITEMASK,
-    gl.VIEWPORT
-  ];
+  var glState = [];
 
   if (!WebVRConfig.DIRTY_SUBMIT_FRAME_BINDINGS) {
     glState.push(
-      gl.FRAMEBUFFER_BINDING,
       gl.CURRENT_PROGRAM,
       gl.ARRAY_BUFFER_BINDING,
       gl.ELEMENT_ARRAY_BUFFER_BINDING,
@@ -315,27 +396,23 @@ CardboardDistorter.prototype.submitFrame = function() {
     );
   }
 
-  if (self.ctxAttribs.alpha) {
-    glState.push(gl.COLOR_CLEAR_VALUE);
-  }
-
   WGLUPreserveGLState(gl, glState, function(gl) {
     // Bind the real default framebuffer
     self.realBindFramebuffer.call(gl, gl.FRAMEBUFFER, null);
 
     // Make sure the GL state is in a good place
-    gl.disable(gl.CULL_FACE);
-    gl.disable(gl.DEPTH_TEST);
-    gl.disable(gl.BLEND);
-    gl.disable(gl.SCISSOR_TEST);
-    gl.disable(gl.STENCIL_TEST);
-    gl.colorMask(true, true, true, true);
-    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    if (self.cullFace) { self.realDisable.call(gl, gl.CULL_FACE); }
+    if (self.depthTest) { self.realDisable.call(gl, gl.DEPTH_TEST); }
+    if (self.blend) { self.realDisable.call(gl, gl.BLEND); }
+    if (self.scissorTest) { self.realDisable.call(gl, gl.SCISSOR_TEST); }
+    if (self.stencilTest) { self.realDisable.call(gl, gl.STENCIL_TEST); }
+    self.realColorMask.call(gl, true, true, true, true);
+    self.realViewport.call(gl, 0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
     // If the backbuffer has an alpha channel clear every frame so the page
     // doesn't show through.
     if (self.ctxAttribs.alpha) {
-      gl.clearColor(0, 0, 0, 1);
+      self.realClearColor.call(gl, 0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
     }
 
@@ -366,7 +443,25 @@ CardboardDistorter.prototype.submitFrame = function() {
 
     // If preserveDrawingBuffer == false clear the framebuffer
     if (!self.ctxAttribs.preserveDrawingBuffer) {
+      self.realClearColor.call(gl, 0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
+    }
+
+    if (!WebVRConfig.DIRTY_SUBMIT_FRAME_BINDINGS) {
+      self.realBindFramebuffer.call(gl, gl.FRAMEBUFFER, self.lastBoundFramebuffer);
+    }
+
+    // Restore state
+    if (self.cullFace) { self.realEnable.call(gl, gl.CULL_FACE); }
+    if (self.depthTest) { self.realEnable.call(gl, gl.DEPTH_TEST); }
+    if (self.blend) { self.realEnable.call(gl, gl.BLEND); }
+    if (self.scissorTest) { self.realEnable.call(gl, gl.SCISSOR_TEST); }
+    if (self.stencilTest) { self.realEnable.call(gl, gl.STENCIL_TEST); }
+
+    self.realColorMask.apply(gl, self.colorMask);
+    self.realViewport.apply(gl, self.viewport);
+    if (self.ctxAttribs.alpha || !self.ctxAttribs.preserveDrawingBuffer) {
+      self.realClearColor.apply(gl, self.clearColor);
     }
   });
 };
