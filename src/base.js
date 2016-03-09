@@ -225,14 +225,14 @@ VRDisplay.prototype.addFullscreenListeners_ = function(element, changeHandler, e
   if (changeHandler) {
     element.addEventListener('fullscreenchange', changeHandler, false);
     element.addEventListener('webkitfullscreenchange', changeHandler, false);
-    element.addEventListener('mozfullscreenchange', changeHandler, false);
+    document.addEventListener('mozfullscreenchange', changeHandler, false);
     element.addEventListener('msfullscreenchange', changeHandler, false);
   }
 
   if (errorHandler) {
     element.addEventListener('fullscreenerror', errorHandler, false);
     element.addEventListener('webkitfullscreenerror', errorHandler, false);
-    element.addEventListener('mozfullscreenerror', errorHandler, false);
+    document.addEventListener('mozfullscreenerror', errorHandler, false);
     element.addEventListener('msfullscreenerror', errorHandler, false);
   }
 };
@@ -247,7 +247,7 @@ VRDisplay.prototype.removeFullscreenListeners_ = function() {
     var changeHandler = this.fullscreenChangeHandler_;
     element.removeEventListener('fullscreenchange', changeHandler, false);
     element.removeEventListener('webkitfullscreenchange', changeHandler, false);
-    element.removeEventListener('mozfullscreenchange', changeHandler, false);
+    document.removeEventListener('mozfullscreenchange', changeHandler, false);
     element.removeEventListener('msfullscreenchange', changeHandler, false);
   }
 
@@ -255,7 +255,7 @@ VRDisplay.prototype.removeFullscreenListeners_ = function() {
     var errorHandler = this.fullscreenErrorHandler_;
     element.removeEventListener('fullscreenerror', errorHandler, false);
     element.removeEventListener('webkitfullscreenerror', errorHandler, false);
-    element.removeEventListener('mozfullscreenerror', errorHandler, false);
+    document.removeEventListener('mozfullscreenerror', errorHandler, false);
     element.removeEventListener('msfullscreenerror', errorHandler, false);
   }
 
