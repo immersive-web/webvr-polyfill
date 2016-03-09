@@ -225,14 +225,14 @@ VRDisplay.prototype.addFullscreenListeners_ = function(element, changeHandler, e
   if (changeHandler) {
     element.addEventListener('fullscreenchange', changeHandler, false);
     element.addEventListener('webkitfullscreenchange', changeHandler, false);
-    element.addEventListener('mozfullscreenchange', changeHandler, false);
+    document.addEventListener('mozfullscreenchange', changeHandler, false);
     element.addEventListener('msfullscreenchange', changeHandler, false);
   }
 
   if (errorHandler) {
     element.addEventListener('fullscreenerror', errorHandler, false);
     element.addEventListener('webkitfullscreenerror', errorHandler, false);
-    element.addEventListener('mozfullscreenerror', errorHandler, false);
+    document.addEventListener('mozfullscreenerror', errorHandler, false);
     element.addEventListener('msfullscreenerror', errorHandler, false);
   }
 };
