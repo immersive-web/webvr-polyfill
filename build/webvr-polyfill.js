@@ -152,8 +152,10 @@ CardboardHMDVRDevice.prototype.setInterpupillaryDistance = function(ipd) {
 
 
 /**
- * Changes the render rect (ie. viewport) where each eye is rendered. Again,
+ * Changes the render rect (ie. viewport) where each eye is rendered. This is
  * useful for changing Cardboard viewers.
+ *
+ * Possibly a useful addition to the WebVR spec?
  *
  * @param {Rect} opt_rectLeft Viewport for left eye.
  * @param {Rect} opt_rectRight Viewport for right eye.
