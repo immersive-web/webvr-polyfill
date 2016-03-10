@@ -71,6 +71,10 @@ VRDisplay.prototype.wrapForFullscreen = function(element) {
   if (!this.fullscreenWrapper_) {
     this.fullscreenWrapper_ = document.createElement('div');
     this.fullscreenWrapper_.classList.add('webvr-polyfill-fullscreen-wrapper');
+    // Make sure the wrapper takes the full screen. Without this, there is a
+    // white line at the bottom.
+    this.fullscreenWrapper_.style.width = '100%';
+    this.fullscreenWrapper_.style.height = '100%';
   }
 
   if (this.fullscreenElement_ == element)
