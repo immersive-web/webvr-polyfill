@@ -128,7 +128,7 @@ CardboardVRDisplay.prototype.beginPresent_ = function() {
   }
 
   this.cardboardUI_.listen(function() {
-    this.viewerSelector_.show();
+    this.viewerSelector_.show(this.layer_.source.parentElement);
   }.bind(this));
 
   if (Util.isLandscapeMode() && Util.isMobile()) {
