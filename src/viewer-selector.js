@@ -35,6 +35,7 @@ function ViewerSelector() {
     console.error('Failed to load viewer profile: %s', error);
   }
   this.dialog = this.createDialog_(DeviceInfo.Viewers);
+  this.root = null;
 }
 ViewerSelector.prototype = new Emitter();
 
@@ -53,7 +54,7 @@ ViewerSelector.prototype.show = function(root) {
 };
 
 ViewerSelector.prototype.hide = function() {
-  if (this.root.contains(this.dialog)) {
+  if (this.root && this.root.contains(this.dialog)) {
     this.root.removeChild(this.dialog);
   }
   //console.log('ViewerSelector.hide');
