@@ -1030,6 +1030,10 @@ VRDisplay.prototype.wrapForFullscreen = function(element) {
   if (!this.fullscreenWrapper_) {
     this.fullscreenWrapper_ = document.createElement('div');
     this.fullscreenWrapper_.classList.add('webvr-polyfill-fullscreen-wrapper');
+    // Make sure the wrapper takes the full screen. Without this, there is a
+    // white line at the bottom.
+    this.fullscreenWrapper_.style.width = '100%';
+    this.fullscreenWrapper_.style.height = '100%';
   }
 
   if (this.fullscreenElement_ == element)
@@ -2239,7 +2243,7 @@ CardboardVRDisplay.prototype.beginPresent_ = function() {
   }
 
   this.cardboardUI_.listen(function() {
-    this.viewerSelector_.show();
+    this.viewerSelector_.show(this.layer_.source.parentElement);
   }.bind(this));
 
   if (Util.isLandscapeMode() && Util.isMobile()) {
@@ -7551,6 +7555,7 @@ var DeviceInfo = _dereq_('./device-info.js');
 
 var DEFAULT_VIEWER = 'CardboardV1';
 var VIEWER_KEY = 'WEBVR_CARDBOARD_VIEWER';
+var CLASS_NAME = 'webvr-polyfill-viewer-selector';
 
 /**
  * Creates a viewer selector with the options specified. Supports being shown
@@ -7566,11 +7571,14 @@ function ViewerSelector() {
     console.error('Failed to load viewer profile: %s', error);
   }
   this.dialog = this.createDialog_(DeviceInfo.Viewers);
-  document.body.appendChild(this.dialog);
+  this.root = null;
 }
 ViewerSelector.prototype = new Emitter();
 
-ViewerSelector.prototype.show = function() {
+ViewerSelector.prototype.show = function(root) {
+  this.root = root;
+
+  root.appendChild(this.dialog);
   //console.log('ViewerSelector.show');
 
   // Ensure the currently selected item is checked.
@@ -7582,6 +7590,9 @@ ViewerSelector.prototype.show = function() {
 };
 
 ViewerSelector.prototype.hide = function() {
+  if (this.root && this.root.contains(this.dialog)) {
+    this.root.removeChild(this.dialog);
+  }
   //console.log('ViewerSelector.hide');
   this.dialog.style.display = 'none';
 };
@@ -7621,6 +7632,7 @@ ViewerSelector.prototype.onSave_ = function() {
  */
 ViewerSelector.prototype.createDialog_ = function(options) {
   var container = document.createElement('div');
+  container.classList.add(CLASS_NAME);
   container.style.display = 'none';
   // Create an overlay that dims the background, and which goes away when you
   // tap it.
