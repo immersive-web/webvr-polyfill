@@ -79,12 +79,20 @@ function RotateInstructions() {
 
   this.overlay = overlay;
   this.text = text;
-  document.body.appendChild(overlay);
 
   this.hide();
 }
 
-RotateInstructions.prototype.show = function() {
+RotateInstructions.prototype.show = function(parent) {
+  if (!parent && !this.overlay.parentElement) {
+    document.body.appendChild(this.overlay);
+  } else if (parent) {
+    if (this.overlay.parentElement && this.overlay.parentElement != parent)
+      this.overlay.parentElement.removeChild(this.overlay);
+
+    parent.appendChild(this.overlay);
+  }
+
   this.overlay.style.display = 'block';
 
   var img = this.overlay.querySelector('img');
@@ -105,8 +113,8 @@ RotateInstructions.prototype.hide = function() {
   this.overlay.style.display = 'none';
 };
 
-RotateInstructions.prototype.showTemporarily = function(ms) {
-  this.show();
+RotateInstructions.prototype.showTemporarily = function(ms, parent) {
+  this.show(parent);
   this.timer = setTimeout(this.hide.bind(this), ms);
 };
 
