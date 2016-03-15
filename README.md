@@ -62,18 +62,18 @@ WebVRConfig = {
 
   // To disable keyboard and mouse controls, if you want to use your own
   // implementation.
-  MOUSE_KEYBOARD_CONTROLS_DISABLED: true, // Default: false
+  MOUSE_KEYBOARD_CONTROLS_DISABLED: true, // Default: false.
 
   // Prevent the polyfill from initializing immediately. Requiures the app
   // to call InitializeWebVRPolyfill() before it can be used.
-  DEFER_INITIALIZATION: true, // default: false
+  DEFER_INITIALIZATION: true, // Default: false.
 
   // Enable the deprecated version of the API (navigator.getVRDevices)
-  ENABLE_DEPRECATED_API: true, // default: false
+  ENABLE_DEPRECATED_API: true, // Default: false.
 
   // Scales the recommended buffer size reported by WebVR, which can improve
   // performance.
-  BUFFER_SCALE: 0.5, // default: 1.0
+  BUFFER_SCALE: 0.5, // Default: 1.0.
 
   // Allow VRDisplay.submitFrame to change gl bindings, which is more
   // efficient if the application code will re-bind it's resources on the
@@ -82,7 +82,7 @@ WebVRConfig = {
   // Dirty bindings include: gl.FRAMEBUFFER_BINDING, gl.CURRENT_PROGRAM,
   // gl.ARRAY_BUFFER_BINDING, gl.ELEMENT_ARRAY_BUFFER_BINDING,
   // and gl.TEXTURE_BINDING_2D for texture unit 0
-  DIRTY_SUBMIT_FRAME_BINDINGS: true // default: false
+  DIRTY_SUBMIT_FRAME_BINDINGS: true // Default: false.
 }
 ```
 
