@@ -86,7 +86,10 @@ function CardboardUI(gl) {
   this.uniforms = Util.getProgramUniforms(gl, this.program);
 
   this.vertexBuffer = gl.createBuffer();
-  this.vertexCount = 0;
+  this.gearOffset = 0;
+  this.gearVertexCount = 0;
+  this.arrowOffset = 0;
+  this.arrowVertexCount = 0;
 
   this.projMat = new Float32Array(16);
 
@@ -109,9 +112,9 @@ CardboardUI.prototype.destroy = function() {
 };
 
 /**
- * Adds a listener to clicks on the gear icon
+ * Adds a listener to clicks on the gear and back icons
  */
-CardboardUI.prototype.listen = function(callback) {
+CardboardUI.prototype.listen = function(optionsCallback, backCallback) {
   var canvas = this.gl.canvas;
   this.listener = function(event) {
     var midline = canvas.clientWidth / 2;
@@ -120,7 +123,11 @@ CardboardUI.prototype.listen = function(callback) {
     if (event.clientX > midline - buttonSize &&
         event.clientX < midline + buttonSize &&
         event.clientY > canvas.clientHeight - buttonSize) {
-      callback(event);
+      optionsCallback(event);
+    }
+    // Check to see if the user clicked on (or around) the back icon
+    else if (event.clientX < buttonSize && event.clientY < buttonSize) {
+      backCallback(event);
     }
   };
   canvas.addEventListener('click', this.listener, false);
@@ -146,14 +153,18 @@ CardboardUI.prototype.onResize = function() {
     var dps = window.devicePixelRatio * (gl.drawingBufferWidth / (screen.width*window.devicePixelRatio));
 
     var lineWidth = kCenterLineThicknessDp * dps / 2;
-    var buttonHeight = kButtonWidthDp * kTouchSlopFactor * dps;
+    var buttonSize = kButtonWidthDp * kTouchSlopFactor * dps;
     var buttonScale = kButtonWidthDp * dps / 2;
+    var buttonBorder = ((kButtonWidthDp * kTouchSlopFactor) - kButtonWidthDp) * dps;
 
     // Build centerline
-    vertices.push(midline - lineWidth, buttonHeight);
+    vertices.push(midline - lineWidth, buttonSize);
     vertices.push(midline - lineWidth, gl.drawingBufferHeight);
-    vertices.push(midline + lineWidth, buttonHeight);
+    vertices.push(midline + lineWidth, buttonSize);
     vertices.push(midline + lineWidth, gl.drawingBufferHeight);
+
+    // Build gear
+    self.gearOffset = (vertices.length / 2);
 
     function addGearSegment(theta, r) {
       var angle = (90 - theta) * DEG2RAD;
@@ -163,7 +174,6 @@ CardboardUI.prototype.onResize = function() {
       vertices.push(r * x * buttonScale + midline, r * y * buttonScale + buttonScale);
     }
 
-    // Build gear
     for (var i = 0; i <= 6; i++) {
       var segmentTheta = i * kAnglePerGearSection;
 
@@ -174,10 +184,42 @@ CardboardUI.prototype.onResize = function() {
       addGearSegment(segmentTheta + (kAnglePerGearSection - kOuterRimEndAngle), kOuterRadius);
     }
 
+    self.gearVertexCount = (vertices.length / 2) - self.gearOffset;
+
+    // Build back arrow
+    self.arrowOffset = (vertices.length / 2);
+
+    function addArrowVertex(x, y) {
+      vertices.push(buttonBorder + x, gl.drawingBufferHeight - buttonBorder - y);
+    }
+
+    var angledLineWidth = lineWidth / Math.sin(45 * DEG2RAD);
+
+    addArrowVertex(0, buttonScale);
+    addArrowVertex(buttonScale, 0);
+    addArrowVertex(buttonScale + angledLineWidth, angledLineWidth);
+    addArrowVertex(angledLineWidth, buttonScale + angledLineWidth);
+
+    addArrowVertex(angledLineWidth, buttonScale - angledLineWidth);
+    addArrowVertex(0, buttonScale);
+    addArrowVertex(buttonScale, buttonScale * 2);
+    addArrowVertex(buttonScale + angledLineWidth, (buttonScale * 2) - angledLineWidth);
+
+    addArrowVertex(angledLineWidth, buttonScale - angledLineWidth);
+    addArrowVertex(0, buttonScale);
+
+    addArrowVertex(angledLineWidth, buttonScale - lineWidth);
+    addArrowVertex(kButtonWidthDp * dps, buttonScale - lineWidth);
+    addArrowVertex(angledLineWidth, buttonScale + lineWidth);
+    addArrowVertex(kButtonWidthDp * dps, buttonScale + lineWidth);
+
+    self.arrowVertexCount = (vertices.length / 2) - self.arrowOffset;
+
+    // Buffer data
     gl.bindBuffer(gl.ARRAY_BUFFER, self.vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 
-    self.vertexCount = (vertices.length / 2) - 4;
+
   });
 };
 
@@ -233,7 +275,8 @@ CardboardUI.prototype.renderNoState = function() {
 
   // Draws UI element
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 4, this.vertexCount);
+  gl.drawArrays(gl.TRIANGLE_STRIP, this.gearOffset, this.gearVertexCount);
+  gl.drawArrays(gl.TRIANGLE_STRIP, this.arrowOffset, this.arrowVertexCount);
 };
 
 module.exports = CardboardUI;

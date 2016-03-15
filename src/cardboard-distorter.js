@@ -110,11 +110,11 @@ function CardboardDistorter(gl) {
     this.stencilBuffer = gl.createRenderbuffer();
   }
 
+  this.patch();
+
   this.onResize();
 
   this.cardboardUI = new CardboardUI(gl);
-
-  this.patch();
 };
 
 /**
