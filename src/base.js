@@ -23,6 +23,7 @@ var nextDisplayId = 1000;
  * The base class for all VR displays.
  */
 function VRDisplay() {
+  this.isPolyfilled = true;
   this.displayId = nextDisplayId++;
   this.displayName = 'webvr-polyfill displayName';
 
@@ -293,6 +294,7 @@ VRDisplay.prototype.getEyeParameters = function(whichEye) {
  * The base class for all VR devices. (Deprecated)
  */
 function VRDevice() {
+  this.isPolyfilled = true;
   this.hardwareUnitId = 'webvr-polyfill hardwareUnitId';
   this.deviceId = 'webvr-polyfill deviceId';
   this.deviceName = 'webvr-polyfill deviceName';
