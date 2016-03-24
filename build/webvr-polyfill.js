@@ -110,10 +110,6 @@ VRDisplay.prototype.removeFullscreenWrapper = function() {
 };
 
 VRDisplay.prototype.requestPresent = function(layer) {
-  // Always use document.body for the fullscreen element, since we want to be
-  // able to render UI on top of the WebGL canvas.
-  //var fullscreenElement = layer.source;
-
   var self = this;
   this.layer_ = layer;
 
@@ -133,14 +129,16 @@ VRDisplay.prototype.requestPresent = function(layer) {
         self.isPresenting = (fullscreenElement === actualFullscreenElement);
         self.fireVRDisplayPresentChange_();
         if (self.isPresenting) {
-          if (screen.orientation && screen.orientation.lock)
+          if (screen.orientation && screen.orientation.lock) {
             screen.orientation.lock('landscape-primary');
+          }
           self.waitingForPresent_ = false;
           self.beginPresent_();
           resolve();
         } else {
-          if (screen.orientation && screen.orientation.unlock)
+          if (screen.orientation && screen.orientation.unlock) {
             screen.orientation.unlock();
+          }
           self.removeFullscreenWrapper();
           self.wakelock_.release();
           self.endPresent_();
@@ -148,8 +146,9 @@ VRDisplay.prototype.requestPresent = function(layer) {
         }
       }
       function onFullscreenError() {
-        if (!self.waitingForPresent_)
+        if (!self.waitingForPresent_) {
           return;
+        }
 
         self.removeFullscreenWrapper();
         self.removeFullscreenListeners_();
@@ -194,6 +193,7 @@ VRDisplay.prototype.exitPresent = function() {
   return new Promise(function(resolve, reject) {
     if (wasPresenting) {
       if (!Util.exitFullscreen() && Util.isIOS()) {
+        self.fireVRDisplayPresentChange_();
         self.endPresent_();
       }
 
