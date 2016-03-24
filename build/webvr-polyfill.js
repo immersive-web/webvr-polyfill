@@ -980,7 +980,7 @@ var kInnerRadius = 0.3125;
 var kCenterLineThicknessDp = 4;
 
 // Button width in DP.
-var kButtonWidthDp = 28;
+var kButtonWidthDp = 48;
 
 // Factor to scale the touch area that responds to the touch.
 var kTouchSlopFactor = 1.5;
@@ -1069,7 +1069,7 @@ CardboardUI.prototype.onResize = function() {
     var midline = gl.drawingBufferWidth/2;
 
     // Assumes your canvas width and height is scaled proportionately.
-    var dps = window.devicePixelRatio * (gl.drawingBufferWidth / (screen.width*window.devicePixelRatio));
+    var dps = gl.drawingBufferWidth / (screen.width*window.devicePixelRatio);
 
     var lineWidth = kCenterLineThicknessDp * dps / 2;
     var buttonSize = kButtonWidthDp * kTouchSlopFactor * dps;
@@ -1199,6 +1199,7 @@ CardboardUI.prototype.renderNoState = function() {
 };
 
 module.exports = CardboardUI;
+
 },{"./deps/wglu-preserve-state.js":5,"./util.js":21}],4:[function(_dereq_,module,exports){
 /*
  * Copyright 2016 Google Inc. All Rights Reserved.
