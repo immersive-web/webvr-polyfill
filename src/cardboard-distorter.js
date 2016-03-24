@@ -336,8 +336,16 @@ CardboardDistorter.prototype.unpatch = function() {
   var gl = this.gl;
   var canvas = this.gl.canvas;
 
-  Object.defineProperty(canvas, 'width', this.realCanvasWidth);
-  Object.defineProperty(canvas, 'height', this.realCanvasHeight);
+  Object.defineProperty(canvas, 'width', {
+    value: this.realCanvasWidth,
+    configurable: true,
+    enumerable: true
+  });
+  Object.defineProperty(canvas, 'height', {
+    value: this.realCanvasHeight,
+    configurable: true,
+    enumerable: true
+  });
   canvas.width = this.bufferWidth;
   canvas.height = this.bufferHeight;
 

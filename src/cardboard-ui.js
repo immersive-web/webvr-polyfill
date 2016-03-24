@@ -104,8 +104,9 @@ function CardboardUI(gl) {
 CardboardUI.prototype.destroy = function() {
   var gl = this.gl;
 
-  if (this.listener)
+  if (this.listener) {
     gl.canvas.removeEventListener('click', this.listener, false);
+  }
 
   gl.deleteProgram(this.program);
   gl.deleteBuffer(this.vertexBuffer);

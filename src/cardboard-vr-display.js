@@ -158,6 +158,10 @@ CardboardVRDisplay.prototype.endPresent_ = function() {
     this.distorter_.destroy();
     this.distorter_ = null;
   }
+  if (this.cardboardUI_) {
+    this.cardboardUI_.destroy();
+    this.cardboardUI_ = null;
+  }
 
   this.rotateInstructions_.hide();
   this.viewerSelector_.hide();

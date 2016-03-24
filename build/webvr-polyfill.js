@@ -659,8 +659,16 @@ CardboardDistorter.prototype.unpatch = function() {
   var gl = this.gl;
   var canvas = this.gl.canvas;
 
-  Object.defineProperty(canvas, 'width', this.realCanvasWidth);
-  Object.defineProperty(canvas, 'height', this.realCanvasHeight);
+  Object.defineProperty(canvas, 'width', {
+    value: this.realCanvasWidth,
+    configurable: true,
+    enumerable: true
+  });
+  Object.defineProperty(canvas, 'height', {
+    value: this.realCanvasHeight,
+    configurable: true,
+    enumerable: true
+  });
   canvas.width = this.bufferWidth;
   canvas.height = this.bufferHeight;
 
@@ -1023,8 +1031,9 @@ function CardboardUI(gl) {
 CardboardUI.prototype.destroy = function() {
   var gl = this.gl;
 
-  if (this.listener)
+  if (this.listener) {
     gl.canvas.removeEventListener('click', this.listener, false);
+  }
 
   gl.deleteProgram(this.program);
   gl.deleteBuffer(this.vertexBuffer);
@@ -1360,6 +1369,10 @@ CardboardVRDisplay.prototype.endPresent_ = function() {
   if (this.distorter_) {
     this.distorter_.destroy();
     this.distorter_ = null;
+  }
+  if (this.cardboardUI_) {
+    this.cardboardUI_.destroy();
+    this.cardboardUI_ = null;
   }
 
   this.rotateInstructions_.hide();
