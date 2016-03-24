@@ -150,11 +150,7 @@ document.querySelector('button#fullscreen').addEventListener('click', function()
   renderer.domElement.webkitRequestFullscreen();
 });
 document.querySelector('button#vr').addEventListener('click', function() {
-  vrDisplay.requestPresent({source: renderer.domElement}).then(function() {
-    console.log('requestPresent succeeded');
-  }, function() {
-    console.log('requestPresent failed');
-  });
+  vrDisplay.requestPresent({source: renderer.domElement});
 });
 
 </script>

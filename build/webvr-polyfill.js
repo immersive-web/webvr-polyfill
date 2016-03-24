@@ -389,7 +389,9 @@ function CardboardDistorter(gl) {
   this.realClearColor = gl.clearColor;
   this.realViewport = gl.viewport;
   this.realCanvasWidth = Object.getOwnPropertyDescriptor(gl.canvas.__proto__, 'width');
+  this.realCanvasWidth.configurable = true;
   this.realCanvasHeight = Object.getOwnPropertyDescriptor(gl.canvas.__proto__, 'height');
+  this.realCanvasHeight.configurable = true;
 
   this.isPatched = false;
 
@@ -659,16 +661,8 @@ CardboardDistorter.prototype.unpatch = function() {
   var gl = this.gl;
   var canvas = this.gl.canvas;
 
-  Object.defineProperty(canvas, 'width', {
-    value: this.realCanvasWidth,
-    configurable: true,
-    enumerable: true
-  });
-  Object.defineProperty(canvas, 'height', {
-    value: this.realCanvasHeight,
-    configurable: true,
-    enumerable: true
-  });
+  Object.defineProperty(canvas, 'width', this.realCanvasWidth);
+  Object.defineProperty(canvas, 'height', this.realCanvasHeight);
   canvas.width = this.bufferWidth;
   canvas.height = this.bufferHeight;
 
