@@ -1216,6 +1216,7 @@ module.exports = CardboardUI;
  */
 
 var CardboardDistorter = _dereq_('./cardboard-distorter.js');
+var CardboardUI = _dereq_('./cardboard-ui.js');
 var DeviceInfo = _dereq_('./device-info.js');
 var Dpdb = _dereq_('./dpdb/dpdb.js');
 var FusionPoseSensor = _dereq_('./sensor-fusion/fusion-pose-sensor.js');
@@ -1340,7 +1341,7 @@ CardboardVRDisplay.prototype.beginPresent_ = function() {
   if (!Util.isLandscapeMode() && Util.isMobile()) {
     // In landscape mode, temporarily show the "put into Cardboard"
     // interstitial. Otherwise, do the default thing.
-    this.rotateInstructions_.showTemporarily(3000, this.fullscreenWrapper_);
+    this.rotateInstructions_.showTemporarily(3000, this.layer_.source.parentElement);
   } else {
     this.rotateInstructions_.update();
   }
@@ -1407,7 +1408,7 @@ CardboardVRDisplay.prototype.fireVRDisplayDeviceParamsChange_ = function() {
 
 module.exports = CardboardVRDisplay;
 
-},{"./base.js":1,"./cardboard-distorter.js":2,"./device-info.js":6,"./dpdb/dpdb.js":10,"./rotate-instructions.js":14,"./sensor-fusion/fusion-pose-sensor.js":16,"./util.js":21,"./viewer-selector.js":22}],5:[function(_dereq_,module,exports){
+},{"./base.js":1,"./cardboard-distorter.js":2,"./cardboard-ui.js":3,"./device-info.js":6,"./dpdb/dpdb.js":10,"./rotate-instructions.js":14,"./sensor-fusion/fusion-pose-sensor.js":16,"./util.js":21,"./viewer-selector.js":22}],5:[function(_dereq_,module,exports){
 /*
 Copyright (c) 2016, Brandon Jones.
 

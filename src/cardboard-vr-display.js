@@ -14,6 +14,7 @@
  */
 
 var CardboardDistorter = require('./cardboard-distorter.js');
+var CardboardUI = require('./cardboard-ui.js');
 var DeviceInfo = require('./device-info.js');
 var Dpdb = require('./dpdb/dpdb.js');
 var FusionPoseSensor = require('./sensor-fusion/fusion-pose-sensor.js');
@@ -138,7 +139,7 @@ CardboardVRDisplay.prototype.beginPresent_ = function() {
   if (!Util.isLandscapeMode() && Util.isMobile()) {
     // In landscape mode, temporarily show the "put into Cardboard"
     // interstitial. Otherwise, do the default thing.
-    this.rotateInstructions_.showTemporarily(3000, this.fullscreenWrapper_);
+    this.rotateInstructions_.showTemporarily(3000, this.layer_.source.parentElement);
   } else {
     this.rotateInstructions_.update();
   }
