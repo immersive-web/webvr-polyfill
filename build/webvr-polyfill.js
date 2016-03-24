@@ -1069,7 +1069,7 @@ CardboardUI.prototype.onResize = function() {
     var midline = gl.drawingBufferWidth/2;
 
     // Assumes your canvas width and height is scaled proportionately.
-    var dps = window.devicePixelRatio * (gl.drawingBufferWidth / screen.width);
+    var dps = 1;//window.devicePixelRatio * (gl.drawingBufferWidth / (screen.width*window.devicePixelRatio));
 
     var lineWidth = kCenterLineThicknessDp * dps / 2;
     var buttonSize = kButtonWidthDp * kTouchSlopFactor * dps;
