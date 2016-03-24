@@ -2,6 +2,8 @@
 *.pid
 *.seed
 *~
+*.swp
+*.swo
 .DS_Store
 .node_repl_history
 .npm
