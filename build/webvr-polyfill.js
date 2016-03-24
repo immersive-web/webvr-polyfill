@@ -980,7 +980,7 @@ var kInnerRadius = 0.3125;
 var kCenterLineThicknessDp = 4;
 
 // Button width in DP.
-var kButtonWidthDp = 48;
+var kButtonWidthDp = 28;
 
 // Factor to scale the touch area that responds to the touch.
 var kTouchSlopFactor = 1.5;
@@ -1069,7 +1069,7 @@ CardboardUI.prototype.onResize = function() {
     var midline = gl.drawingBufferWidth/2;
 
     // Assumes your canvas width and height is scaled proportionately.
-    var dps = gl.drawingBufferWidth / (screen.width*window.devicePixelRatio);
+    var dps = window.devicePixelRatio * (gl.drawingBufferWidth / screen.width);
 
     var lineWidth = kCenterLineThicknessDp * dps / 2;
     var buttonSize = kButtonWidthDp * kTouchSlopFactor * dps;
