@@ -58,7 +58,7 @@ WebVRConfig = {
 // Setup three.js WebGL renderer. Note: Antialiasing is a big performance hit.
 // Only enable it if you actually need to.
 var renderer = new THREE.WebGLRenderer({antialias: false});
-renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setPixelRatio(Math.floor(window.devicePixelRatio));
 
 // Append the canvas element created by the renderer to document body element.
 document.body.appendChild(renderer.domElement);
@@ -106,13 +106,6 @@ function onTextureLoaded(texture) {
   scene.add(skybox);
 }
 
-
-// Create a VR manager helper to enter and exit VR mode.
-var params = {
-  hideButton: false, // Default: false.
-  isUndistorted: false // Default: false.
-};
-
 // Create 3D objects.
 var geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
 var material = new THREE.MeshNormalMaterial();
@@ -137,7 +130,7 @@ function animate(timestamp) {
   controls.update();
 
   // Render the scene.
-  renderer.render(scene, camera);
+  effect.render(scene, camera);
 
   // Keep looping.
   requestAnimationFrame(animate);
@@ -157,7 +150,11 @@ document.querySelector('button#fullscreen').addEventListener('click', function()
   renderer.domElement.webkitRequestFullscreen();
 });
 document.querySelector('button#vr').addEventListener('click', function() {
-  vrDisplay.requestPresent({source: renderer.domElement});
+  vrDisplay.requestPresent({source: renderer.domElement}).then(function() {
+    console.log('requestPresent succeeded');
+  }, function() {
+    console.log('requestPresent failed');
+  });
 });
 
 </script>
