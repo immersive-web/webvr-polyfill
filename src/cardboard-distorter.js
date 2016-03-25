@@ -279,7 +279,7 @@ CardboardDistorter.prototype.patch = function() {
   this.stencilTest = gl.getParameter(gl.STENCIL_TEST);
 
   gl.enable = function(pname) {
-    switch(pname) {
+    switch (pname) {
       case gl.CULL_FACE: self.cullFace = true; break;
       case gl.DEPTH_TEST: self.depthTest = true; break;
       case gl.BLEND: self.blend = true; break;
@@ -290,7 +290,7 @@ CardboardDistorter.prototype.patch = function() {
   };
 
   gl.disable = function(pname) {
-    switch(pname) {
+    switch (pname) {
       case gl.CULL_FACE: self.cullFace = false; break;
       case gl.DEPTH_TEST: self.depthTest = false; break;
       case gl.BLEND: self.blend = false; break;
