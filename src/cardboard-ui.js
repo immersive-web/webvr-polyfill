@@ -218,8 +218,6 @@ CardboardUI.prototype.onResize = function() {
     // Buffer data
     gl.bindBuffer(gl.ARRAY_BUFFER, self.vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-
-
   });
 };
 
