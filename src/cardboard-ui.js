@@ -104,8 +104,9 @@ function CardboardUI(gl) {
 CardboardUI.prototype.destroy = function() {
   var gl = this.gl;
 
-  if (this.listener)
+  if (this.listener) {
     gl.canvas.removeEventListener('click', this.listener, false);
+  }
 
   gl.deleteProgram(this.program);
   gl.deleteBuffer(this.vertexBuffer);
@@ -150,7 +151,7 @@ CardboardUI.prototype.onResize = function() {
     var midline = gl.drawingBufferWidth/2;
 
     // Assumes your canvas width and height is scaled proportionately.
-    var dps = window.devicePixelRatio * (gl.drawingBufferWidth / (screen.width*window.devicePixelRatio));
+    var dps = 1;//window.devicePixelRatio * (gl.drawingBufferWidth / (screen.width*window.devicePixelRatio));
 
     var lineWidth = kCenterLineThicknessDp * dps / 2;
     var buttonSize = kButtonWidthDp * kTouchSlopFactor * dps;

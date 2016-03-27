@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<title>Web VR Polyfill - basic example</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<style>
+body {
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  color: #fff;
+  margin: 0px;
+  padding: 0;
+  overflow: hidden;
+}
+
+#buttons {
+  position: fixed;
+  right: 0;
+}
+</style>
+</head>
+
+<body>
+
+  <div id="buttons">
+    <button id="fullscreen">Fullscreen</button>
+    <button id="vr">VR (WebVR/Mobile only)</button>
+  </div>
+
+</body>
+
+<script>
+WebVRConfig = {
+  BUFFER_SCALE: 0.5,
+};
+</script>
+
+<!-- three.js library -->
+<script src="node_modules/three/three.js"></script>
+
+<!-- VRControls.js applies the WebVR transformations to a three.js camera object. -->
+<script src="node_modules/three/examples/js/controls/VRControls.js"></script>
+
+<!-- VREffect.js handles stereo camera setup and rendering.  -->
+<script src="node_modules/three/examples/js/effects/VREffect.js"></script>
+
+<!-- A polyfill for the WebVR API.  -->
+<script src="../../build/webvr-polyfill.js"></script>
+
+
+<script>
+// Setup three.js WebGL renderer. Note: Antialiasing is a big performance hit.
+// Only enable it if you actually need to.
+var renderer = new THREE.WebGLRenderer({antialias: false});
+renderer.setPixelRatio(Math.floor(window.devicePixelRatio));
+
+// Append the canvas element created by the renderer to document body element.
+document.body.appendChild(renderer.domElement);
+
+// Create a three.js scene.
+var scene = new THREE.Scene();
+
+// Create a three.js camera.
+var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+
+// Apply VR headset positional data to camera.
+var controls = new THREE.VRControls(camera);
+
+// Apply VR stereo rendering to renderer.
+var effect = new THREE.VREffect(renderer);
+effect.setSize(window.innerWidth, window.innerHeight);
+
+
+// Add a repeating grid as a skybox.
+var boxWidth = 5;
+var loader = new THREE.TextureLoader();
+loader.load('img/box.png', onTextureLoaded);
+
+// Get the VRDisplay and save it for later.
+var vrDisplay = null;
+navigator.getVRDisplays().then(function(displays) {
+  if (displays.length > 0) {
+    vrDisplay = displays[0];
+  }
+});
+
+function onTextureLoaded(texture) {
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(boxWidth, boxWidth);
+
+  var geometry = new THREE.BoxGeometry(boxWidth, boxWidth, boxWidth);
+  var material = new THREE.MeshBasicMaterial({
+    map: texture,
+    color: 0x01BE00,
+    side: THREE.BackSide
+  });
+
+  var skybox = new THREE.Mesh(geometry, material);
+  scene.add(skybox);
+}
+
+// Create 3D objects.
+var geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+var material = new THREE.MeshNormalMaterial();
+var cube = new THREE.Mesh(geometry, material);
+
+// Position cube mesh
+cube.position.z = -1;
+
+// Add cube mesh to your three.js scene
+scene.add(cube);
+
+// Request animation frame loop function
+var lastRender = 0;
+function animate(timestamp) {
+  var delta = Math.min(timestamp - lastRender, 500);
+  lastRender = timestamp;
+
+  // Apply rotation to cube mesh
+  cube.rotation.y += delta * 0.0006;
+
+  // Update VR headset position and apply to camera.
+  controls.update();
+
+  // Render the scene.
+  effect.render(scene, camera);
+
+  // Keep looping.
+  requestAnimationFrame(animate);
+}
+
+function onResize() {
+  effect.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+}
+
+// Kick off animation loop.
+requestAnimationFrame(animate);
+
+window.addEventListener('resize', onResize);
+document.querySelector('button#fullscreen').addEventListener('click', function() {
+  renderer.domElement.webkitRequestFullscreen();
+});
+document.querySelector('button#vr').addEventListener('click', function() {
+  vrDisplay.requestPresent({source: renderer.domElement});
+});
+
+</script>
+
+</html>

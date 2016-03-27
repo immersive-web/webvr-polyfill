@@ -282,7 +282,7 @@ CardboardDistorter.prototype.patch = function() {
   this.stencilTest = gl.getParameter(gl.STENCIL_TEST);
 
   gl.enable = function(pname) {
-    switch(pname) {
+    switch (pname) {
       case gl.CULL_FACE: self.cullFace = true; break;
       case gl.DEPTH_TEST: self.depthTest = true; break;
       case gl.BLEND: self.blend = true; break;
@@ -293,7 +293,7 @@ CardboardDistorter.prototype.patch = function() {
   };
 
   gl.disable = function(pname) {
-    switch(pname) {
+    switch (pname) {
       case gl.CULL_FACE: self.cullFace = false; break;
       case gl.DEPTH_TEST: self.depthTest = false; break;
       case gl.BLEND: self.blend = false; break;
@@ -609,6 +609,25 @@ CardboardDistorter.prototype.computeMeshIndices_ = function(width, height) {
     }
   }
   return indices;
-}
+};
+
+CardboardDistorter.prototype.getOwnPropertyDescriptor_ = function(proto, attrName) {
+  var descriptor = Object.getOwnPropertyDescriptor(proto, attrName);
+  // In some cases (ahem... Safari), the descriptor returns undefined get and
+  // set fields. In this case, we need to create a synthetic property
+  // descriptor. This works around some of the issues in
+  // https://github.com/borismus/webvr-polyfill/issues/46
+  if (descriptor.get === undefined || descriptor.set === undefined) {
+    descriptor.configurable = true;
+    descriptor.enumerable = true;
+    descriptor.get = function() {
+      return this.getAttribute(attrName);
+    };
+    descriptor.set = function(val) {
+      this.setAttribute(attrName, val);
+    };
+  }
+  return descriptor;
+};
 
 module.exports = CardboardDistorter;

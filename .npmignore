@@ -10,4 +10,4 @@ logs
 node_modules
 npm-debug.log*
 pids
-src
+examples
