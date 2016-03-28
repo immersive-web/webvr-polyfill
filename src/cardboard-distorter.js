@@ -365,11 +365,13 @@ CardboardDistorter.prototype.unpatch = function() {
 };
 
 CardboardDistorter.prototype.setTextureBounds = function(leftBounds, rightBounds) {
-  if (!leftBounds)
+  if (!leftBounds) {
     leftBounds = [0, 0, 0.5, 1];
+  }
 
-  if (!rightBounds)
+  if (!rightBounds) {
     rightBounds = [0.5, 0, 0.5, 1];
+  }
 
   // Left eye
   this.viewportOffsetScale[0] = leftBounds[0]; // X
