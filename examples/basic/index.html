@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <style>
-body {
+html, body {
   width: 100%;
   height: 100%;
   background-color: #000;
@@ -21,6 +21,7 @@ body {
 
 #buttons {
   position: fixed;
+  top: 0;
   right: 0;
 }
 </style>
@@ -39,6 +40,10 @@ body {
 WebVRConfig = {
   BUFFER_SCALE: 0.5,
 };
+
+document.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+});
 </script>
 
 <!-- three.js library -->
@@ -145,7 +150,11 @@ function onResize() {
 // Kick off animation loop.
 requestAnimationFrame(animate);
 
+// Resize the WebGL canvas when we resize and also when we change modes.
 window.addEventListener('resize', onResize);
+window.addEventListener('vrdisplaypresentchange', onResize);
+
+// Button click handlers.
 document.querySelector('button#fullscreen').addEventListener('click', function() {
   renderer.domElement.webkitRequestFullscreen();
 });
