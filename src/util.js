@@ -29,22 +29,27 @@ Util.lerp = function(a, b, t) {
   return a + ((b - a) * t);
 };
 
-Util.pingPong = function(t, length) {
-  if (t < 0) t = -t;
+Util.isIOS = (function() {
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.platform);
+  return function() {
+    return isIOS;
+  };
+})();
 
-  var mult = Math.floor(t / length);
-  var mod = t - (length * mult);
-  return mult % 2 ? length - mod : mod;
-};
+Util.isSafari = (function() {
+  var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  return function() {
+    return isSafari;
+  };
+})();
 
-Util.isIOS = function() {
-  return /iPad|iPhone|iPod/.test(navigator.platform);
-};
-
-Util.isFirefoxAndroid = function() {
-  return navigator.userAgent.indexOf('Firefox') !== -1 &&
+Util.isFirefoxAndroid = (function() {
+  var isFirefoxAndroid = navigator.userAgent.indexOf('Firefox') !== -1 &&
       navigator.userAgent.indexOf('Android') !== -1;
-};
+  return function() {
+    return isFirefoxAndroid;
+  };
+})();
 
 Util.isLandscapeMode = function() {
   return (window.orientation == 90 || window.orientation == -90);

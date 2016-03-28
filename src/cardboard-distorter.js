@@ -65,8 +65,11 @@ function CardboardDistorter(gl) {
   this.realColorMask = gl.colorMask;
   this.realClearColor = gl.clearColor;
   this.realViewport = gl.viewport;
-  this.realCanvasWidth = this.getOwnPropertyDescriptor_(gl.canvas.__proto__, 'width');
-  this.realCanvasHeight = this.getOwnPropertyDescriptor_(gl.canvas.__proto__, 'height');
+
+  if (!Util.isIOS()) {
+    this.realCanvasWidth = Object.getOwnPropertyDescriptor(gl.canvas.__proto__, 'width');
+    this.realCanvasHeight = Object.getOwnPropertyDescriptor(gl.canvas.__proto__, 'height');
+  }
 
   this.isPatched = false;
 
@@ -230,32 +233,34 @@ CardboardDistorter.prototype.patch = function() {
   var canvas = this.gl.canvas;
   var gl = this.gl;
 
-  canvas.width = Util.getScreenWidth() * this.bufferScale;
-  canvas.height = Util.getScreenHeight() * this.bufferScale;
+  if (!Util.isIOS()) {
+    canvas.width = Util.getScreenWidth() * this.bufferScale;
+    canvas.height = Util.getScreenHeight() * this.bufferScale;
 
-  Object.defineProperty(canvas, 'width', {
-    configurable: true,
-    enumerable: true,
-    get: function() {
-      return self.bufferWidth;
-    },
-    set: function(value) {
-      self.bufferWidth = value;
-      self.onResize();
-    }
-  });
+    Object.defineProperty(canvas, 'width', {
+      configurable: true,
+      enumerable: true,
+      get: function() {
+        return self.bufferWidth;
+      },
+      set: function(value) {
+        self.bufferWidth = value;
+        self.onResize();
+      }
+    });
 
-  Object.defineProperty(canvas, 'height', {
-    configurable: true,
-    enumerable: true,
-    get: function() {
-      return self.bufferHeight;
-    },
-    set: function(value) {
-      self.bufferHeight = value;
-      self.onResize();
-    }
-  });
+    Object.defineProperty(canvas, 'height', {
+      configurable: true,
+      enumerable: true,
+      get: function() {
+        return self.bufferHeight;
+      },
+      set: function(value) {
+        self.bufferHeight = value;
+        self.onResize();
+      }
+    });
+  }
 
   this.lastBoundFramebuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING);
 
@@ -336,8 +341,10 @@ CardboardDistorter.prototype.unpatch = function() {
   var gl = this.gl;
   var canvas = this.gl.canvas;
 
-  Object.defineProperty(canvas, 'width', this.realCanvasWidth);
-  Object.defineProperty(canvas, 'height', this.realCanvasHeight);
+  if (!Util.isIOS()) {
+    Object.defineProperty(canvas, 'width', this.realCanvasWidth);
+    Object.defineProperty(canvas, 'height', this.realCanvasHeight);
+  }
   canvas.width = this.bufferWidth;
   canvas.height = this.bufferHeight;
 
@@ -358,11 +365,13 @@ CardboardDistorter.prototype.unpatch = function() {
 };
 
 CardboardDistorter.prototype.setTextureBounds = function(leftBounds, rightBounds) {
-  if (!leftBounds)
+  if (!leftBounds) {
     leftBounds = [0, 0, 0.5, 1];
+  }
 
-  if (!rightBounds)
+  if (!rightBounds) {
     rightBounds = [0.5, 0, 0.5, 1];
+  }
 
   // Left eye
   this.viewportOffsetScale[0] = leftBounds[0]; // X
@@ -411,7 +420,7 @@ CardboardDistorter.prototype.submitFrame = function() {
 
     // If the backbuffer has an alpha channel clear every frame so the page
     // doesn't show through.
-    if (self.ctxAttribs.alpha) {
+    if (self.ctxAttribs.alpha || Util.isIOS()) {
       self.realClearColor.call(gl, 0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
     }
@@ -464,6 +473,19 @@ CardboardDistorter.prototype.submitFrame = function() {
       self.realClearColor.apply(gl, self.clearColor);
     }
   });
+
+  // Workaround for the fact that Safari doesn't allow us to patch the canvas
+  // width and height correctly. After each submit frame check to see what the
+  // real backbuffer size has been set to and resize the fake backbuffer size
+  // to match.
+  if (Util.isIOS()) {
+    var canvas = gl.canvas;
+    if (canvas.width != self.bufferWidth || canvas.height != self.bufferHeight) {
+      self.bufferWidth = canvas.width;
+      self.bufferHeight = canvas.height;
+      self.onResize();
+    }
+  }
 };
 
 /**
