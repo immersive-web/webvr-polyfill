@@ -8,5 +8,6 @@
 .node_repl_history
 .npm
 logs
+node_modules
 npm-debug.log*
 pids
