@@ -86,8 +86,20 @@ WebVRConfig = {
 }
 ```
 
-## A note on performance
+## Performance
 
 Performance is critical for VR. If you find your application is too sluggish,
 consider tweaking some of the above parameters. In particular, reducing
 `BUFFER_SCALE` to 0.5 (from its default 1.0) will likely help a lot.
+
+## Development
+
+If you'd like to contribute to the `webvr-poyfill` library, check out
+the repository and install
+[Node](https://nodejs.org/en/download/package-manager/) and the dependencies:
+
+```bash
+git clone https://github.com/borismus/webvr-polyfill
+cd webvr-polyfill
+npm install
+```
