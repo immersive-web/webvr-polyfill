@@ -30,7 +30,6 @@
     "type": "git",
     "url": "git+https://github.com/borismus/webvr-polyfill.git"
   },
-  "author": "Boris Smus",
   "bugs": {
     "url": "https://github.com/borismus/webvr-polyfill/issues"
   }
