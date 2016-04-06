@@ -31,8 +31,8 @@ function FusionPoseSensor() {
   window.addEventListener('devicemotion', this.onDeviceMotionChange_.bind(this));
   window.addEventListener('orientationchange', this.onScreenOrientationChange_.bind(this));
 
-  this.filter = new ComplementaryFilter(WebVRConfig.K_FILTER || 0.98);
-  this.posePredictor = new PosePredictor(WebVRConfig.PREDICTION_TIME_S || 0.040);
+  this.filter = new ComplementaryFilter(WebVRConfig.K_FILTER);
+  this.posePredictor = new PosePredictor(WebVRConfig.PREDICTION_TIME_S);
   this.touchPanner = new TouchPanner();
 
   this.filterToWorldQ = new THREE.Quaternion();
