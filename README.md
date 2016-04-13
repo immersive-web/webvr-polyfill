@@ -102,3 +102,9 @@ git clone https://github.com/borismus/webvr-polyfill
 cd webvr-polyfill
 npm install
 ```
+
+
+## License
+
+This program is free software for both commercial and non-commercial use,
+distributed under the [Apache 2.0 License](COPYING).
