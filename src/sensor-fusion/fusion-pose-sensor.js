@@ -44,6 +44,15 @@ function FusionPoseSensor() {
     this.filterToWorldQ.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
   }
 
+  this.landscapeAdjustQ = new THREE.Quaternion();
+  this.landscapeAdjustQ.setFromAxisAngle(new THREE.Vector3(0, 0, 1),
+      (window.orientation / Math.PI) / 2);
+
+  // Adjust this filter for being in landscape mode.
+  if (Util.isLandscapeMode()) {
+    this.filterToWorldQ.multiply(this.landscapeAdjustQ);
+  }
+
   this.worldToScreenQ = new THREE.Quaternion();
   this.setScreenTransform_();
 
@@ -95,7 +104,11 @@ FusionPoseSensor.prototype.getOrientation = function() {
 };
 
 FusionPoseSensor.prototype.resetPose = function() {
-  // Reduce to inverted yaw-only
+  if (!Util.isLandscapeMode()) {
+    this.resetQ.multiply(this.landscapeAdjustQ);
+  }
+
+  // Reduce to inverted yaw-only.
   this.resetQ.copy(this.filter.getOrientation());
   this.resetQ.x = 0;
   this.resetQ.y = 0;

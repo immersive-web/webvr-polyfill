@@ -38,6 +38,7 @@ canvas {
   <div id="buttons">
     <button id="fullscreen">Fullscreen</button>
     <button id="vr">VR (WebVR/Mobile only)</button>
+    <button id="reset">Reset</button>
   </div>
 
 </body>
@@ -166,6 +167,9 @@ document.querySelector('button#fullscreen').addEventListener('click', function()
 });
 document.querySelector('button#vr').addEventListener('click', function() {
   vrDisplay.requestPresent({source: renderer.domElement});
+});
+document.querySelector('button#reset').addEventListener('click', function() {
+  vrDisplay.resetPose();
 });
 
 function enterFullscreen (el) {
