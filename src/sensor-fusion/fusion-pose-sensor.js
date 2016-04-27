@@ -15,7 +15,7 @@
 var ComplementaryFilter = require('./complementary-filter.js');
 var PosePredictor = require('./pose-predictor.js');
 var TouchPanner = require('../touch-panner.js');
-var THREE = require('../three-math.js');
+var MathUtil = require('../math-util.js');
 var Util = require('../util.js');
 
 /**
@@ -25,8 +25,8 @@ function FusionPoseSensor() {
   this.deviceId = 'webvr-polyfill:fused';
   this.deviceName = 'VR Position Device (webvr-polyfill:fused)';
 
-  this.accelerometer = new THREE.Vector3();
-  this.gyroscope = new THREE.Vector3();
+  this.accelerometer = new MathUtil.Vector3();
+  this.gyroscope = new MathUtil.Vector3();
 
   window.addEventListener('devicemotion', this.onDeviceMotionChange_.bind(this));
   window.addEventListener('orientationchange', this.onScreenOrientationChange_.bind(this));
@@ -35,20 +35,20 @@ function FusionPoseSensor() {
   this.posePredictor = new PosePredictor(WebVRConfig.PREDICTION_TIME_S);
   this.touchPanner = new TouchPanner();
 
-  this.filterToWorldQ = new THREE.Quaternion();
+  this.filterToWorldQ = new MathUtil.Quaternion();
 
   // Set the filter to world transform, depending on OS.
   if (Util.isIOS()) {
-    this.filterToWorldQ.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
+    this.filterToWorldQ.setFromAxisAngle(new MathUtil.Vector3(1, 0, 0), Math.PI/2);
   } else {
-    this.filterToWorldQ.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
+    this.filterToWorldQ.setFromAxisAngle(new MathUtil.Vector3(1, 0, 0), -Math.PI/2);
   }
 
-  this.worldToScreenQ = new THREE.Quaternion();
+  this.worldToScreenQ = new MathUtil.Quaternion();
   this.setScreenTransform_();
 
   // Keep track of a reset transform for resetSensor.
-  this.resetQ = new THREE.Quaternion();
+  this.resetQ = new MathUtil.Quaternion();
 
   this.isFirefoxAndroid = Util.isFirefoxAndroid();
   this.isIOS = Util.isIOS();
@@ -70,7 +70,7 @@ FusionPoseSensor.prototype.getOrientation = function() {
   this.predictedQ = this.posePredictor.getPrediction(orientation, this.gyroscope, this.previousTimestampS);
 
   // Convert to THREE coordinate system: -Z forward, Y up, X right.
-  var out = new THREE.Quaternion();
+  var out = new MathUtil.Quaternion();
   out.copy(this.filterToWorldQ);
   out.multiply(this.resetQ);
   if (!WebVRConfig.TOUCH_PANNER_DISABLED) {
@@ -150,10 +150,10 @@ FusionPoseSensor.prototype.setScreenTransform_ = function() {
     case 0:
       break;
     case 90:
-      this.worldToScreenQ.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/2);
+      this.worldToScreenQ.setFromAxisAngle(new MathUtil.Vector3(0, 0, 1), -Math.PI/2);
       break;
     case -90:
-      this.worldToScreenQ.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2);
+      this.worldToScreenQ.setFromAxisAngle(new MathUtil.Vector3(0, 0, 1), Math.PI/2);
       break;
     case 180:
       // TODO.
