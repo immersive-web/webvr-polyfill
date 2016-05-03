@@ -1,6 +1,6 @@
 {
   "name": "webvr-polyfill",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "homepage": "https://github.com/borismus/webvr-polyfill",
   "authors": [
     "Boris Smus <boris@smus.com>",
@@ -8,7 +8,8 @@
   ],
   "description": "Use WebVR today, on mobile or desktop, without requiring a special browser build.",
   "dependencies": {
-    "es6-promise": "^3.0.2"
+    "es6-promise": "^3.0.2",
+    "object-assign": "^4.0.1"
   },
   "devDependencies": {
     "browserify": "latest",
@@ -26,11 +27,7 @@
     "watch": "watchify src/main.js -v -d -o build/webvr-polyfill.js",
     "copy": "cp build/webvr-polyfill.js ../webvr-boilerplate/node_modules/webvr-polyfill/build/webvr-polyfill.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/borismus/webvr-polyfill.git"
-  },
-  "author": "Boris Smus",
+  "repository": "borismus/webvr-polyfill",
   "bugs": {
     "url": "https://github.com/borismus/webvr-polyfill/issues"
   }
