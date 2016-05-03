@@ -149,9 +149,15 @@ function animate(timestamp) {
 }
 
 function onResize() {
+  console.log('Resizing to %s x %s.', window.innerWidth, window.innerHeight);
   effect.setSize(window.innerWidth, window.innerHeight);
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
+}
+
+function onVRDisplayPresentChange() {
+  console.log('onVRDisplayPresentChange');
+  onResize();
 }
 
 // Kick off animation loop.
@@ -159,14 +165,14 @@ requestAnimationFrame(animate);
 
 // Resize the WebGL canvas when we resize and also when we change modes.
 window.addEventListener('resize', onResize);
-window.addEventListener('vrdisplaypresentchange', onResize);
+window.addEventListener('vrdisplaypresentchange', onVRDisplayPresentChange);
 
 // Button click handlers.
 document.querySelector('button#fullscreen').addEventListener('click', function() {
   enterFullscreen(renderer.domElement);
 });
 document.querySelector('button#vr').addEventListener('click', function() {
-  vrDisplay.requestPresent({source: renderer.domElement});
+  vrDisplay.requestPresent([{source: renderer.domElement}]);
 });
 document.querySelector('button#reset').addEventListener('click', function() {
   vrDisplay.resetPose();
