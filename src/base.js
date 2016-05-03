@@ -142,7 +142,6 @@ VRDisplay.prototype.requestPresent = function(layers) {
         var actualFullscreenElement = Util.getFullscreenElement();
 
         self.isPresenting = (fullscreenElement === actualFullscreenElement);
-        self.fireVRDisplayPresentChange_();
         if (self.isPresenting) {
           if (screen.orientation && screen.orientation.lock) {
             screen.orientation.lock('landscape-primary');
@@ -159,6 +158,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
           self.endPresent_();
           self.removeFullscreenListeners_();
         }
+        self.fireVRDisplayPresentChange_();
       }
       function onFullscreenError() {
         if (!self.waitingForPresent_) {
@@ -185,8 +185,8 @@ VRDisplay.prototype.requestPresent = function(layers) {
         // *sigh* Just fake it.
         self.wakelock_.request();
         self.isPresenting = true;
-        self.fireVRDisplayPresentChange_();
         self.beginPresent_();
+        self.fireVRDisplayPresentChange_();
         resolve();
       }
     }
@@ -208,8 +208,8 @@ VRDisplay.prototype.exitPresent = function() {
   return new Promise(function(resolve, reject) {
     if (wasPresenting) {
       if (!Util.exitFullscreen() && Util.isIOS()) {
-        self.fireVRDisplayPresentChange_();
         self.endPresent_();
+        self.fireVRDisplayPresentChange_();
       }
 
       self.removeFullscreenWrapper();
