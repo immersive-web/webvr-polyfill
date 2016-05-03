@@ -24,7 +24,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "browserify src/main.js | derequire > build/webvr-polyfill.js",
-    "watch": "watchify src/main.js -v -d -o build/webvr-polyfill.js",
+    "watch": "watchify src/main.js -v -d -o 'derequire > build/webvr-polyfill.js'",
     "copy": "cp build/webvr-polyfill.js ../webvr-boilerplate/node_modules/webvr-polyfill/build/webvr-polyfill.js"
   },
   "repository": "borismus/webvr-polyfill",
