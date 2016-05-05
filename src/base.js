@@ -98,8 +98,9 @@ VRDisplay.prototype.wrapForFullscreen = function(element) {
 };
 
 VRDisplay.prototype.removeFullscreenWrapper = function() {
-  if (!this.fullscreenElement_)
+  if (!this.fullscreenElement_) {
     return;
+  }
 
   var element = this.fullscreenElement_;
   this.fullscreenElement_ = null;
@@ -156,6 +157,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
           if (screen.orientation && screen.orientation.unlock) {
             screen.orientation.unlock();
           }
+          self.setForceCanvasFullscreen_(false);
           self.removeFullscreenWrapper();
           self.wakelock_.release();
           self.endPresent_();
@@ -189,7 +191,6 @@ VRDisplay.prototype.requestPresent = function(layers) {
         self.wakelock_.request();
         self.isPresenting = true;
         self.beginPresent_();
-        self.setForceCanvasFullscreen_(true);
         self.fireVRDisplayPresentChange_();
         resolve();
       }
@@ -213,11 +214,8 @@ VRDisplay.prototype.exitPresent = function() {
     if (wasPresenting) {
       if (!Util.exitFullscreen() && Util.isIOS()) {
         self.endPresent_();
-        self.setForceCanvasFullscreen_(false);
         self.fireVRDisplayPresentChange_();
       }
-
-      self.removeFullscreenWrapper();
 
       resolve();
     } else {
