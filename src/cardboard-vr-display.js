@@ -218,7 +218,8 @@ CardboardVRDisplay.prototype.injectPresentModeCssClass_ = function() {
     'left: 0 !important',
     'right: 0 !important',
     'bottom: 0 !important',
-    'z-index: 999999 !important'
+    'z-index: 999999 !important',
+    'position: fixed',
   ];
   var style = document.createElement('style');
   style.type = 'text/css';
