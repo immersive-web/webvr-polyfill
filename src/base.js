@@ -51,6 +51,8 @@ function VRDisplay() {
   this.fullscreenErrorHandler_ = null;
 
   this.wakelock_ = new WakeLock();
+
+  this.presentModeClassName = 'WEBVR_POLYFILL_PRESENT';
 }
 
 VRDisplay.prototype.getPose = function() {
@@ -148,6 +150,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
           }
           self.waitingForPresent_ = false;
           self.beginPresent_();
+          self.setForceCanvasFullscreen_(true);
           resolve();
         } else {
           if (screen.orientation && screen.orientation.unlock) {
@@ -186,6 +189,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
         self.wakelock_.request();
         self.isPresenting = true;
         self.beginPresent_();
+        self.setForceCanvasFullscreen_(true);
         self.fireVRDisplayPresentChange_();
         resolve();
       }
@@ -209,6 +213,7 @@ VRDisplay.prototype.exitPresent = function() {
     if (wasPresenting) {
       if (!Util.exitFullscreen() && Util.isIOS()) {
         self.endPresent_();
+        self.setForceCanvasFullscreen_(false);
         self.fireVRDisplayPresentChange_();
       }
 
@@ -295,8 +300,16 @@ VRDisplay.prototype.submitFrame = function(pose) {
 };
 
 VRDisplay.prototype.getEyeParameters = function(whichEye) {
-  // Override to return accurate eye parameters is canPresent is true.
+  // Override to return accurate eye parameters if canPresent is true.
   return null;
+};
+
+VRDisplay.prototype.setForceCanvasFullscreen_ = function(isFullscreen) {
+  if (isFullscreen) {
+    this.fullscreenElement_.classList.add(this.presentModeClassName);
+  } else {
+    this.fullscreenElement_.classList.remove(this.presentModeClassName);
+  }
 };
 
 /*
