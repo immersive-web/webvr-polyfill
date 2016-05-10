@@ -51,6 +51,8 @@ function VRDisplay() {
   this.fullscreenErrorHandler_ = null;
 
   this.wakelock_ = new WakeLock();
+
+  this.presentModeClassName = 'WEBVR_POLYFILL_PRESENT';
 }
 
 VRDisplay.prototype.getPose = function() {
@@ -96,8 +98,9 @@ VRDisplay.prototype.wrapForFullscreen = function(element) {
 };
 
 VRDisplay.prototype.removeFullscreenWrapper = function() {
-  if (!this.fullscreenElement_)
+  if (!this.fullscreenElement_) {
     return;
+  }
 
   var element = this.fullscreenElement_;
   this.fullscreenElement_ = null;
@@ -142,23 +145,25 @@ VRDisplay.prototype.requestPresent = function(layers) {
         var actualFullscreenElement = Util.getFullscreenElement();
 
         self.isPresenting = (fullscreenElement === actualFullscreenElement);
-        self.fireVRDisplayPresentChange_();
         if (self.isPresenting) {
           if (screen.orientation && screen.orientation.lock) {
             screen.orientation.lock('landscape-primary');
           }
           self.waitingForPresent_ = false;
           self.beginPresent_();
+          self.setForceCanvasFullscreen_(true);
           resolve();
         } else {
           if (screen.orientation && screen.orientation.unlock) {
             screen.orientation.unlock();
           }
+          self.setForceCanvasFullscreen_(false);
           self.removeFullscreenWrapper();
           self.wakelock_.release();
           self.endPresent_();
           self.removeFullscreenListeners_();
         }
+        self.fireVRDisplayPresentChange_();
       }
       function onFullscreenError() {
         if (!self.waitingForPresent_) {
@@ -185,8 +190,8 @@ VRDisplay.prototype.requestPresent = function(layers) {
         // *sigh* Just fake it.
         self.wakelock_.request();
         self.isPresenting = true;
-        self.fireVRDisplayPresentChange_();
         self.beginPresent_();
+        self.fireVRDisplayPresentChange_();
         resolve();
       }
     }
@@ -208,11 +213,9 @@ VRDisplay.prototype.exitPresent = function() {
   return new Promise(function(resolve, reject) {
     if (wasPresenting) {
       if (!Util.exitFullscreen() && Util.isIOS()) {
-        self.fireVRDisplayPresentChange_();
         self.endPresent_();
+        self.fireVRDisplayPresentChange_();
       }
-
-      self.removeFullscreenWrapper();
 
       resolve();
     } else {
@@ -295,8 +298,16 @@ VRDisplay.prototype.submitFrame = function(pose) {
 };
 
 VRDisplay.prototype.getEyeParameters = function(whichEye) {
-  // Override to return accurate eye parameters is canPresent is true.
+  // Override to return accurate eye parameters if canPresent is true.
   return null;
+};
+
+VRDisplay.prototype.setForceCanvasFullscreen_ = function(isFullscreen) {
+  if (isFullscreen) {
+    this.fullscreenElement_.classList.add(this.presentModeClassName);
+  } else {
+    this.fullscreenElement_.classList.remove(this.presentModeClassName);
+  }
 };
 
 /*

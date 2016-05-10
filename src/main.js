@@ -29,6 +29,12 @@ window.WebVRConfig = Util.extend({
   // Flag to disable touch panner. In case you have your own touch controls.
   TOUCH_PANNER_DISABLED: false,
 
+  // Flag to disabled the UI in VR Mode.
+  CARDBOARD_UI_DISABLED: false, // Default: false
+
+  // Flag to disable the instructions to rotate your device.
+  ROTATE_INSTRUCTIONS_DISABLED: false, // Default: false.
+
   // Enable yaw panning only, disabling roll and pitch. This can be useful
   // for panoramas with nothing interesting above or below.
   YAW_ONLY: false,
@@ -46,7 +52,9 @@ window.WebVRConfig = Util.extend({
 
   // Scales the recommended buffer size reported by WebVR, which can improve
   // performance.
-  BUFFER_SCALE: 1.0,
+  // UPDATE(2016-05-03): Setting this to 0.5 by default since 1.0 does not
+  // perform well on many mobile devices.
+  BUFFER_SCALE: 0.5,
 
   // Allow VRDisplay.submitFrame to change gl bindings, which is more
   // efficient if the application code will re-bind its resources on the
