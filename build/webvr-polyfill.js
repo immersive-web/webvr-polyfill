@@ -1138,14 +1138,13 @@ function VRDisplay() {
 
   this.fullscreenElement_ = null;
   this.fullscreenWrapper_ = null;
+  this.fullscreenElementCachedStyle_ = null;
 
   this.fullscreenEventTarget_ = null;
   this.fullscreenChangeHandler_ = null;
   this.fullscreenErrorHandler_ = null;
 
   this.wakelock_ = new WakeLock();
-
-  this.presentModeClassName = 'WEBVR_POLYFILL_PRESENT';
 }
 
 VRDisplay.prototype.getPose = function() {
@@ -1163,16 +1162,21 @@ VRDisplay.prototype.cancelAnimationFrame = function(id) {
 };
 
 VRDisplay.prototype.wrapForFullscreen = function(element) {
-  if (Util.isIOS())
-    return element;
-
   if (!this.fullscreenWrapper_) {
     this.fullscreenWrapper_ = document.createElement('div');
+    var cssProperties = [
+      'height: ' + Math.min(screen.height, screen.width) + 'px !important',
+      'top: 0 !important',
+      'left: 0 !important',
+      'right: 0 !important',
+      'border: 0',
+      'margin: 0',
+      'padding: 0',
+      'z-index: 999999 !important',
+      'position: fixed',
+    ];
+    this.fullscreenWrapper_.setAttribute('style', cssProperties.join('; ') + ';');
     this.fullscreenWrapper_.classList.add('webvr-polyfill-fullscreen-wrapper');
-    // Make sure the wrapper takes the full screen. Without this, there is a
-    // white line at the bottom.
-    this.fullscreenWrapper_.style.width = '100%';
-    this.fullscreenWrapper_.style.height = '100%';
   }
 
   if (this.fullscreenElement_ == element)
@@ -1186,6 +1190,36 @@ VRDisplay.prototype.wrapForFullscreen = function(element) {
   parent.insertBefore(this.fullscreenWrapper_, this.fullscreenElement_);
   parent.removeChild(this.fullscreenElement_);
   this.fullscreenWrapper_.insertBefore(this.fullscreenElement_, this.fullscreenWrapper_.firstChild);
+  this.fullscreenElementCachedStyle_ = this.fullscreenElement_.getAttribute('style');
+
+  var self = this;
+  function applyFullscreenElementStyle() {
+    if (!self.fullscreenElement_)
+      return;
+
+    var cssProperties = [
+      'position: absolute',
+      'top: 0',
+      'left: 0',
+      'width: ' + Math.max(screen.width, screen.height) + 'px',
+      'height: ' + Math.min(screen.height, screen.width) + 'px',
+      'border: 0',
+      'margin: 0',
+      'padding: 0',
+    ];
+    self.fullscreenElement_.setAttribute('style', cssProperties.join('; ') + ';');
+  }
+
+  if (Util.isIOS()) {
+    // "To the last I grapple with thee;
+    //  from hell's heart I stab at thee;
+    //  for hate's sake I spit my last breath at thee."
+    // -- Moby Dick, by Herman Melville
+    this.fullscreenElement_.setAttribute('style', 'width: ' + (Math.max(screen.width, screen.height) - 1) + 'px;');
+    setTimeout(applyFullscreenElementStyle, 1000);
+  } else {
+    applyFullscreenElementStyle();
+  }
 
   return this.fullscreenWrapper_;
 };
@@ -1196,7 +1230,13 @@ VRDisplay.prototype.removeFullscreenWrapper = function() {
   }
 
   var element = this.fullscreenElement_;
+  if (this.fullscreenElementCachedStyle_) {
+    element.setAttribute('style', this.fullscreenElementCachedStyle_);
+  } else {
+    element.removeAttribute('style');
+  }
   this.fullscreenElement_ = null;
+  this.fullscreenElementCachedStyle_ = null;
 
   var parent = this.fullscreenWrapper_.parentElement;
   this.fullscreenWrapper_.removeChild(element);
@@ -1244,13 +1284,11 @@ VRDisplay.prototype.requestPresent = function(layers) {
           }
           self.waitingForPresent_ = false;
           self.beginPresent_();
-          self.setForceCanvasFullscreen_(true);
           resolve();
         } else {
           if (screen.orientation && screen.orientation.unlock) {
             screen.orientation.unlock();
           }
-          self.setForceCanvasFullscreen_(false);
           self.removeFullscreenWrapper();
           self.wakelock_.release();
           self.endPresent_();
@@ -1393,14 +1431,6 @@ VRDisplay.prototype.submitFrame = function(pose) {
 VRDisplay.prototype.getEyeParameters = function(whichEye) {
   // Override to return accurate eye parameters if canPresent is true.
   return null;
-};
-
-VRDisplay.prototype.setForceCanvasFullscreen_ = function(isFullscreen) {
-  if (isFullscreen) {
-    this.fullscreenElement_.classList.add(this.presentModeClassName);
-  } else {
-    this.fullscreenElement_.classList.remove(this.presentModeClassName);
-  }
 };
 
 /*
@@ -2422,7 +2452,6 @@ function CardboardVRDisplay() {
   // Set the correct initial viewer.
   this.deviceInfo_.setViewer(this.viewerSelector_.getCurrentViewer());
 
-  this.injectPresentModeCssClass_();
   if (!WebVRConfig.ROTATE_INSTRUCTIONS_DISABLED) {
     this.rotateInstructions_ = new RotateInstructions();
   }
@@ -2589,23 +2618,6 @@ CardboardVRDisplay.prototype.fireVRDisplayDeviceParamsChange_ = function() {
     }
   });
   window.dispatchEvent(event);
-};
-
-CardboardVRDisplay.prototype.injectPresentModeCssClass_ = function() {
-  var cssProperties = [
-    'width: 100% !important',
-    'height: 100% !important',
-    'top: 0 !important',
-    'left: 0 !important',
-    'right: 0 !important',
-    'bottom: 0 !important',
-    'z-index: 999999 !important',
-    'position: fixed',
-  ];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-  style.innerHTML = '.' + this.presentModeClassName + '{' + cssProperties.join(';') + '}';
-  document.getElementsByTagName('head')[0].appendChild(style);
 };
 
 module.exports = CardboardVRDisplay;
