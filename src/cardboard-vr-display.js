@@ -135,7 +135,7 @@ CardboardVRDisplay.prototype.beginPresent_ = function() {
     }
   }
 
-  if (this.carboardUI_) {
+  if (this.cardboardUI_) {
     this.cardboardUI_.listen(function() {
       // Options clicked
       this.viewerSelector_.show(this.layer_.source.parentElement);
