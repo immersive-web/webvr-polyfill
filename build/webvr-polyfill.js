@@ -8,6 +8,9 @@ var currentQueue;
 var queueIndex = -1;
 
 function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
     draining = false;
     if (currentQueue.length) {
         queue = currentQueue.concat(queue);
@@ -2503,7 +2506,7 @@ CardboardVRDisplay.prototype.beginPresent_ = function() {
     }
   }
 
-  if (this.carboardUI_) {
+  if (this.cardboardUI_) {
     this.cardboardUI_.listen(function() {
       // Options clicked
       this.viewerSelector_.show(this.layer_.source.parentElement);
