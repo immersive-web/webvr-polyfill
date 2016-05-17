@@ -205,18 +205,12 @@ CardboardVRDisplay.prototype.onOrientationChange_ = function(e) {
     var gl = this.layer_.source.getContext('webgl');
     var canvas = gl.canvas;
 
-    /*
-    // Force canvas to relayout (from http://stackoverflow.com/a/3485654/693934).
-    canvas.style.display = 'none';
-    canvas.offsetHeight; // no need to store this anywhere, the reference is enough
-    canvas.style.display = '';
-    */
-
+    // TODO(smus): Hopefully this workaround is no longer needed sometime.
     var width = canvas.style.width;
     canvas.style.width = 0;
     setTimeout(function() {
       canvas.style.width = width;
-    }, 100);
+    }, 1);
   }
 };
 
