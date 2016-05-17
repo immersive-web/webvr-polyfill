@@ -204,11 +204,8 @@ CardboardVRDisplay.prototype.onOrientationChange_ = function(e) {
   if (Util.isIOS()) {
     // Reset the size of the canvas.
     var gl = this.layer_.source.getContext('webgl');
-    var oldStyle = gl.canvas.style;
-    gl.canvas.style = '';
-    setTimeout(function() {
-      gl.canvas.style = oldStyle;
-    }, 10);
+    var oldStyle = gl.canvas.getAttribute('style');
+    gl.canvas.setAttribute(oldStyle);
   }
 };
 
