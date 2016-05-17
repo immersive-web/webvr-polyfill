@@ -205,7 +205,7 @@ CardboardVRDisplay.prototype.onOrientationChange_ = function(e) {
     var gl = this.layer_.source.getContext('webgl');
     var canvas = gl.canvas;
 
-    // TODO(smus): Hopefully this workaround is no longer needed sometime.
+    // TODO(smus): Remove this workaround when Safari for iOS is fixed.
     var width = canvas.style.width;
     canvas.style.width = 0;
     setTimeout(function() {
