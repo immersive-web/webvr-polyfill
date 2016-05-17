@@ -210,7 +210,7 @@ CardboardVRDisplay.prototype.onOrientationChange_ = function(e) {
     canvas.style.width = 0;
     setTimeout(function() {
       canvas.style.width = width;
-    }, 1);
+    }, 100);
   }
 };
 
