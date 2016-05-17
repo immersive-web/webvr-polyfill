@@ -199,6 +199,14 @@ CardboardVRDisplay.prototype.onOrientationChange_ = function(e) {
   if (this.rotateInstructions_) {
     this.rotateInstructions_.update();
   }
+
+  // iOS workaround (for https://bugs.webkit.org/show_bug.cgi?id=152556).
+  if (Util.isIOS()) {
+    // Reset the size of the canvas.
+    var gl = this.layer_.source.getContext('webgl');
+    gl.canvas.style.width = gl.canvas.style.width;
+    gl.canvas.style.height = gl.canvas.style.height;
+  }
 };
 
 CardboardVRDisplay.prototype.onViewerChanged_ = function(viewer) {
