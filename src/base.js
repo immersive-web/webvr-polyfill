@@ -82,6 +82,7 @@ VRDisplay.prototype.wrapForFullscreen = function(element) {
       'z-index: 999999 !important',
       'position: fixed',
     ];
+    this.fullscreenWrapper_.setAttribute('style', '');
     this.fullscreenWrapper_.setAttribute('style', cssProperties.join('; ') + ';');
     this.fullscreenWrapper_.classList.add('webvr-polyfill-fullscreen-wrapper');
   }
