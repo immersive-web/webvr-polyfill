@@ -202,10 +202,12 @@ CardboardVRDisplay.prototype.onOrientationChange_ = function(e) {
 
   // iOS workaround (for https://bugs.webkit.org/show_bug.cgi?id=152556).
   if (Util.isIOS()) {
-    // Reset the size of the canvas.
+    // Force canvas to relayout (from http://stackoverflow.com/a/3485654/693934).
     var gl = this.layer_.source.getContext('webgl');
-    var oldStyle = gl.canvas.getAttribute('style');
-    gl.canvas.setAttribute('style', oldStyle);
+    var canvas = gl.canvas;
+    canvas.style.display = 'none';
+    canvas.offsetHeight; // no need to store this anywhere, the reference is enough
+    canvas.style.display = '';
   }
 };
 
