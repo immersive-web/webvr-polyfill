@@ -19,7 +19,7 @@ var Util = require('./util.js');
 
 // How much to rotate per key stroke.
 var KEY_SPEED = 0.15;
-var KEY_ANIMATION_DURATION = 1000;
+var KEY_ANIMATION_DURATION = 80;
 
 // How much to rotate for mouse events.
 var MOUSE_SPEED_X = 0.5;
