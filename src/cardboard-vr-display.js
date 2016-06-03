@@ -188,8 +188,15 @@ CardboardVRDisplay.prototype.endPresent_ = function() {
 CardboardVRDisplay.prototype.submitFrame = function(pose) {
   if (this.distorter_) {
     this.distorter_.submitFrame();
-  } else if (this.cardboardUI_) {
+  } else if (this.cardboardUI_ && this.layer_) {
+    // Hack for predistorted: true.
+    var canvas = this.layer_.source.getContext('webgl').canvas;
+    if (canvas.width != this.lastWidth || canvas.height != this.lastHeight) {
+      this.cardboardUI_.onResize();
+    }
     this.cardboardUI_.render();
+    this.lastWidth = canvas.width;
+    this.lastHeight = canvas.height;
   }
 };
 
