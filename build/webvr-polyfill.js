@@ -1113,6 +1113,9 @@ var WakeLock = _dereq_('./wakelock.js');
 var nextDisplayId = 1000;
 var hasShowDeprecationWarning = false;
 
+var defaultLeftBounds = [0, 0, 0.5, 1];
+var defaultRightBounds = [0.5, 0, 0.5, 1];
+
 /**
  * The base class for all VR displays.
  */
@@ -1244,10 +1247,7 @@ VRDisplay.prototype.removeFullscreenWrapper = function() {
 };
 
 VRDisplay.prototype.requestPresent = function(layers) {
-  if (this.isPresenting) {
-    console.error('Already presenting!');
-    return;
-  }
+  var wasPresenting = this.isPresenting;
   var self = this;
 
   if (!(layers instanceof Array)) {
@@ -1269,7 +1269,51 @@ VRDisplay.prototype.requestPresent = function(layers) {
       return;
     }
 
-    self.layer_ = layers[0];
+    var incomingLayer = layers[0];
+    if (!incomingLayer.source) {
+      /*
+      todo: figure out the correct behavior if the source is not provided.
+      see https://github.com/w3c/webvr/issues/58
+      */
+      resolve();
+      return;
+    }
+
+    var leftBounds = incomingLayer.leftBounds || defaultLeftBounds;
+    var rightBounds = incomingLayer.rightBounds || defaultRightBounds;
+    if (wasPresenting) {
+      // Already presenting, just changing configuration
+      var changed = false;
+      var layer = self.layer_;
+      if (layer.source !== incomingLayer.source) {
+        layer.source = incomingLayer.source;
+        changed = true;
+      }
+
+      for (var i = 0; i < 4; i++) {
+        if (layer.leftBounds[i] !== leftBounds[i]) {
+          layer.leftBounds[i] = leftBounds[i];
+          changed = true;
+        }
+        if (layer.rightBounds[i] !== rightBounds[i]) {
+          layer.rightBounds[i] = rightBounds[i];
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        self.fireVRDisplayPresentChange_();
+      }
+      resolve();
+      return;
+    }
+
+    // Was not already presenting
+    self.layer_ = {
+      source: incomingLayer.source,
+      leftBounds: leftBounds.slice(0),
+      rightBounds: rightBounds.slice(0)
+    };
 
     self.waitingForPresent_ = false;
     if (self.layer_ && self.layer_.source) {
@@ -1281,7 +1325,9 @@ VRDisplay.prototype.requestPresent = function(layers) {
         self.isPresenting = (fullscreenElement === actualFullscreenElement);
         if (self.isPresenting) {
           if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape-primary');
+            screen.orientation.lock('landscape-primary').catch(function(error){
+                    console.error('screen.orientation.lock() failed due to', error.message)
+            });
           }
           self.waitingForPresent_ = false;
           self.beginPresent_();
@@ -2517,6 +2563,12 @@ CardboardVRDisplay.prototype.onDeviceParamsUpdated_ = function(newParams) {
   }
 };
 
+CardboardVRDisplay.prototype.updateBounds_ = function () {
+  if (this.layer_ && this.distorter_ && (this.layer_.leftBounds || this.layer_.rightBounds)) {
+    this.distorter_.setTextureBounds(this.layer_.leftBounds, this.layer_.rightBounds);
+  }
+};
+
 CardboardVRDisplay.prototype.beginPresent_ = function() {
   var gl = this.layer_.source.getContext('webgl');
   if (!gl)
@@ -2539,10 +2591,6 @@ CardboardVRDisplay.prototype.beginPresent_ = function() {
     this.distorter_ = new CardboardDistorter(gl);
     this.distorter_.updateDeviceInfo(this.deviceInfo_);
     this.cardboardUI_ = this.distorter_.cardboardUI;
-
-    if (this.layer_.leftBounds || this.layer_.rightBounds) {
-      this.distorter_.setTextureBounds(this.layer_.leftBounds, this.layer_.rightBounds);
-    }
   }
 
   if (this.cardboardUI_) {
@@ -2573,6 +2621,10 @@ CardboardVRDisplay.prototype.beginPresent_ = function() {
   this.orientationHandler = this.onOrientationChange_.bind(this);
   window.addEventListener('orientationchange', this.orientationHandler);
 
+  // Listen for present display change events in order to update distorter dimensions
+  this.vrdisplaypresentchangeHandler = this.updateBounds_.bind(this);
+  window.addEventListener('vrdisplaypresentchange', this.vrdisplaypresentchangeHandler);
+
   // Fire this event initially, to give geometry-distortion clients the chance
   // to do something custom.
   this.fireVRDisplayDeviceParamsChange_();
@@ -2594,6 +2646,7 @@ CardboardVRDisplay.prototype.endPresent_ = function() {
   this.viewerSelector_.hide();
 
   window.removeEventListener('orientationchange', this.orientationHandler);
+  window.removeEventListener('vrdisplaypresentchange', this.vrdisplaypresentchangeHandler);
 };
 
 CardboardVRDisplay.prototype.submitFrame = function(pose) {
