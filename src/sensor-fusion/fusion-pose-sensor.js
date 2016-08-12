@@ -189,7 +189,7 @@ FusionPoseSensor.prototype.start = function() {
 
 FusionPoseSensor.prototype.stop = function() {
   window.removeEventListener('devicemotion', this.onDeviceMotionCallback_);
-  window.removeEventListener('orientationchange', onScreenOrientationCallback_);
+  window.removeEventListener('orientationchange', this.onScreenOrientationCallback_);
 };
 
 module.exports = FusionPoseSensor;
