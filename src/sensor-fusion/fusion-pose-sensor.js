@@ -28,8 +28,7 @@ function FusionPoseSensor() {
   this.accelerometer = new MathUtil.Vector3();
   this.gyroscope = new MathUtil.Vector3();
 
-  window.addEventListener('devicemotion', this.onDeviceMotionChange_.bind(this));
-  window.addEventListener('orientationchange', this.onScreenOrientationChange_.bind(this));
+  this.start();
 
   this.filter = new ComplementaryFilter(WebVRConfig.K_FILTER);
   this.posePredictor = new PosePredictor(WebVRConfig.PREDICTION_TIME_S);
@@ -178,6 +177,19 @@ FusionPoseSensor.prototype.setScreenTransform_ = function() {
   }
   this.inverseWorldToScreenQ.copy(this.worldToScreenQ);
   this.inverseWorldToScreenQ.inverse();
+};
+
+FusionPoseSensor.prototype.start = function() {
+  this.onDeviceMotionCallback_ = this.onDeviceMotionChange_.bind(this);
+  this.onScreenOrientationCallback_ = this.onScreenOrientationChange_.bind(this);
+  
+  window.addEventListener('devicemotion', this.onDeviceMotionCallback_);
+  window.addEventListener('orientationchange', this.onScreenOrientationCallback_);
+};
+
+FusionPoseSensor.prototype.stop = function() {
+  window.removeEventListener('devicemotion', this.onDeviceMotionCallback_);
+  window.removeEventListener('orientationchange', onScreenOrientationCallback_);
 };
 
 module.exports = FusionPoseSensor;
