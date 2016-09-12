@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 var Util = require('./util.js');
-var WebVRPolyfill = require('./webvr-polyfill.js');
+var WebVRPolyfill = require('./webvr-polyfill.js').WebVRPolyfill;
+var WebVRSpecShim = require('./webvr-polyfill.js').WebVRSpecShim;
 
 // Initialize a WebVRConfig just in case.
 window.WebVRConfig = Util.extend({
@@ -71,5 +72,11 @@ if (!window.WebVRConfig.DEFER_INITIALIZATION) {
 } else {
   window.InitializeWebVRPolyfill = function() {
     new WebVRPolyfill();
+  }
+  // Call this if you want to use the shim without the rest of the polyfill.
+  // InitializeWebVRPolyfill() will install the shim automatically when needed,
+  // so this should rarely be used.
+  window.InitializeSpecShim = function() {
+    new WebVRSpecShim();
   }
 }

@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 
+var Util = require('./util.js');
 var CardboardVRDisplay = require('./cardboard-vr-display.js');
 var MouseKeyboardVRDisplay = require('./mouse-keyboard-vr-display.js');
 // Uncomment to add positional tracking via webcam.
 //var WebcamPositionSensorVRDevice = require('./webcam-position-sensor-vr-device.js');
 var VRDisplay = require('./base.js').VRDisplay;
+var VRFrameData = require('./base.js').VRFrameData;
 var HMDVRDevice = require('./base.js').HMDVRDevice;
 var PositionSensorVRDevice = require('./base.js').PositionSensorVRDevice;
 var VRDisplayHMDDevice = require('./display-wrappers.js').VRDisplayHMDDevice;
@@ -33,6 +35,10 @@ function WebVRPolyfill() {
   if (!this.nativeLegacyWebVRAvailable) {
     if (!this.nativeWebVRAvailable) {
       this.enablePolyfill();
+    } else {
+      // Native implementation is available, but possibly not the 1.1 version
+      // of the spec. Put a shim in place to update the API if needed.
+      new WebVRSpecShim();
     }
     if (WebVRConfig.ENABLE_DEPRECATED_API) {
       this.enableDeprecatedPolyfill();
@@ -95,6 +101,8 @@ WebVRPolyfill.prototype.enablePolyfill = function() {
 
   // Provide the VRDisplay object.
   window.VRDisplay = VRDisplay;
+  // Provide the VRFrameData object.
+  window.VRFrameData = VRFrameData;
 };
 
 WebVRPolyfill.prototype.enableDeprecatedPolyfill = function() {
@@ -173,4 +181,27 @@ WebVRPolyfill.prototype.isCardboardCompatible = function() {
   return this.isMobile() || WebVRConfig.FORCE_ENABLE_VR;
 };
 
-module.exports = WebVRPolyfill;
+// Installs a shim that updates a WebVR 1.0 spec implementation to WebVR 1.1
+function WebVRSpecShim() {
+  if (!('VRFrameData' in window)) {
+    // Provide the VRFrameData object.
+    window.VRFrameData = VRFrameData;
+
+    // A lot of Chrome builds don't have depthNear and depthFar, even
+    // though they're in the WebVR 1.0 spec. Patch them in if they're not present.
+    if(!('depthNear' in window.VRDisplay.prototype)) {
+      window.VRDisplay.prototype.depthNear = 0.01;
+    }
+
+    if(!('depthFar' in window.VRDisplay.prototype)) {
+      window.VRDisplay.prototype.depthFar = 10000.0;
+    }
+
+    window.VRDisplay.prototype.getFrameData = function(frameData) {
+      return Util.frameDataFromPose(frameData, this.getPose(), this);
+    }
+  }
+};
+
+module.exports.WebVRPolyfill = WebVRPolyfill;
+module.exports.WebVRSpecShim = WebVRSpecShim;
