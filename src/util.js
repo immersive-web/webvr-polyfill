@@ -216,12 +216,15 @@ Util.safariCssSizeWorkaround = function(canvas) {
 };
 
 Util.frameDataFromPose = (function() {
+  var piOver180 = Math.PI / 180.0;
+  var rad45 = Math.PI * 0.25;
+
   // Borrowed from glMatrix.
   function mat4_perspectiveFromFieldOfView(out, fov, near, far) {
-    var upTan = Math.tan(fov.upDegrees * Math.PI/180.0),
-    downTan = Math.tan(fov.downDegrees * Math.PI/180.0),
-    leftTan = Math.tan(fov.leftDegrees * Math.PI/180.0),
-    rightTan = Math.tan(fov.rightDegrees * Math.PI/180.0),
+    var upTan = Math.tan(fov ? (fov.upDegrees * piOver180) : rad45),
+    downTan = Math.tan(fov ? (fov.downDegrees * piOver180) : rad45),
+    leftTan = Math.tan(fov ? (fov.leftDegrees * piOver180) : rad45),
+    rightTan = Math.tan(fov ? (fov.rightDegrees * piOver180) : rad45),
     xScale = 2.0 / (leftTan + rightTan),
     yScale = 2.0 / (upTan + downTan);
 
@@ -361,15 +364,14 @@ Util.frameDataFromPose = (function() {
   var defaultPosition = new Float32Array([0, 0, 0]);
 
   function updateEyeMatrices(projection, view, pose, parameters, vrDisplay) {
-    mat4_perspectiveFromFieldOfView(projection, parameters.fieldOfView, vrDisplay.depthNear, vrDisplay.depthFar);
+    mat4_perspectiveFromFieldOfView(projection, parameters ? parameters.fieldOfView : null, vrDisplay.depthNear, vrDisplay.depthFar);
 
-    var orientation = pose.orientation;
-    var position = pose.position;
-    if (!orientation) { orientation = defaultOrientation; }
-    if (!position) { position = defaultPosition; }
+    var orientation = pose.orientation || defaultOrientation;
+    var position = pose.position || defaultPosition;
 
     mat4_fromRotationTranslation(view, orientation, position);
-    mat4_translate(view, view, parameters.offset);
+    if (parameters)
+      mat4_translate(view, view, parameters.offset);
     mat4_invert(view, view);
   }
 

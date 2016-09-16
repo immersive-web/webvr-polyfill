@@ -14,7 +14,7 @@
  */
 var Util = require('./util.js');
 var WebVRPolyfill = require('./webvr-polyfill.js').WebVRPolyfill;
-var WebVRSpecShim = require('./webvr-polyfill.js').WebVRSpecShim;
+var InstallWebVRSpecShim = require('./webvr-polyfill.js').InstallWebVRSpecShim;
 
 // Initialize a WebVRConfig just in case.
 window.WebVRConfig = Util.extend({
@@ -77,6 +77,6 @@ if (!window.WebVRConfig.DEFER_INITIALIZATION) {
   // InitializeWebVRPolyfill() will install the shim automatically when needed,
   // so this should rarely be used.
   window.InitializeSpecShim = function() {
-    new WebVRSpecShim();
+    InstallWebVRSpecShim();
   }
 }

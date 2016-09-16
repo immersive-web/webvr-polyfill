@@ -35,15 +35,14 @@ function WebVRPolyfill() {
   if (!this.nativeLegacyWebVRAvailable) {
     if (!this.nativeWebVRAvailable) {
       this.enablePolyfill();
-    } else {
-      // Native implementation is available, but possibly not the 1.1 version
-      // of the spec. Put a shim in place to update the API if needed.
-      new WebVRSpecShim();
     }
     if (WebVRConfig.ENABLE_DEPRECATED_API) {
       this.enableDeprecatedPolyfill();
     }
   }
+
+  // Put a shim in place to update the API to 1.1 if needed.
+  InstallWebVRSpecShim();
 }
 
 WebVRPolyfill.prototype.isWebVRAvailable = function() {
@@ -182,8 +181,8 @@ WebVRPolyfill.prototype.isCardboardCompatible = function() {
 };
 
 // Installs a shim that updates a WebVR 1.0 spec implementation to WebVR 1.1
-function WebVRSpecShim() {
-  if (!('VRFrameData' in window)) {
+function InstallWebVRSpecShim() {
+  if ('VRDisplay' in window && !('VRFrameData' in window)) {
     // Provide the VRFrameData object.
     window.VRFrameData = VRFrameData;
 
@@ -204,4 +203,4 @@ function WebVRSpecShim() {
 };
 
 module.exports.WebVRPolyfill = WebVRPolyfill;
-module.exports.WebVRSpecShim = WebVRSpecShim;
+module.exports.InstallWebVRSpecShim = InstallWebVRSpecShim;

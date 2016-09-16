@@ -3774,7 +3774,7 @@ module.exports = Emitter;
  */
 var Util = _dereq_('./util.js');
 var WebVRPolyfill = _dereq_('./webvr-polyfill.js').WebVRPolyfill;
-var WebVRSpecShim = _dereq_('./webvr-polyfill.js').WebVRSpecShim;
+var InstallWebVRSpecShim = _dereq_('./webvr-polyfill.js').InstallWebVRSpecShim;
 
 // Initialize a WebVRConfig just in case.
 window.WebVRConfig = Util.extend({
@@ -3837,7 +3837,7 @@ if (!window.WebVRConfig.DEFER_INITIALIZATION) {
   // InitializeWebVRPolyfill() will install the shim automatically when needed,
   // so this should rarely be used.
   window.InitializeSpecShim = function() {
-    new WebVRSpecShim();
+    InstallWebVRSpecShim();
   }
 }
 
@@ -5273,12 +5273,15 @@ Util.safariCssSizeWorkaround = function(canvas) {
 };
 
 Util.frameDataFromPose = (function() {
+  var piOver180 = Math.PI / 180.0;
+  var rad45 = Math.PI * 0.25;
+
   // Borrowed from glMatrix.
   function mat4_perspectiveFromFieldOfView(out, fov, near, far) {
-    var upTan = Math.tan(fov.upDegrees * Math.PI/180.0),
-    downTan = Math.tan(fov.downDegrees * Math.PI/180.0),
-    leftTan = Math.tan(fov.leftDegrees * Math.PI/180.0),
-    rightTan = Math.tan(fov.rightDegrees * Math.PI/180.0),
+    var upTan = Math.tan(fov ? (fov.upDegrees * piOver180) : rad45),
+    downTan = Math.tan(fov ? (fov.downDegrees * piOver180) : rad45),
+    leftTan = Math.tan(fov ? (fov.leftDegrees * piOver180) : rad45),
+    rightTan = Math.tan(fov ? (fov.rightDegrees * piOver180) : rad45),
     xScale = 2.0 / (leftTan + rightTan),
     yScale = 2.0 / (upTan + downTan);
 
@@ -5418,15 +5421,14 @@ Util.frameDataFromPose = (function() {
   var defaultPosition = new Float32Array([0, 0, 0]);
 
   function updateEyeMatrices(projection, view, pose, parameters, vrDisplay) {
-    mat4_perspectiveFromFieldOfView(projection, parameters.fieldOfView, vrDisplay.depthNear, vrDisplay.depthFar);
+    mat4_perspectiveFromFieldOfView(projection, parameters ? parameters.fieldOfView : null, vrDisplay.depthNear, vrDisplay.depthFar);
 
-    var orientation = pose.orientation;
-    var position = pose.position;
-    if (!orientation) { orientation = defaultOrientation; }
-    if (!position) { position = defaultPosition; }
+    var orientation = pose.orientation || defaultOrientation;
+    var position = pose.position || defaultPosition;
 
     mat4_fromRotationTranslation(view, orientation, position);
-    mat4_translate(view, view, parameters.offset);
+    if (parameters)
+      mat4_translate(view, view, parameters.offset);
     mat4_invert(view, view);
   }
 
@@ -5764,15 +5766,14 @@ function WebVRPolyfill() {
   if (!this.nativeLegacyWebVRAvailable) {
     if (!this.nativeWebVRAvailable) {
       this.enablePolyfill();
-    } else {
-      // Native implementation is available, but possibly not the 1.1 version
-      // of the spec. Put a shim in place to update the API if needed.
-      new WebVRSpecShim();
     }
     if (WebVRConfig.ENABLE_DEPRECATED_API) {
       this.enableDeprecatedPolyfill();
     }
   }
+
+  // Put a shim in place to update the API to 1.1 if needed.
+  InstallWebVRSpecShim();
 }
 
 WebVRPolyfill.prototype.isWebVRAvailable = function() {
@@ -5911,8 +5912,8 @@ WebVRPolyfill.prototype.isCardboardCompatible = function() {
 };
 
 // Installs a shim that updates a WebVR 1.0 spec implementation to WebVR 1.1
-function WebVRSpecShim() {
-  if (!('VRFrameData' in window)) {
+function InstallWebVRSpecShim() {
+  if ('VRDisplay' in window && !('VRFrameData' in window)) {
     // Provide the VRFrameData object.
     window.VRFrameData = VRFrameData;
 
@@ -5933,6 +5934,6 @@ function WebVRSpecShim() {
 };
 
 module.exports.WebVRPolyfill = WebVRPolyfill;
-module.exports.WebVRSpecShim = WebVRSpecShim;
+module.exports.InstallWebVRSpecShim = InstallWebVRSpecShim;
 
 },{"./base.js":2,"./cardboard-vr-display.js":5,"./display-wrappers.js":8,"./mouse-keyboard-vr-display.js":15,"./util.js":22}]},{},[13]);
