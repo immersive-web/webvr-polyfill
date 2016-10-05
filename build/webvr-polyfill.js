@@ -5621,6 +5621,18 @@ WebVRPolyfill.prototype.enablePolyfill = function() {
 
   // Provide the VRDisplay object.
   window.VRDisplay = VRDisplay;
+
+  // Provide vrEnabled
+  var that = this;
+  Object.defineProperty(navigator, 'vrEnabled', {
+    get: function () {
+      return that.isCardboardCompatible() &&
+        (document.fullscreenEnabled ||
+          document.mozFullScreenEnabled ||
+          document.webkitFullscreenEnabled ||
+          false);
+    }
+  });
 };
 
 WebVRPolyfill.prototype.enableDeprecatedPolyfill = function() {
