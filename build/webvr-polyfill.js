@@ -5622,11 +5622,11 @@ WebVRPolyfill.prototype.enablePolyfill = function() {
   // Provide the VRDisplay object.
   window.VRDisplay = VRDisplay;
 
-  // Provide vrEnabled
-  var that = this;
+  // Provide navigator.vrEnabled.
+  var self = this;
   Object.defineProperty(navigator, 'vrEnabled', {
     get: function () {
-      return that.isCardboardCompatible() &&
+      return self.isCardboardCompatible() &&
         (document.fullscreenEnabled ||
           document.mozFullScreenEnabled ||
           document.webkitFullscreenEnabled ||
