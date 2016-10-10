@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 var Util = require('./util.js');
-var WebVRPolyfill = require('./webvr-polyfill.js');
+var WebVRPolyfill = require('./webvr-polyfill.js').WebVRPolyfill;
 
 // Initialize a WebVRConfig just in case.
 window.WebVRConfig = Util.extend({
