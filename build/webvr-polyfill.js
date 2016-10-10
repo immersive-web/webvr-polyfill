@@ -3774,7 +3774,6 @@ module.exports = Emitter;
  */
 var Util = _dereq_('./util.js');
 var WebVRPolyfill = _dereq_('./webvr-polyfill.js').WebVRPolyfill;
-var InstallWebVRSpecShim = _dereq_('./webvr-polyfill.js').InstallWebVRSpecShim;
 
 // Initialize a WebVRConfig just in case.
 window.WebVRConfig = Util.extend({
@@ -3832,12 +3831,6 @@ if (!window.WebVRConfig.DEFER_INITIALIZATION) {
 } else {
   window.InitializeWebVRPolyfill = function() {
     new WebVRPolyfill();
-  }
-  // Call this if you want to use the shim without the rest of the polyfill.
-  // InitializeWebVRPolyfill() will install the shim automatically when needed,
-  // so this should rarely be used.
-  window.InitializeSpecShim = function() {
-    InstallWebVRSpecShim();
   }
 }
 
@@ -5934,6 +5927,5 @@ function InstallWebVRSpecShim() {
 };
 
 module.exports.WebVRPolyfill = WebVRPolyfill;
-module.exports.InstallWebVRSpecShim = InstallWebVRSpecShim;
 
 },{"./base.js":2,"./cardboard-vr-display.js":5,"./display-wrappers.js":8,"./mouse-keyboard-vr-display.js":15,"./util.js":22}]},{},[13]);
