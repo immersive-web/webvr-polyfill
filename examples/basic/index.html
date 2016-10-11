@@ -100,6 +100,9 @@ var vrDisplay = null;
 navigator.getVRDisplays().then(function(displays) {
   if (displays.length > 0) {
     vrDisplay = displays[0];
+
+    // Kick off the render loop.
+    vrDisplay.requestAnimationFrame(animate);
   }
 });
 
@@ -146,7 +149,7 @@ function animate(timestamp) {
   effect.render(scene, camera);
 
   // Keep looping.
-  requestAnimationFrame(animate);
+  vrDisplay.requestAnimationFrame(animate);
 }
 
 function onResize() {
@@ -160,9 +163,6 @@ function onVRDisplayPresentChange() {
   console.log('onVRDisplayPresentChange');
   onResize();
 }
-
-// Kick off animation loop.
-requestAnimationFrame(animate);
 
 // Resize the WebGL canvas when we resize and also when we change modes.
 window.addEventListener('resize', onResize);
