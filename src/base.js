@@ -339,7 +339,7 @@ VRDisplay.prototype.getLayers = function() {
 };
 
 VRDisplay.prototype.fireVRDisplayPresentChange_ = function() {
-  var event = new CustomEvent('vrdisplaypresentchange', {detail: {vrdisplay: this}});
+  var event = new CustomEvent('vrdisplaypresentchange', {display: this});
   window.dispatchEvent(event);
 };
 
