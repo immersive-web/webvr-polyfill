@@ -297,27 +297,20 @@ VRDisplay.prototype.requestPresent = function(layers) {
     var rightBounds = incomingLayer.rightBounds || defaultRightBounds;
     if (wasPresenting) {
       // Already presenting, just changing configuration
-      var changed = false;
       var layer = self.layer_;
       if (layer.source !== incomingLayer.source) {
         layer.source = incomingLayer.source;
-        changed = true;
       }
 
       for (var i = 0; i < 4; i++) {
         if (layer.leftBounds[i] !== leftBounds[i]) {
           layer.leftBounds[i] = leftBounds[i];
-          changed = true;
         }
         if (layer.rightBounds[i] !== rightBounds[i]) {
           layer.rightBounds[i] = rightBounds[i];
-          changed = true;
         }
       }
 
-      if (changed) {
-        self.fireVRDisplayPresentChange_();
-      }
       resolve();
       return;
     }
@@ -791,6 +784,7 @@ CardboardDistorter.prototype.patch = function() {
       },
       set: function(value) {
         self.bufferWidth = value;
+        self.realCanvasWidth.set.call(canvas, value);
         self.onResize();
       }
     });
@@ -803,6 +797,7 @@ CardboardDistorter.prototype.patch = function() {
       },
       set: function(value) {
         self.bufferHeight = value;
+        self.realCanvasHeight.set.call(canvas, value);
         self.onResize();
       }
     });
