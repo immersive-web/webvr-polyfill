@@ -15,6 +15,19 @@
 var Util = require('./util.js');
 var WebVRPolyfill = require('./webvr-polyfill.js').WebVRPolyfill;
 
+window.WebVRPolyfillMode = {
+  // Provide a polyfilled VRDisplay only when the native API is missing.
+  // This is the default mode.
+  NO_NATIVE_API: 0,
+  // Provide a polyfilled VRDisplay if the native API is missing or is present
+  // but does not provide a VRDisplay.
+  NO_NATIVE_DISPLAY: 1,
+  // Always provide a polyfilled VRDisplay, even when the native API also
+  // provides one. The polyfilled display will always be the last one in the
+  // list.
+  ALWAYS: 2
+};
+
 // Initialize a WebVRConfig just in case.
 window.WebVRConfig = Util.extend({
   // Forces availability of VR mode, even for non-mobile devices.
@@ -63,8 +76,17 @@ window.WebVRConfig = Util.extend({
   // Dirty bindings include: gl.FRAMEBUFFER_BINDING, gl.CURRENT_PROGRAM,
   // gl.ARRAY_BUFFER_BINDING, gl.ELEMENT_ARRAY_BUFFER_BINDING,
   // and gl.TEXTURE_BINDING_2D for texture unit 0.
-  DIRTY_SUBMIT_FRAME_BINDINGS: false
+  DIRTY_SUBMIT_FRAME_BINDINGS: false,
+
+  // Determines when the polyfill is activated. See the enumeration above for
+  // details of each mode.
+  POLYFILL_MODE: "NO_NATIVE_API"
 }, window.WebVRConfig);
+
+// Convert the polyfill mode to a numeric enum
+if (typeof window.WebVRConfig.POLYFILL_MODE == "string") {
+  window.WebVRConfig.POLYFILL_MODE = window.WebVRPolyfillMode[window.WebVRConfig.POLYFILL_MODE];
+}
 
 if (!window.WebVRConfig.DEFER_INITIALIZATION) {
   new WebVRPolyfill();

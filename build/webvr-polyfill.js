@@ -3780,6 +3780,19 @@ module.exports = Emitter;
 var Util = _dereq_('./util.js');
 var WebVRPolyfill = _dereq_('./webvr-polyfill.js').WebVRPolyfill;
 
+window.WebVRPolyfillMode = {
+  // Provide a polyfilled VRDisplay only when the native API is missing.
+  // This is the default mode.
+  NO_NATIVE_API: 0,
+  // Provide a polyfilled VRDisplay if the native API is missing or is present
+  // but does not provide a VRDisplay.
+  NO_NATIVE_DISPLAY: 1,
+  // Always provide a polyfilled VRDisplay, even when the native API also
+  // provides one. The polyfilled display will always be the last one in the
+  // list.
+  ALWAYS: 2
+};
+
 // Initialize a WebVRConfig just in case.
 window.WebVRConfig = Util.extend({
   // Forces availability of VR mode, even for non-mobile devices.
@@ -3828,8 +3841,17 @@ window.WebVRConfig = Util.extend({
   // Dirty bindings include: gl.FRAMEBUFFER_BINDING, gl.CURRENT_PROGRAM,
   // gl.ARRAY_BUFFER_BINDING, gl.ELEMENT_ARRAY_BUFFER_BINDING,
   // and gl.TEXTURE_BINDING_2D for texture unit 0.
-  DIRTY_SUBMIT_FRAME_BINDINGS: false
+  DIRTY_SUBMIT_FRAME_BINDINGS: false,
+
+  // Determines when the polyfill is activated. See the enumeration above for
+  // details of each mode.
+  POLYFILL_MODE: "NO_NATIVE_API"
 }, window.WebVRConfig);
+
+// Convert the polyfill mode to a numeric enum
+if (typeof window.WebVRConfig.POLYFILL_MODE == "string") {
+  window.WebVRConfig.POLYFILL_MODE = window.WebVRPolyfillMode[window.WebVRConfig.POLYFILL_MODE];
+}
 
 if (!window.WebVRConfig.DEFER_INITIALIZATION) {
   new WebVRPolyfill();
@@ -5763,9 +5785,13 @@ function WebVRPolyfill() {
   this.devicesPopulated = false;
   this.nativeWebVRAvailable = this.isWebVRAvailable();
   this.nativeLegacyWebVRAvailable = this.isDeprecatedWebVRAvailable();
+  this.nativeGetVRDisplaysFunc = this.nativeWebVRAvailable ?
+                                 navigator.getVRDisplays :
+                                 null;
 
   if (!this.nativeLegacyWebVRAvailable) {
-    if (!this.nativeWebVRAvailable) {
+    if (!this.nativeWebVRAvailable ||
+        WebVRConfig.POLYFILL_MODE != WebVRPolyfillMode.NO_NATIVE_API) {
       this.enablePolyfill();
     }
     if (WebVRConfig.ENABLE_DEPRECATED_API) {
@@ -5845,8 +5871,10 @@ WebVRPolyfill.prototype.enablePolyfill = function() {
     }
   });
 
-  // Provide the VRFrameData object.
-  window.VRFrameData = VRFrameData;
+  if (!'VRFrameData' in window) {
+    // Provide the VRFrameData object.
+    window.VRFrameData = VRFrameData;
+  }
 };
 
 WebVRPolyfill.prototype.enableDeprecatedPolyfill = function() {
@@ -5860,14 +5888,26 @@ WebVRPolyfill.prototype.enableDeprecatedPolyfill = function() {
 
 WebVRPolyfill.prototype.getVRDisplays = function() {
   this.populateDevices();
-  var displays = this.displays;
-  return new Promise(function(resolve, reject) {
-    try {
-      resolve(displays);
-    } catch (e) {
-      reject(e);
-    }
-  });
+  var polyfillDisplays = this.displays;
+
+  if (this.nativeWebVRAvailable &&
+      WebVRConfig.POLYFILL_MODE != WebVRPolyfillMode.NO_NATIVE_API) {
+    return this.nativeGetVRDisplaysFunc.call(navigator).then(function(nativeDisplays) {
+      if (WebVRConfig.POLYFILL_MODE == WebVRPolyfillMode.NO_NATIVE_DISPLAY) {
+        return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
+      } else {
+        return nativeDisplays.concat(polyfillDisplays);
+      }
+    });
+  } else {
+    return new Promise(function(resolve, reject) {
+      try {
+        resolve(polyfillDisplays);
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
 };
 
 WebVRPolyfill.prototype.getVRDevices = function() {
