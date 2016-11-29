@@ -4088,7 +4088,12 @@ window.WebVRConfig = Util.extend({
   // Dirty bindings include: gl.FRAMEBUFFER_BINDING, gl.CURRENT_PROGRAM,
   // gl.ARRAY_BUFFER_BINDING, gl.ELEMENT_ARRAY_BUFFER_BINDING,
   // and gl.TEXTURE_BINDING_2D for texture unit 0.
-  DIRTY_SUBMIT_FRAME_BINDINGS: false
+  DIRTY_SUBMIT_FRAME_BINDINGS: false,
+
+  // When set to true, this will cause a polyfilled VRDisplay to always be
+  // appended to the list returned by navigator.getVRDisplays(), even if that
+  // list includes a native VRDisplay.
+  ALWAYS_APPEND_POLYFILL_DISPLAY: false
 }, window.WebVRConfig);
 
 if (!window.WebVRConfig.DEFER_INITIALIZATION) {
@@ -6040,11 +6045,12 @@ function WebVRPolyfill() {
   this.devicesPopulated = false;
   this.nativeWebVRAvailable = this.isWebVRAvailable();
   this.nativeLegacyWebVRAvailable = this.isDeprecatedWebVRAvailable();
+  this.nativeGetVRDisplaysFunc = this.nativeWebVRAvailable ?
+                                 navigator.getVRDisplays :
+                                 null;
 
   if (!this.nativeLegacyWebVRAvailable) {
-    if (!this.nativeWebVRAvailable) {
-      this.enablePolyfill();
-    }
+    this.enablePolyfill();
     if (WebVRConfig.ENABLE_DEPRECATED_API) {
       this.enableDeprecatedPolyfill();
     }
@@ -6119,8 +6125,10 @@ WebVRPolyfill.prototype.enablePolyfill = function() {
     }
   });
 
-  // Provide the VRFrameData object.
-  window.VRFrameData = VRFrameData;
+  if (!'VRFrameData' in window) {
+    // Provide the VRFrameData object.
+    window.VRFrameData = VRFrameData;
+  }
 };
 
 WebVRPolyfill.prototype.enableDeprecatedPolyfill = function() {
@@ -6134,14 +6142,25 @@ WebVRPolyfill.prototype.enableDeprecatedPolyfill = function() {
 
 WebVRPolyfill.prototype.getVRDisplays = function() {
   this.populateDevices();
-  var displays = this.displays;
-  return new Promise(function(resolve, reject) {
-    try {
-      resolve(displays);
-    } catch (e) {
-      reject(e);
-    }
-  });
+  var polyfillDisplays = this.displays;
+
+  if (this.nativeWebVRAvailable) {
+    return this.nativeGetVRDisplaysFunc.call(navigator).then(function(nativeDisplays) {
+      if (WebVRConfig.ALWAYS_APPEND_POLYFILL_DISPLAY) {
+        return nativeDisplays.concat(polyfillDisplays);
+      } else {
+        return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
+      }
+    });
+  } else {
+    return new Promise(function(resolve, reject) {
+      try {
+        resolve(polyfillDisplays);
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
 };
 
 WebVRPolyfill.prototype.getVRDevices = function() {
