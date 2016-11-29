@@ -135,7 +135,9 @@ scene.add(cube);
 
 // Request animation frame loop function
 var lastRender = 0;
-function animate(timestamp) {
+function animate(rafTimestamp) {
+  // TODO: Remove this to rely on the RAF timestamp.
+  var timestamp = performance.now();
   var delta = Math.min(timestamp - lastRender, 500);
   lastRender = timestamp;
 
