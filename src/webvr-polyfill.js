@@ -106,10 +106,7 @@ WebVRPolyfill.prototype.enablePolyfill = function() {
   Object.defineProperty(navigator, 'vrEnabled', {
     get: function () {
       return self.isCardboardCompatible() &&
-        (document.fullscreenEnabled ||
-          document.mozFullScreenEnabled ||
-          document.webkitFullscreenEnabled ||
-          false);
+          (self.isFullScreenAvailable() || Util.isIOS());
     }
   });
 
@@ -191,6 +188,13 @@ WebVRPolyfill.prototype.isCardboardCompatible = function() {
   // For now, support all iOS and Android devices.
   // Also enable the WebVRConfig.FORCE_VR flag for debugging.
   return this.isMobile() || WebVRConfig.FORCE_ENABLE_VR;
+};
+
+WebVRPolyfill.prototype.isFullScreenAvailable = function() {
+  return (document.fullscreenEnabled ||
+          document.mozFullScreenEnabled ||
+          document.webkitFullscreenEnabled ||
+          false);
 };
 
 // Installs a shim that updates a WebVR 1.0 spec implementation to WebVR 1.1
