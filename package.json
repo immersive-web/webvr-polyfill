@@ -8,6 +8,7 @@
   ],
   "description": "Use WebVR today, on mobile or desktop, without requiring a special browser build.",
   "dependencies": {
+    "eventemitter3": "^2.0.2",
     "object-assign": "^4.0.1"
   },
   "devDependencies": {

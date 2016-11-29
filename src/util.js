@@ -215,6 +215,17 @@ Util.safariCssSizeWorkaround = function(canvas) {
   window.canvas = canvas;
 };
 
+Util.isDebug = function() {
+  return Util.getQueryParameter('debug');
+};
+
+Util.getQueryParameter = function(name) {
+  var name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+      results = regex.exec(location.search);
+  return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+};
+
 Util.frameDataFromPose = (function() {
   var piOver180 = Math.PI / 180.0;
   var rad45 = Math.PI * 0.25;
