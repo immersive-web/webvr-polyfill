@@ -36,10 +36,7 @@ function WebVRPolyfill() {
                                  null;
 
   if (!this.nativeLegacyWebVRAvailable) {
-    if (!this.nativeWebVRAvailable ||
-        WebVRConfig.POLYFILL_MODE != WebVRPolyfillMode.NO_NATIVE_API) {
-      this.enablePolyfill();
-    }
+    this.enablePolyfill();
     if (WebVRConfig.ENABLE_DEPRECATED_API) {
       this.enableDeprecatedPolyfill();
     }
@@ -136,13 +133,12 @@ WebVRPolyfill.prototype.getVRDisplays = function() {
   this.populateDevices();
   var polyfillDisplays = this.displays;
 
-  if (this.nativeWebVRAvailable &&
-      WebVRConfig.POLYFILL_MODE != WebVRPolyfillMode.NO_NATIVE_API) {
+  if (this.nativeWebVRAvailable) {
     return this.nativeGetVRDisplaysFunc.call(navigator).then(function(nativeDisplays) {
-      if (WebVRConfig.POLYFILL_MODE == WebVRPolyfillMode.NO_NATIVE_DISPLAY) {
-        return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
-      } else {
+      if (WebVRConfig.ALWAYS_APPEND_POLYFILL_DISPLAY) {
         return nativeDisplays.concat(polyfillDisplays);
+      } else {
+        return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
       }
     });
   } else {

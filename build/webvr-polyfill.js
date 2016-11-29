@@ -3780,19 +3780,6 @@ module.exports = Emitter;
 var Util = _dereq_('./util.js');
 var WebVRPolyfill = _dereq_('./webvr-polyfill.js').WebVRPolyfill;
 
-window.WebVRPolyfillMode = {
-  // Provide a polyfilled VRDisplay only when the native API is missing.
-  // This is the default mode.
-  NO_NATIVE_API: 0,
-  // Provide a polyfilled VRDisplay if the native API is missing or is present
-  // but does not provide a VRDisplay.
-  NO_NATIVE_DISPLAY: 1,
-  // Always provide a polyfilled VRDisplay, even when the native API also
-  // provides one. The polyfilled display will always be the last one in the
-  // list.
-  ALWAYS: 2
-};
-
 // Initialize a WebVRConfig just in case.
 window.WebVRConfig = Util.extend({
   // Forces availability of VR mode, even for non-mobile devices.
@@ -3843,15 +3830,11 @@ window.WebVRConfig = Util.extend({
   // and gl.TEXTURE_BINDING_2D for texture unit 0.
   DIRTY_SUBMIT_FRAME_BINDINGS: false,
 
-  // Determines when the polyfill is activated. See the enumeration above for
-  // details of each mode.
-  POLYFILL_MODE: "NO_NATIVE_API"
+  // When set to true, this will cause a polyfilled VRDisplay to always be
+  // appended to the list returned by navigator.getVRDisplays(), even if that
+  // list includes a native VRDisplay.
+  ALWAYS_APPEND_POLYFILL_DISPLAY: false
 }, window.WebVRConfig);
-
-// Convert the polyfill mode to a numeric enum
-if (typeof window.WebVRConfig.POLYFILL_MODE == "string") {
-  window.WebVRConfig.POLYFILL_MODE = window.WebVRPolyfillMode[window.WebVRConfig.POLYFILL_MODE];
-}
 
 if (!window.WebVRConfig.DEFER_INITIALIZATION) {
   new WebVRPolyfill();
@@ -5790,10 +5773,7 @@ function WebVRPolyfill() {
                                  null;
 
   if (!this.nativeLegacyWebVRAvailable) {
-    if (!this.nativeWebVRAvailable ||
-        WebVRConfig.POLYFILL_MODE != WebVRPolyfillMode.NO_NATIVE_API) {
-      this.enablePolyfill();
-    }
+    this.enablePolyfill();
     if (WebVRConfig.ENABLE_DEPRECATED_API) {
       this.enableDeprecatedPolyfill();
     }
@@ -5890,13 +5870,12 @@ WebVRPolyfill.prototype.getVRDisplays = function() {
   this.populateDevices();
   var polyfillDisplays = this.displays;
 
-  if (this.nativeWebVRAvailable &&
-      WebVRConfig.POLYFILL_MODE != WebVRPolyfillMode.NO_NATIVE_API) {
+  if (this.nativeWebVRAvailable) {
     return this.nativeGetVRDisplaysFunc.call(navigator).then(function(nativeDisplays) {
-      if (WebVRConfig.POLYFILL_MODE == WebVRPolyfillMode.NO_NATIVE_DISPLAY) {
-        return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
-      } else {
+      if (WebVRConfig.ALWAYS_APPEND_POLYFILL_DISPLAY) {
         return nativeDisplays.concat(polyfillDisplays);
+      } else {
+        return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
       }
     });
   } else {
