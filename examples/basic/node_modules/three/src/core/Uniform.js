@@ -2,7 +2,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 
-THREE.Uniform = function ( value ) {
+function Uniform( value ) {
 
 	if ( typeof value === 'string' ) {
 
@@ -13,21 +13,6 @@ THREE.Uniform = function ( value ) {
 
 	this.value = value;
 
-	this.dynamic = false;
+}
 
-};
-
-THREE.Uniform.prototype = {
-
-	constructor: THREE.Uniform,
-
-	onUpdate: function ( callback ) {
-
-		this.dynamic = true;
-		this.onUpdateCallback = callback;
-
-		return this;
-
-	}
-
-};
+export { Uniform };
