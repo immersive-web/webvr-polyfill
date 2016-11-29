@@ -66,10 +66,14 @@ window.WebVRConfig = Util.extend({
   DIRTY_SUBMIT_FRAME_BINDINGS: false
 }, window.WebVRConfig);
 
-if (!window.WebVRConfig.DEFER_INITIALIZATION) {
-  new WebVRPolyfill();
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+  module.exports = WebVRPolyfill;
 } else {
-  window.InitializeWebVRPolyfill = function() {
+  if (!window.WebVRConfig.DEFER_INITIALIZATION) {
     new WebVRPolyfill();
+  } else {
+    window.InitializeWebVRPolyfill = function() {
+      new WebVRPolyfill();
+    }
   }
 }
