@@ -5082,7 +5082,11 @@ FusionPoseSensor.prototype.resetPose = function() {
   }
 };
 
-FusionPoseSensor.prototype.onDeviceMotionChange_ = function(deviceMotion) {
+FusionPoseSensor.prototype.onDeviceMotion_ = function(deviceMotion) {
+  this.updateDeviceMotion_(deviceMotion);
+};
+
+FusionPoseSensor.prototype.updateDeviceMotion_ = function(deviceMotion) {
   var accGravity = deviceMotion.accelerationIncludingGravity;
   var rotRate = deviceMotion.rotationRate;
   var timestampS = deviceMotion.timeStamp / 1000;
@@ -5114,9 +5118,30 @@ FusionPoseSensor.prototype.onDeviceMotionChange_ = function(deviceMotion) {
   this.previousTimestampS = timestampS;
 };
 
-FusionPoseSensor.prototype.onScreenOrientationChange_ =
-    function(screenOrientation) {
+FusionPoseSensor.prototype.onOrientationChange_ = function(screenOrientation) {
   this.setScreenTransform_();
+};
+
+/**
+ * This is only needed if we are in an cross origin iframe on iOS to work around
+ * this issue: https://bugs.webkit.org/show_bug.cgi?id=152299.
+ */
+FusionPoseSensor.prototype.onMessage_ = function(event) {
+  var message = event.data;
+
+  // If there's no message type, ignore it.
+  if (!message || !message.type) {
+    return;
+  }
+
+  // Ignore all messages that aren't devicemotion.
+  var type = message.type.toLowerCase();
+  if (type !== 'devicemotion') {
+    return;
+  }
+
+  // Update device motion.
+  this.updateDeviceMotion_(message.deviceMotionEvent);
 };
 
 FusionPoseSensor.prototype.setScreenTransform_ = function() {
@@ -5139,16 +5164,23 @@ FusionPoseSensor.prototype.setScreenTransform_ = function() {
 };
 
 FusionPoseSensor.prototype.start = function() {
-  this.onDeviceMotionCallback_ = this.onDeviceMotionChange_.bind(this);
-  this.onScreenOrientationCallback_ = this.onScreenOrientationChange_.bind(this);
-  
+  this.onDeviceMotionCallback_ = this.onDeviceMotion_.bind(this);
+  this.onOrientationChangeCallback_ = this.onOrientationChange_.bind(this);
+  this.onMessageCallback_ = this.onMessage_.bind(this);
+
   window.addEventListener('devicemotion', this.onDeviceMotionCallback_);
-  window.addEventListener('orientationchange', this.onScreenOrientationCallback_);
+  window.addEventListener('orientationchange', this.onOrientationChangeCallback_);
+  // Only listen for postMessages if we're in an iOS. Note: there's no reliable
+  // way to know if we're in a cross-domain iframe: https://goo.gl/K6hlE.
+  if (Util.isIOS()) {
+    window.addEventListener('message', this.onMessageCallback_);
+  }
 };
 
 FusionPoseSensor.prototype.stop = function() {
   window.removeEventListener('devicemotion', this.onDeviceMotionCallback_);
-  window.removeEventListener('orientationchange', this.onScreenOrientationCallback_);
+  window.removeEventListener('orientationchange', this.onOrientationChangeCallback_);
+  window.removeEventListener('message', this.onMessageCallback_);
 };
 
 module.exports = FusionPoseSensor;
