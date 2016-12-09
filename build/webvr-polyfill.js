@@ -5168,13 +5168,15 @@ FusionPoseSensor.prototype.start = function() {
   this.onOrientationChangeCallback_ = this.onOrientationChange_.bind(this);
   this.onMessageCallback_ = this.onMessage_.bind(this);
 
-  window.addEventListener('devicemotion', this.onDeviceMotionCallback_);
-  window.addEventListener('orientationchange', this.onOrientationChangeCallback_);
-  // Only listen for postMessages if we're in an iOS. Note: there's no reliable
-  // way to know if we're in a cross-domain iframe: https://goo.gl/K6hlE.
-  if (Util.isIOS()) {
+  // Only listen for postMessages if we're in an iOS and embedded inside a cross
+  // domain IFrame. In this case, the polyfill can still work if the containing
+  // page sends synthetic devicemotion events. For an example of this, see
+  // iframe-message-sender.js in VR View: https://goo.gl/XDtvFZ
+  if (Util.isIOS() && Util.isInsideCrossDomainIFrame()) {
     window.addEventListener('message', this.onMessageCallback_);
   }
+  window.addEventListener('orientationchange', this.onOrientationChangeCallback_);
+  window.addEventListener('devicemotion', this.onDeviceMotionCallback_);
 };
 
 FusionPoseSensor.prototype.stop = function() {
@@ -5766,6 +5768,31 @@ Util.frameDataFromPose = (function() {
     return true;
   };
 })();
+
+Util.isInsideCrossDomainIFrame = function() {
+  var isFramed = (window.self !== window.top);
+  var refDomain = Util.getDomainFromUrl(document.referrer);
+  var thisDomain = Util.getDomainFromUrl(window.location.href);
+
+  return isFramed && (refDomain !== thisDomain);
+};
+
+// From http://stackoverflow.com/a/23945027.
+Util.getDomainFromUrl = function(url) {
+  var domain;
+  // Find & remove protocol (http, ftp, etc.) and get domain.
+  if (url.indexOf("://") > -1) {
+    domain = url.split('/')[2];
+  }
+  else {
+    domain = url.split('/')[0];
+  }
+
+  //find & remove port number
+  domain = domain.split(':')[0];
+
+  return domain;
+}
 
 module.exports = Util;
 
