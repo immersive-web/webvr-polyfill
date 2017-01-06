@@ -662,6 +662,17 @@ var DPDB_CACHE = {
   {
     "type": "android",
     "rules": [
+      { "mdmh": "samsung/*/SM-N920W8/*" },
+      { "ua": "SM-N920W8" }
+    ],
+    "dpi": [ 515.1, 518.4 ],
+    "bw": 3,
+    "ac": 1000
+  },
+    
+  {
+    "type": "android",
+    "rules": [
       { "mdmh": "samsung/*/GT-I9300I/*" },
       { "ua": "GT-I9300I" }
     ],
