@@ -14,7 +14,8 @@
   "devDependencies": {
     "browserify": "latest",
     "derequire": "latest",
-    "watchify": "latest"
+    "watchify": "latest",
+    "uglifyjs": "latest"
   },
   "main": "build/webvr-polyfill.js",
   "keywords": [
