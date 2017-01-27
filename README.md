@@ -104,7 +104,7 @@ the repository and install
 [Node](https://nodejs.org/en/download/package-manager/) and the dependencies:
 
 ```bash
-git clone https://github.com/borismus/webvr-polyfill
+git clone https://github.com/googlevr/webvr-polyfill
 cd webvr-polyfill
 npm install
 ```
@@ -114,3 +114,19 @@ npm install
 
 This program is free software for both commercial and non-commercial use,
 distributed under the [Apache 2.0 License](COPYING).
+
+
+## Thanks
+
+- [Brandon Jones][bj] and [Vladimir Vukicevic][vv] for their work on the [WebVR
+  spec][spec].
+- [Ricardo Cabello][doob] for THREE.js.
+- [Diego Marcos][dm] for VREffect and VRControls.
+- [Dmitriy Kovalev][dk] for help with lens distortion correction.
+
+[dk]: https://github.com/dmitriykovalev/
+[bj]: https://twitter.com/tojiro
+[vv]: https://twitter.com/vvuk
+[spec]: https://mozvr.github.io/webvr-spec/
+[dm]: https://twitter.com/dmarcos
+[doob]: https://twitter.com/mrdoob
