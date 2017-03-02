@@ -99,6 +99,27 @@ WebVRPolyfill.prototype.enablePolyfill = function() {
   // Provide navigator.getVRDisplays.
   navigator.getVRDisplays = this.getVRDisplays.bind(this);
 
+  // Polyfill native VRDisplay.getFrameData
+  if (this.nativeWebVRAvailable && this.isCardboardCompatible() && window.VRFrameData) {
+    var nativeFrameData = new window.VRFrameData();
+    var nativeGetFrameData = window.VRDisplay.prototype.getFrameData;
+    window.VRFrameData = VRFrameData;
+
+    window.VRDisplay.prototype.getFrameData = function(frameData) {
+      /*
+      Copy frame data from native object into polyfilled object
+      */
+
+      nativeGetFrameData.call(this, nativeFrameData);
+      frameData.pose = nativeFrameData.pose;
+      Util.copyArray(nativeFrameData.leftProjectionMatrix, frameData.leftProjectionMatrix);
+      Util.copyArray(nativeFrameData.rightProjectionMatrix, frameData.rightProjectionMatrix);
+      Util.copyArray(nativeFrameData.leftViewMatrix, frameData.leftViewMatrix);
+      Util.copyArray(nativeFrameData.rightViewMatrix, frameData.rightViewMatrix);
+      //todo: copy
+    };
+  }
+
   // Provide the VRDisplay object.
   window.VRDisplay = VRDisplay;
 
