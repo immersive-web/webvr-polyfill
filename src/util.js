@@ -183,7 +183,7 @@ Util.orthoMatrix = function (out, left, right, bottom, top, near, far) {
 
 Util.copyArray = function (source, dest) {
   for (var i = 0, n = source.length; i < n; i++) {
-    source[i] = dest[i];
+    dest[i] = source[i];
   }
 };
 
