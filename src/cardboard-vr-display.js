@@ -201,6 +201,7 @@ CardboardVRDisplay.prototype.endPresent_ = function() {
 
 CardboardVRDisplay.prototype.submitFrame = function(pose) {
   if (this.distorter_) {
+    this.updateBounds_();
     this.distorter_.submitFrame();
   } else if (this.cardboardUI_ && this.layer_) {
     // Hack for predistorted: true.
