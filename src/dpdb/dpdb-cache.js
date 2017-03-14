@@ -46,6 +46,17 @@ var DPDB_CACHE = {
   {
     "type": "android",
     "rules": [
+      { "mdmh": "Google//Pixel XL/" },
+      { "ua": "Pixel XL" }
+    ],
+    "dpi": [537.9, 533],
+    "bw": 3,
+    "ac": 1000
+  },
+
+  {
+    "type": "android",
+    "rules": [
       { "mdmh": "HTC/*/HTC6435LVW/*" },
       { "ua": "HTC6435LVW" }
     ],
@@ -403,6 +414,17 @@ var DPDB_CACHE = {
     ],
     "dpi": [ 422.0, 423.4 ],
     "bw": 3,
+    "ac": 1000
+  },
+
+  {
+    "type": "android",
+    "rules": [
+      { "mdmh": "motorola/*/G4/*" },
+      { "ua": "Moto G (4)" }
+    ],
+    "dpi": 401.0,
+    "bw": 4,
     "ac": 1000
   },
 
@@ -816,6 +838,17 @@ var DPDB_CACHE = {
   {
     "type": "android",
     "rules": [
+      { "mdmh": "samsung/*/SM-G935F/*" },
+      { "ua": "SM-G935F" }
+    ],
+    "dpi": 534,
+    "bw": 3,
+    "ac": 500
+  },
+
+  {
+    "type": "android",
+    "rules": [
       { "mdmh": "Sony/*/C6903/*" },
       { "ua": "C6903" }
     ],
@@ -911,33 +944,9 @@ var DPDB_CACHE = {
 
   {
     "type": "ios",
-    "rules": [ { "res": [ 640, 960 ] } ],
-    "dpi": [ 325.1, 328.4 ],
-    "bw": 4,
-    "ac": 1000
-  },
-
-  {
-    "type": "ios",
     "rules": [ { "res": [ 640, 1136 ] } ],
     "dpi": [ 317.1, 320.2 ],
     "bw": 3,
-    "ac": 1000
-  },
-
-  {
-    "type": "ios",
-    "rules": [ { "res": [ 640, 1136 ] } ],
-    "dpi": [ 317.1, 320.2 ],
-    "bw": 3,
-    "ac": 1000
-  },
-
-  {
-    "type": "ios",
-    "rules": [ { "res": [ 750, 1334 ] } ],
-    "dpi": 326.4,
-    "bw": 4,
     "ac": 1000
   },
 
@@ -959,8 +968,8 @@ var DPDB_CACHE = {
 
   {
     "type": "ios",
-    "rules": [ { "res": [ 1242, 2208 ] } ],
-    "dpi": [ 453.6, 458.4 ],
+    "rules": [ { "res": [ 1125, 2001 ] } ],
+    "dpi": [ 410.9, 415.4 ],
     "bw": 4,
     "ac": 1000
   }
