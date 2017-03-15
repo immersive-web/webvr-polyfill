@@ -6,7 +6,7 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "three": "^0.82.1"
+    "three": "^0.84.0"
   },
   "scripts": {
     "vreffect": "curl https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/js/effects/VREffect.js -o node_modules/three/examples/js/effects/VREffect.js"
