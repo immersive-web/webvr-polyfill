@@ -20,7 +20,7 @@ var Util = require('../util.js');
 
 // Online DPDB URL.
 var ONLINE_DPDB_URL =
-  'https://rawgit.com/thoragio/webvr-polyfill-dpdb/master/dpdb.json';
+  'https://thoragio.github.io/webvr-polyfill-dpdb/dpdb.json';
 
 /**
  * Calculates device parameters based on the DPDB (Device Parameter Database).
