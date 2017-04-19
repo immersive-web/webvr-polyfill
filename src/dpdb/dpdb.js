@@ -20,7 +20,7 @@ var Util = require('../util.js');
 
 // Online DPDB URL.
 var ONLINE_DPDB_URL =
-  'https://webvrrocks.github.io/webvr-polyfill-dpdb/dpdb.json';
+  'https://dpdb.webvr.rocks/dpdb.json';
 
 /**
  * Calculates device parameters based on the DPDB (Device Parameter Database).
