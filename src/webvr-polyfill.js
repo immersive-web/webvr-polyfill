@@ -100,7 +100,7 @@ WebVRPolyfill.prototype.enablePolyfill = function() {
   navigator.getVRDisplays = this.getVRDisplays.bind(this);
 
   // Polyfill native VRDisplay.getFrameData
-  if (this.nativeWebVRAvailable && this.isCardboardCompatible() && window.VRFrameData) {
+  if (this.nativeWebVRAvailable && window.VRFrameData) {
     var nativeFrameData = new window.VRFrameData();
     var nativeGetFrameData = window.VRDisplay.prototype.getFrameData;
     window.VRFrameData = VRFrameData;
