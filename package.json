@@ -1,10 +1,11 @@
 {
   "name": "webvr-polyfill",
-  "version": "0.9.27",
+  "version": "0.9.28",
   "homepage": "https://github.com/googlevr/webvr-polyfill",
   "authors": [
     "Boris Smus <boris@smus.com>",
-    "Brandon Jones <tojiro@gmail.com>"
+    "Brandon Jones <tojiro@gmail.com>",
+    "Jordan Santell <jordan@jsantell.com>"
   ],
   "description": "Use WebVR today, on mobile or desktop, without requiring a special browser build.",
   "dependencies": {

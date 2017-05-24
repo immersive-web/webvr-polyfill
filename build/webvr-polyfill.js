@@ -643,7 +643,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
     if (self.layer_ && self.layer_.source) {
       var fullscreenElement = self.wrapForFullscreen(self.layer_.source);
 
-      function onFullscreenChange() {
+      var onFullscreenChange = function() {
         var actualFullscreenElement = Util.getFullscreenElement();
 
         self.isPresenting = (fullscreenElement === actualFullscreenElement);
@@ -667,7 +667,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
         }
         self.fireVRDisplayPresentChange_();
       }
-      function onFullscreenError() {
+      var onFullscreenError = function() {
         if (!self.waitingForPresent_) {
           return;
         }
@@ -688,7 +688,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
       if (Util.requestFullscreen(fullscreenElement)) {
         self.wakelock_.request();
         self.waitingForPresent_ = true;
-      } else if (Util.isIOS()) {
+      } else if (Util.isIOS() || Util.isWebViewAndroid()) {
         // *sigh* Just fake it.
         self.wakelock_.request();
         self.isPresenting = true;
@@ -715,6 +715,13 @@ VRDisplay.prototype.exitPresent = function() {
   return new Promise(function(resolve, reject) {
     if (wasPresenting) {
       if (!Util.exitFullscreen() && Util.isIOS()) {
+        self.endPresent_();
+        self.fireVRDisplayPresentChange_();
+      }
+
+      if (Util.isWebViewAndroid()) {
+        self.removeFullscreenWrapper();
+        self.removeFullscreenListeners_();
         self.endPresent_();
         self.fireVRDisplayPresentChange_();
       }
@@ -4404,10 +4411,9 @@ module.exports={
 
 // Offline cache of the DPDB, to be used until we load the online one (and
 // as a fallback in case we can't load the online one).
-var DPDB_CACHE = _dereq_('./dpdb-cache.json');
+var DPDB_CACHE = _dereq_('./dpdb.json');
 var Util = _dereq_('../util.js');
 
-window.DPDB_CACHE = DPDB_CACHE;
 // Online DPDB URL.
 var ONLINE_DPDB_URL =
   'https://dpdb.webvr.rocks/dpdb.json';
@@ -4569,7 +4575,7 @@ function DeviceParams(params) {
 
 module.exports = Dpdb;
 
-},{"../util.js":22,"./dpdb-cache.json":11}],13:[function(_dereq_,module,exports){
+},{"../util.js":22,"./dpdb.json":11}],13:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -5881,7 +5887,9 @@ TouchPanner.prototype.resetSensor = function() {
 
 TouchPanner.prototype.onTouchStart_ = function(e) {
   // Only respond if there is exactly one touch.
-  if (e.touches.length != 1) {
+  // Note that the Daydream controller passes in a `touchstart` event with
+  // no `touches` property, so we must check for that case too.
+  if (!e.touches || e.touches.length != 1) {
     return;
   }
   this.rotateStart.set(e.touches[0].pageX, e.touches[0].pageY);
@@ -5953,6 +5961,15 @@ Util.isIOS = (function() {
   };
 })();
 
+Util.isWebViewAndroid = (function() {
+  var isWebViewAndroid = navigator.userAgent.indexOf('Version') !== -1 &&
+      navigator.userAgent.indexOf('Android') !== -1 &&
+      navigator.userAgent.indexOf('Chrome') !== -1;
+  return function() {
+    return isWebViewAndroid;
+  };
+})();
+
 Util.isSafari = (function() {
   var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   return function() {
@@ -5997,6 +6014,9 @@ Util.getScreenHeight = function() {
 };
 
 Util.requestFullscreen = function(element) {
+  if (Util.isWebViewAndroid()) {
+      return false;
+  }
   if (element.requestFullscreen) {
     element.requestFullscreen();
   } else if (element.webkitRequestFullscreen) {
@@ -6379,13 +6399,18 @@ var CLASS_NAME = 'webvr-polyfill-viewer-selector';
  * saving the currently selected index in localStorage.
  */
 function ViewerSelector() {
-  // Try to load the selected key from local storage. If none exists, use the
-  // default key.
+  // Try to load the selected key from local storage.
   try {
-    this.selectedKey = localStorage.getItem(VIEWER_KEY) || DEFAULT_VIEWER;
+    this.selectedKey = localStorage.getItem(VIEWER_KEY);
   } catch (error) {
     console.error('Failed to load viewer profile: %s', error);
   }
+  
+  //If none exists, or if localstorage is unavailable, use the default key.
+  if (!this.selectedKey) {
+    this.selectedKey = DEFAULT_VIEWER; 
+  }
+  
   this.dialog = this.createDialog_(DeviceInfo.Viewers);
   this.root = null;
 }
