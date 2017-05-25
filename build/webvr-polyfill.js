@@ -914,7 +914,7 @@ function CardboardDistorter(gl) {
   this.meshWidth = 20;
   this.meshHeight = 20;
 
-  this.bufferScale = WebVRConfig.BUFFER_SCALE;
+  this.bufferScale = window.WebVRConfig.BUFFER_SCALE;
 
   this.bufferWidth = gl.drawingBufferWidth;
   this.bufferHeight = gl.drawingBufferHeight;
@@ -978,7 +978,7 @@ function CardboardDistorter(gl) {
 
   this.onResize();
 
-  if (!WebVRConfig.CARDBOARD_UI_DISABLED) {
+  if (!window.WebVRConfig.CARDBOARD_UI_DISABLED) {
     this.cardboardUI = new CardboardUI(gl);
   }
 };
@@ -1268,7 +1268,7 @@ CardboardDistorter.prototype.submitFrame = function() {
 
   var glState = [];
 
-  if (!WebVRConfig.DIRTY_SUBMIT_FRAME_BINDINGS) {
+  if (!window.WebVRConfig.DIRTY_SUBMIT_FRAME_BINDINGS) {
     glState.push(
       gl.CURRENT_PROGRAM,
       gl.ARRAY_BUFFER_BINDING,
@@ -1330,7 +1330,7 @@ CardboardDistorter.prototype.submitFrame = function() {
       gl.clear(gl.COLOR_BUFFER_BIT);
     }
 
-    if (!WebVRConfig.DIRTY_SUBMIT_FRAME_BINDINGS) {
+    if (!window.WebVRConfig.DIRTY_SUBMIT_FRAME_BINDINGS) {
       self.realBindFramebuffer.call(gl, gl.FRAMEBUFFER, self.lastBoundFramebuffer);
     }
 
@@ -1836,7 +1836,7 @@ function CardboardVRDisplay() {
   this.capabilities.canPresent = true;
 
   // "Private" members.
-  this.bufferScale_ = WebVRConfig.BUFFER_SCALE;
+  this.bufferScale_ = window.WebVRConfig.BUFFER_SCALE;
   this.poseSensor_ = new FusionPoseSensor();
   this.distorter_ = null;
   this.cardboardUI_ = null;
@@ -1850,7 +1850,7 @@ function CardboardVRDisplay() {
   // Set the correct initial viewer.
   this.deviceInfo_.setViewer(this.viewerSelector_.getCurrentViewer());
 
-  if (!WebVRConfig.ROTATE_INSTRUCTIONS_DISABLED) {
+  if (!window.WebVRConfig.ROTATE_INSTRUCTIONS_DISABLED) {
     this.rotateInstructions_ = new RotateInstructions();
   }
 
@@ -1929,7 +1929,7 @@ CardboardVRDisplay.prototype.beginPresent_ = function() {
 
   // Provides a way to opt out of distortion
   if (this.layer_.predistorted) {
-    if (!WebVRConfig.CARDBOARD_UI_DISABLED) {
+    if (!window.WebVRConfig.CARDBOARD_UI_DISABLED) {
       gl.canvas.width = Util.getScreenWidth() * this.bufferScale_;
       gl.canvas.height = Util.getScreenHeight() * this.bufferScale_;
       this.cardboardUI_ = new CardboardUI(gl);
@@ -5542,8 +5542,8 @@ function FusionPoseSensor() {
 
   this.start();
 
-  this.filter = new ComplementaryFilter(WebVRConfig.K_FILTER);
-  this.posePredictor = new PosePredictor(WebVRConfig.PREDICTION_TIME_S);
+  this.filter = new ComplementaryFilter(window.WebVRConfig.K_FILTER);
+  this.posePredictor = new PosePredictor(window.WebVRConfig.PREDICTION_TIME_S);
   this.touchPanner = new TouchPanner();
 
   this.filterToWorldQ = new MathUtil.Quaternion();
@@ -5593,14 +5593,14 @@ FusionPoseSensor.prototype.getOrientation = function() {
   var out = new MathUtil.Quaternion();
   out.copy(this.filterToWorldQ);
   out.multiply(this.resetQ);
-  if (!WebVRConfig.TOUCH_PANNER_DISABLED) {
+  if (!window.WebVRConfig.TOUCH_PANNER_DISABLED) {
     out.multiply(this.touchPanner.getOrientation());
   }
   out.multiply(this.predictedQ);
   out.multiply(this.worldToScreenQ);
 
   // Handle the yaw-only case.
-  if (WebVRConfig.YAW_ONLY) {
+  if (window.WebVRConfig.YAW_ONLY) {
     // Make a quaternion that only turns around the Y-axis.
     out.x = 0;
     out.z = 0;
@@ -5630,7 +5630,7 @@ FusionPoseSensor.prototype.resetPose = function() {
   // Take into account original pose.
   this.resetQ.multiply(this.originalPoseAdjustQ);
 
-  if (!WebVRConfig.TOUCH_PANNER_DISABLED) {
+  if (!window.WebVRConfig.TOUCH_PANNER_DISABLED) {
     this.touchPanner.resetSensor();
   }
 };
@@ -6692,7 +6692,7 @@ function WebVRPolyfill() {
 
   if (!this.nativeLegacyWebVRAvailable) {
     this.enablePolyfill();
-    if (WebVRConfig.ENABLE_DEPRECATED_API) {
+    if (window.WebVRConfig.ENABLE_DEPRECATED_API) {
       this.enableDeprecatedPolyfill();
     }
   }
@@ -6723,26 +6723,26 @@ WebVRPolyfill.prototype.populateDevices = function() {
     this.displays.push(vrDisplay);
 
     // For backwards compatibility
-    if (WebVRConfig.ENABLE_DEPRECATED_API) {
+    if (window.WebVRConfig.ENABLE_DEPRECATED_API) {
       this.devices.push(new VRDisplayHMDDevice(vrDisplay));
       this.devices.push(new VRDisplayPositionSensorDevice(vrDisplay));
     }
   }
 
   // Add a Mouse and Keyboard driven VRDisplay for desktops/laptops
-  if (!this.isMobile() && !WebVRConfig.MOUSE_KEYBOARD_CONTROLS_DISABLED) {
+  if (!this.isMobile() && !window.WebVRConfig.MOUSE_KEYBOARD_CONTROLS_DISABLED) {
     vrDisplay = new MouseKeyboardVRDisplay();
     this.displays.push(vrDisplay);
 
     // For backwards compatibility
-    if (WebVRConfig.ENABLE_DEPRECATED_API) {
+    if (window.WebVRConfig.ENABLE_DEPRECATED_API) {
       this.devices.push(new VRDisplayHMDDevice(vrDisplay));
       this.devices.push(new VRDisplayPositionSensorDevice(vrDisplay));
     }
   }
 
   // Uncomment to add positional tracking via webcam.
-  //if (!this.isMobile() && WebVRConfig.ENABLE_DEPRECATED_API) {
+  //if (!this.isMobile() && window.WebVRConfig.ENABLE_DEPRECATED_API) {
   //  positionDevice = new WebcamPositionSensorVRDevice();
   //  this.devices.push(positionDevice);
   //}
@@ -6810,7 +6810,7 @@ WebVRPolyfill.prototype.getVRDisplays = function() {
 
   if (this.nativeWebVRAvailable) {
     return this.nativeGetVRDisplaysFunc.call(navigator).then(function(nativeDisplays) {
-      if (WebVRConfig.ALWAYS_APPEND_POLYFILL_DISPLAY) {
+      if (window.WebVRConfig.ALWAYS_APPEND_POLYFILL_DISPLAY) {
         return nativeDisplays.concat(polyfillDisplays);
       } else {
         return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
@@ -6879,7 +6879,7 @@ WebVRPolyfill.prototype.isMobile = function() {
 WebVRPolyfill.prototype.isCardboardCompatible = function() {
   // For now, support all iOS and Android devices.
   // Also enable the WebVRConfig.FORCE_VR flag for debugging.
-  return this.isMobile() || WebVRConfig.FORCE_ENABLE_VR;
+  return this.isMobile() || window.WebVRConfig.FORCE_ENABLE_VR;
 };
 
 WebVRPolyfill.prototype.isFullScreenAvailable = function() {
