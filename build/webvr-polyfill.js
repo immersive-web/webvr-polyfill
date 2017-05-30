@@ -79,12 +79,12 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 15);
+/******/ 	return __webpack_require__(__webpack_require__.s = 13);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -100,8 +100,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-var objectAssign = __webpack_require__(9);
 
 var Util = window.Util || {};
 
@@ -293,7 +291,15 @@ Util.isMobile = function() {
   return check;
 };
 
-Util.extend = objectAssign;
+Util.extend = function(dest, src) {
+  for (var key in src) {
+    if (src.hasOwnProperty(key)) {
+      dest[key] = src[key];
+    }
+  }
+
+  return dest;
+}
 
 Util.safariCssSizeWorkaround = function(canvas) {
   // TODO(smus): Remove this workaround when Safari for iOS is fixed.
@@ -556,7 +562,7 @@ module.exports = Util;
  */
 
 var Util = __webpack_require__(0);
-var WakeLock = __webpack_require__(24);
+var WakeLock = __webpack_require__(22);
 
 // Start at a higher number to reduce chance of conflict.
 var nextDisplayId = 1000;
@@ -1837,7 +1843,7 @@ module.exports = WGLUPreserveGLState;
  * limitations under the License.
  */
 
-var Distortion = __webpack_require__(12);
+var Distortion = __webpack_require__(10);
 var MathUtil = __webpack_require__(2);
 var Util = __webpack_require__(0);
 
@@ -2305,8 +2311,8 @@ module.exports.VRDisplayPositionSensorDevice = VRDisplayPositionSensorDevice;
  */
 
 var Util = __webpack_require__(0);
-var CardboardVRDisplay = __webpack_require__(11);
-var MouseKeyboardVRDisplay = __webpack_require__(16);
+var CardboardVRDisplay = __webpack_require__(9);
+var MouseKeyboardVRDisplay = __webpack_require__(14);
 // Uncomment to add positional tracking via webcam.
 //var WebcamPositionSensorVRDevice = require('./webcam-position-sensor-vr-device.js');
 var VRDisplay = __webpack_require__(1).VRDisplay;
@@ -2552,421 +2558,6 @@ module.exports.WebVRPolyfill = WebVRPolyfill;
 
 /***/ }),
 /* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var has = Object.prototype.hasOwnProperty
-  , prefix = '~';
-
-/**
- * Constructor to create a storage for our `EE` objects.
- * An `Events` instance is a plain object whose properties are event names.
- *
- * @constructor
- * @api private
- */
-function Events() {}
-
-//
-// We try to not inherit from `Object.prototype`. In some engines creating an
-// instance in this way is faster than calling `Object.create(null)` directly.
-// If `Object.create(null)` is not supported we prefix the event names with a
-// character to make sure that the built-in object properties are not
-// overridden or used as an attack vector.
-//
-if (Object.create) {
-  Events.prototype = Object.create(null);
-
-  //
-  // This hack is needed because the `__proto__` property is still inherited in
-  // some old browsers like Android 4, iPhone 5.1, Opera 11 and Safari 5.
-  //
-  if (!new Events().__proto__) prefix = false;
-}
-
-/**
- * Representation of a single event listener.
- *
- * @param {Function} fn The listener function.
- * @param {Mixed} context The context to invoke the listener with.
- * @param {Boolean} [once=false] Specify if the listener is a one-time listener.
- * @constructor
- * @api private
- */
-function EE(fn, context, once) {
-  this.fn = fn;
-  this.context = context;
-  this.once = once || false;
-}
-
-/**
- * Minimal `EventEmitter` interface that is molded against the Node.js
- * `EventEmitter` interface.
- *
- * @constructor
- * @api public
- */
-function EventEmitter() {
-  this._events = new Events();
-  this._eventsCount = 0;
-}
-
-/**
- * Return an array listing the events for which the emitter has registered
- * listeners.
- *
- * @returns {Array}
- * @api public
- */
-EventEmitter.prototype.eventNames = function eventNames() {
-  var names = []
-    , events
-    , name;
-
-  if (this._eventsCount === 0) return names;
-
-  for (name in (events = this._events)) {
-    if (has.call(events, name)) names.push(prefix ? name.slice(1) : name);
-  }
-
-  if (Object.getOwnPropertySymbols) {
-    return names.concat(Object.getOwnPropertySymbols(events));
-  }
-
-  return names;
-};
-
-/**
- * Return the listeners registered for a given event.
- *
- * @param {String|Symbol} event The event name.
- * @param {Boolean} exists Only check if there are listeners.
- * @returns {Array|Boolean}
- * @api public
- */
-EventEmitter.prototype.listeners = function listeners(event, exists) {
-  var evt = prefix ? prefix + event : event
-    , available = this._events[evt];
-
-  if (exists) return !!available;
-  if (!available) return [];
-  if (available.fn) return [available.fn];
-
-  for (var i = 0, l = available.length, ee = new Array(l); i < l; i++) {
-    ee[i] = available[i].fn;
-  }
-
-  return ee;
-};
-
-/**
- * Calls each of the listeners registered for a given event.
- *
- * @param {String|Symbol} event The event name.
- * @returns {Boolean} `true` if the event had listeners, else `false`.
- * @api public
- */
-EventEmitter.prototype.emit = function emit(event, a1, a2, a3, a4, a5) {
-  var evt = prefix ? prefix + event : event;
-
-  if (!this._events[evt]) return false;
-
-  var listeners = this._events[evt]
-    , len = arguments.length
-    , args
-    , i;
-
-  if (listeners.fn) {
-    if (listeners.once) this.removeListener(event, listeners.fn, undefined, true);
-
-    switch (len) {
-      case 1: return listeners.fn.call(listeners.context), true;
-      case 2: return listeners.fn.call(listeners.context, a1), true;
-      case 3: return listeners.fn.call(listeners.context, a1, a2), true;
-      case 4: return listeners.fn.call(listeners.context, a1, a2, a3), true;
-      case 5: return listeners.fn.call(listeners.context, a1, a2, a3, a4), true;
-      case 6: return listeners.fn.call(listeners.context, a1, a2, a3, a4, a5), true;
-    }
-
-    for (i = 1, args = new Array(len -1); i < len; i++) {
-      args[i - 1] = arguments[i];
-    }
-
-    listeners.fn.apply(listeners.context, args);
-  } else {
-    var length = listeners.length
-      , j;
-
-    for (i = 0; i < length; i++) {
-      if (listeners[i].once) this.removeListener(event, listeners[i].fn, undefined, true);
-
-      switch (len) {
-        case 1: listeners[i].fn.call(listeners[i].context); break;
-        case 2: listeners[i].fn.call(listeners[i].context, a1); break;
-        case 3: listeners[i].fn.call(listeners[i].context, a1, a2); break;
-        case 4: listeners[i].fn.call(listeners[i].context, a1, a2, a3); break;
-        default:
-          if (!args) for (j = 1, args = new Array(len -1); j < len; j++) {
-            args[j - 1] = arguments[j];
-          }
-
-          listeners[i].fn.apply(listeners[i].context, args);
-      }
-    }
-  }
-
-  return true;
-};
-
-/**
- * Add a listener for a given event.
- *
- * @param {String|Symbol} event The event name.
- * @param {Function} fn The listener function.
- * @param {Mixed} [context=this] The context to invoke the listener with.
- * @returns {EventEmitter} `this`.
- * @api public
- */
-EventEmitter.prototype.on = function on(event, fn, context) {
-  var listener = new EE(fn, context || this)
-    , evt = prefix ? prefix + event : event;
-
-  if (!this._events[evt]) this._events[evt] = listener, this._eventsCount++;
-  else if (!this._events[evt].fn) this._events[evt].push(listener);
-  else this._events[evt] = [this._events[evt], listener];
-
-  return this;
-};
-
-/**
- * Add a one-time listener for a given event.
- *
- * @param {String|Symbol} event The event name.
- * @param {Function} fn The listener function.
- * @param {Mixed} [context=this] The context to invoke the listener with.
- * @returns {EventEmitter} `this`.
- * @api public
- */
-EventEmitter.prototype.once = function once(event, fn, context) {
-  var listener = new EE(fn, context || this, true)
-    , evt = prefix ? prefix + event : event;
-
-  if (!this._events[evt]) this._events[evt] = listener, this._eventsCount++;
-  else if (!this._events[evt].fn) this._events[evt].push(listener);
-  else this._events[evt] = [this._events[evt], listener];
-
-  return this;
-};
-
-/**
- * Remove the listeners of a given event.
- *
- * @param {String|Symbol} event The event name.
- * @param {Function} fn Only remove the listeners that match this function.
- * @param {Mixed} context Only remove the listeners that have this context.
- * @param {Boolean} once Only remove one-time listeners.
- * @returns {EventEmitter} `this`.
- * @api public
- */
-EventEmitter.prototype.removeListener = function removeListener(event, fn, context, once) {
-  var evt = prefix ? prefix + event : event;
-
-  if (!this._events[evt]) return this;
-  if (!fn) {
-    if (--this._eventsCount === 0) this._events = new Events();
-    else delete this._events[evt];
-    return this;
-  }
-
-  var listeners = this._events[evt];
-
-  if (listeners.fn) {
-    if (
-         listeners.fn === fn
-      && (!once || listeners.once)
-      && (!context || listeners.context === context)
-    ) {
-      if (--this._eventsCount === 0) this._events = new Events();
-      else delete this._events[evt];
-    }
-  } else {
-    for (var i = 0, events = [], length = listeners.length; i < length; i++) {
-      if (
-           listeners[i].fn !== fn
-        || (once && !listeners[i].once)
-        || (context && listeners[i].context !== context)
-      ) {
-        events.push(listeners[i]);
-      }
-    }
-
-    //
-    // Reset the array, or remove it completely if we have no more listeners.
-    //
-    if (events.length) this._events[evt] = events.length === 1 ? events[0] : events;
-    else if (--this._eventsCount === 0) this._events = new Events();
-    else delete this._events[evt];
-  }
-
-  return this;
-};
-
-/**
- * Remove all listeners, or those of the specified event.
- *
- * @param {String|Symbol} [event] The event name.
- * @returns {EventEmitter} `this`.
- * @api public
- */
-EventEmitter.prototype.removeAllListeners = function removeAllListeners(event) {
-  var evt;
-
-  if (event) {
-    evt = prefix ? prefix + event : event;
-    if (this._events[evt]) {
-      if (--this._eventsCount === 0) this._events = new Events();
-      else delete this._events[evt];
-    }
-  } else {
-    this._events = new Events();
-    this._eventsCount = 0;
-  }
-
-  return this;
-};
-
-//
-// Alias methods names because people roll like that.
-//
-EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
-EventEmitter.prototype.addListener = EventEmitter.prototype.on;
-
-//
-// This function doesn't apply anymore.
-//
-EventEmitter.prototype.setMaxListeners = function setMaxListeners() {
-  return this;
-};
-
-//
-// Expose the prefix.
-//
-EventEmitter.prefixed = prefix;
-
-//
-// Allow `EventEmitter` to be imported as module namespace.
-//
-EventEmitter.EventEmitter = EventEmitter;
-
-//
-// Expose the module.
-//
-if (true) {
-  module.exports = EventEmitter;
-}
-
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*
-object-assign
-(c) Sindre Sorhus
-@license MIT
-*/
-
-
-/* eslint-disable no-unused-vars */
-var getOwnPropertySymbols = Object.getOwnPropertySymbols;
-var hasOwnProperty = Object.prototype.hasOwnProperty;
-var propIsEnumerable = Object.prototype.propertyIsEnumerable;
-
-function toObject(val) {
-	if (val === null || val === undefined) {
-		throw new TypeError('Object.assign cannot be called with null or undefined');
-	}
-
-	return Object(val);
-}
-
-function shouldUseNative() {
-	try {
-		if (!Object.assign) {
-			return false;
-		}
-
-		// Detect buggy property enumeration order in older V8 versions.
-
-		// https://bugs.chromium.org/p/v8/issues/detail?id=4118
-		var test1 = new String('abc');  // eslint-disable-line no-new-wrappers
-		test1[5] = 'de';
-		if (Object.getOwnPropertyNames(test1)[0] === '5') {
-			return false;
-		}
-
-		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
-		var test2 = {};
-		for (var i = 0; i < 10; i++) {
-			test2['_' + String.fromCharCode(i)] = i;
-		}
-		var order2 = Object.getOwnPropertyNames(test2).map(function (n) {
-			return test2[n];
-		});
-		if (order2.join('') !== '0123456789') {
-			return false;
-		}
-
-		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
-		var test3 = {};
-		'abcdefghijklmnopqrst'.split('').forEach(function (letter) {
-			test3[letter] = letter;
-		});
-		if (Object.keys(Object.assign({}, test3)).join('') !==
-				'abcdefghijklmnopqrst') {
-			return false;
-		}
-
-		return true;
-	} catch (err) {
-		// We don't expect any of the above to throw, but better to be safe.
-		return false;
-	}
-}
-
-module.exports = shouldUseNative() ? Object.assign : function (target, source) {
-	var from;
-	var to = toObject(target);
-	var symbols;
-
-	for (var s = 1; s < arguments.length; s++) {
-		from = Object(arguments[s]);
-
-		for (var key in from) {
-			if (hasOwnProperty.call(from, key)) {
-				to[key] = from[key];
-			}
-		}
-
-		if (getOwnPropertySymbols) {
-			symbols = getOwnPropertySymbols(from);
-			for (var i = 0; i < symbols.length; i++) {
-				if (propIsEnumerable.call(from, symbols[i])) {
-					to[symbols[i]] = from[symbols[i]];
-				}
-			}
-		}
-	}
-
-	return to;
-};
-
-
-/***/ }),
-/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -3620,7 +3211,7 @@ module.exports = CardboardDistorter;
 
 
 /***/ }),
-/* 11 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -3638,13 +3229,13 @@ module.exports = CardboardDistorter;
  * limitations under the License.
  */
 
-var CardboardDistorter = __webpack_require__(10);
+var CardboardDistorter = __webpack_require__(8);
 var CardboardUI = __webpack_require__(3);
 var DeviceInfo = __webpack_require__(5);
-var Dpdb = __webpack_require__(13);
-var FusionPoseSensor = __webpack_require__(19);
-var RotateInstructions = __webpack_require__(17);
-var ViewerSelector = __webpack_require__(23);
+var Dpdb = __webpack_require__(11);
+var FusionPoseSensor = __webpack_require__(17);
+var RotateInstructions = __webpack_require__(15);
+var ViewerSelector = __webpack_require__(21);
 var VRDisplay = __webpack_require__(1).VRDisplay;
 var Util = __webpack_require__(0);
 
@@ -3672,7 +3263,7 @@ function CardboardVRDisplay() {
   this.deviceInfo_ = new DeviceInfo(this.dpdb_.getDeviceParams());
 
   this.viewerSelector_ = new ViewerSelector();
-  this.viewerSelector_.on('change', this.onViewerChanged_.bind(this));
+  this.viewerSelector_.onChange(this.onViewerChanged_.bind(this));
 
   // Set the correct initial viewer.
   this.deviceInfo_.setViewer(this.viewerSelector_.getCurrentViewer());
@@ -3908,7 +3499,7 @@ module.exports = CardboardVRDisplay;
 
 
 /***/ }),
-/* 12 */
+/* 10 */
 /***/ (function(module, exports) {
 
 /**
@@ -4095,7 +3686,7 @@ module.exports = Distortion;
 
 
 /***/ }),
-/* 13 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -4115,7 +3706,7 @@ module.exports = Distortion;
 
 // Offline cache of the DPDB, to be used until we load the online one (and
 // as a fallback in case we can't load the online one).
-var DPDB_CACHE = __webpack_require__(14);
+var DPDB_CACHE = __webpack_require__(12);
 var Util = __webpack_require__(0);
 
 // Online DPDB URL.
@@ -4281,7 +3872,7 @@ module.exports = Dpdb;
 
 
 /***/ }),
-/* 14 */
+/* 12 */
 /***/ (function(module, exports) {
 
 module.exports = {
@@ -5791,7 +5382,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 15 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -5879,7 +5470,7 @@ window.WebVRPolyfill = WebVRPolyfill;
 
 
 /***/ }),
-/* 16 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -6062,7 +5653,7 @@ module.exports = MouseKeyboardVRDisplay;
 
 
 /***/ }),
-/* 17 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -6212,7 +5803,7 @@ module.exports = RotateInstructions;
 
 
 /***/ }),
-/* 18 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -6230,7 +5821,7 @@ module.exports = RotateInstructions;
  * limitations under the License.
  */
 
-var SensorSample = __webpack_require__(21);
+var SensorSample = __webpack_require__(19);
 var MathUtil = __webpack_require__(2);
 var Util = __webpack_require__(0);
 
@@ -6384,7 +5975,7 @@ module.exports = ComplementaryFilter;
 
 
 /***/ }),
-/* 19 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -6401,9 +5992,9 @@ module.exports = ComplementaryFilter;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var ComplementaryFilter = __webpack_require__(18);
-var PosePredictor = __webpack_require__(20);
-var TouchPanner = __webpack_require__(22);
+var ComplementaryFilter = __webpack_require__(16);
+var PosePredictor = __webpack_require__(18);
+var TouchPanner = __webpack_require__(20);
 var MathUtil = __webpack_require__(2);
 var Util = __webpack_require__(0);
 
@@ -6619,7 +6210,7 @@ module.exports = FusionPoseSensor;
 
 
 /***/ }),
-/* 20 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -6706,7 +6297,7 @@ module.exports = PosePredictor;
 
 
 /***/ }),
-/* 21 */
+/* 19 */
 /***/ (function(module, exports) {
 
 function SensorSample(sample, timestampS) {
@@ -6726,7 +6317,7 @@ module.exports = SensorSample;
 
 
 /***/ }),
-/* 22 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -6810,7 +6401,7 @@ module.exports = TouchPanner;
 
 
 /***/ }),
-/* 23 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -6829,7 +6420,6 @@ module.exports = TouchPanner;
  */
 
 var DeviceInfo = __webpack_require__(5);
-var EventEmitter3 = __webpack_require__(8);
 var Util = __webpack_require__(0);
 
 var DEFAULT_VIEWER = 'CardboardV1';
@@ -6848,16 +6438,16 @@ function ViewerSelector() {
   } catch (error) {
     console.error('Failed to load viewer profile: %s', error);
   }
-  
+
   //If none exists, or if localstorage is unavailable, use the default key.
   if (!this.selectedKey) {
-    this.selectedKey = DEFAULT_VIEWER; 
+    this.selectedKey = DEFAULT_VIEWER;
   }
-  
+
   this.dialog = this.createDialog_(DeviceInfo.Viewers);
   this.root = null;
+  this.onChangeCallbacks_ = [];
 }
-ViewerSelector.prototype = new EventEmitter3();
 
 ViewerSelector.prototype.show = function(root) {
   this.root = root;
@@ -6891,6 +6481,16 @@ ViewerSelector.prototype.getSelectedKey_ = function() {
   return null;
 };
 
+ViewerSelector.prototype.onChange = function(cb) {
+  this.onChangeCallbacks_.push(cb);
+};
+
+ViewerSelector.prototype.fireOnChange_ = function(viewer) {
+  for (var i = 0; i < this.onChangeCallbacks_.length; i++) {
+    this.onChangeCallbacks_[i](viewer);
+  }
+};
+
 ViewerSelector.prototype.onSave_ = function() {
   this.selectedKey = this.getSelectedKey_();
   if (!this.selectedKey || !DeviceInfo.Viewers[this.selectedKey]) {
@@ -6898,7 +6498,7 @@ ViewerSelector.prototype.onSave_ = function() {
     return;
   }
 
-  this.emit('change', DeviceInfo.Viewers[this.selectedKey]);
+  this.fireOnChange_(DeviceInfo.Viewers[this.selectedKey]);
 
   // Attempt to save the viewer profile, but fails in private mode.
   try {
@@ -7018,7 +6618,7 @@ module.exports = ViewerSelector;
 
 
 /***/ }),
-/* 24 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
