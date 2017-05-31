@@ -30,6 +30,25 @@ Util.lerp = function(a, b, t) {
   return a + ((b - a) * t);
 };
 
+/**
+ * Light polyfill for `Promise.race`. Returns
+ * a promise that resolves when the first promise
+ * provided resolves.
+ *
+ * @param {Array<Promise>} promises
+ */
+Util.race = function(promises) {
+  if (Promise.race) {
+    return Promise.race(promises);
+  }
+
+  return new Promise(function (resolve, reject) {
+    for (var i = 0; i < promises.length; i++) {
+      promises[i].then(resolve, reject);
+    }
+  });
+};
+
 Util.isIOS = (function() {
   var isIOS = /iPad|iPhone|iPod/.test(navigator.platform);
   return function() {
