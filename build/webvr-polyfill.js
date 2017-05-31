@@ -1,4 +1,4 @@
-/*!
+/**
  * @license
  * Copyright (c) 2015-2017 Google
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,7 @@
  * limitations under the License.
  * 
  */
+
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};

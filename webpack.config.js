@@ -3,8 +3,18 @@ const path = require('path');
 
 const webpack = require('webpack');
 
-const license = fs.readFileSync(path.join(__dirname, 'LICENSE.md'), 'utf8');
-const banner = `@license\n${license}`;
+// Integration with Google licensing requires specific formatting,
+// hence this function rather than using BannerPlugin's
+// default comment wrapper.
+function generateBanner() {
+  const licensePath = path.join(__dirname, 'LICENSE.md');
+  const license = fs.readFileSync(licensePath, 'utf8')
+                    .split('\n')
+                    .map(line => ` * ${line}`)
+                    .join('\n');
+
+  return `/**\n * @license\n${license}\n */\n`;
+}
 
 module.exports = {
   entry: {
@@ -32,6 +42,6 @@ module.exports = {
     new webpack.optimize.UglifyJsPlugin({
       include: /\.min\.js$/,
     }),
-    new webpack.BannerPlugin({ banner: banner }),
+    new webpack.BannerPlugin({ banner: generateBanner(), raw: true }),
   ],
 };
