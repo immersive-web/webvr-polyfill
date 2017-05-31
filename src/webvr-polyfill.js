@@ -54,6 +54,11 @@ WebVRPolyfill.prototype.isDeprecatedWebVRAvailable = function() {
   return ('getVRDevices' in navigator) || ('mozGetVRDevices' in navigator);
 };
 
+WebVRPolyfill.prototype.connectDisplay = function(vrDisplay) {
+  vrDisplay.fireVRDisplayConnect_();
+  this.displays.push(vrDisplay);
+};
+
 WebVRPolyfill.prototype.populateDevices = function() {
   if (this.devicesPopulated) {
     return;
@@ -65,7 +70,8 @@ WebVRPolyfill.prototype.populateDevices = function() {
   // Add a Cardboard VRDisplay on compatible mobile devices
   if (this.isCardboardCompatible()) {
     vrDisplay = new CardboardVRDisplay();
-    this.displays.push(vrDisplay);
+
+    this.connectDisplay(vrDisplay);
 
     // For backwards compatibility
     if (window.WebVRConfig.ENABLE_DEPRECATED_API) {
@@ -77,7 +83,7 @@ WebVRPolyfill.prototype.populateDevices = function() {
   // Add a Mouse and Keyboard driven VRDisplay for desktops/laptops
   if (!this.isMobile() && !window.WebVRConfig.MOUSE_KEYBOARD_CONTROLS_DISABLED) {
     vrDisplay = new MouseKeyboardVRDisplay();
-    this.displays.push(vrDisplay);
+    this.connectDisplay(vrDisplay);
 
     // For backwards compatibility
     if (window.WebVRConfig.ENABLE_DEPRECATED_API) {
