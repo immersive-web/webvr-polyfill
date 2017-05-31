@@ -123,7 +123,7 @@ content on `http://0.0.0.0:8080/`.
 ## License
 
 This program is free software for both commercial and non-commercial use,
-distributed under the [Apache 2.0 License](COPYING).
+distributed under the [Apache 2.0 License](LICENSE).
 
 
 ## Thanks
