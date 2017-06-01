@@ -70,9 +70,10 @@ window.WebVRConfig = Util.extend({
   // list includes a native VRDisplay.
   ALWAYS_APPEND_POLYFILL_DISPLAY: false,
 
-  // There are scenarios where the native WebVR API exists, and instead of returning
-  // 0 VR displays when none are detected, `navigator.getVRDisplays()`'s promise never
-  // resolves. This results in the polyfill hanging and not being able to provide fallback
+  // There are versions of Chrome (M58-M60?) where the native WebVR API exists,
+  // and instead of returning 0 VR displays when none are detected,
+  // `navigator.getVRDisplays()`'s promise never resolves. This results
+  // in the polyfill hanging and not being able to provide fallback
   // displays, so set a timeout in milliseconds to stop waiting for a response
   // and just use polyfilled displays.
   // https://bugs.chromium.org/p/chromium/issues/detail?id=727969
