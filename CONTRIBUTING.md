@@ -14,11 +14,11 @@ content on `http://0.0.0.0:8080/`.
 
 # Updating the npm entry
 
-Once changes are made, a new version can be published to the index using the
-following commands:
+Once changes are made, a new version can be built, committed in git with tags,
+and published to npm via:
 
-    npm version <NEW_VERSION>
-    npm publish
-    git push --tags
+`$ node scripts/publish.js RELEASE`
+
+Where `RELEASE` defaults to `patch`, but other [release types from semver](https://www.npmjs.com/package/semver#functions) can be used, like `major` and `minor`.
 
 [webpack]: https://webpack.js.org
