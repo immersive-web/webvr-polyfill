@@ -104,7 +104,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 13);
+/******/ 	return __webpack_require__(__webpack_require__.s = 14);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -141,6 +141,25 @@ Util.clamp = function(value, min, max) {
 
 Util.lerp = function(a, b, t) {
   return a + ((b - a) * t);
+};
+
+/**
+ * Light polyfill for `Promise.race`. Returns
+ * a promise that resolves when the first promise
+ * provided resolves.
+ *
+ * @param {Array<Promise>} promises
+ */
+Util.race = function(promises) {
+  if (Promise.race) {
+    return Promise.race(promises);
+  }
+
+  return new Promise(function (resolve, reject) {
+    for (var i = 0; i < promises.length; i++) {
+      promises[i].then(resolve, reject);
+    }
+  });
 };
 
 Util.isIOS = (function() {
@@ -587,7 +606,7 @@ module.exports = Util;
  */
 
 var Util = __webpack_require__(0);
-var WakeLock = __webpack_require__(22);
+var WakeLock = __webpack_require__(23);
 
 // Start at a higher number to reduce chance of conflict.
 var nextDisplayId = 1000;
@@ -912,6 +931,14 @@ VRDisplay.prototype.fireVRDisplayPresentChange_ = function() {
   // CustomEvent custom fields all go under e.detail (so the VRDisplay ends up
   // being e.detail.display, instead of e.display as per WebVR spec).
   var event = new CustomEvent('vrdisplaypresentchange', {detail: {display: this}});
+  window.dispatchEvent(event);
+};
+
+VRDisplay.prototype.fireVRDisplayConnect_ = function() {
+  // Important: unfortunately we cannot have full spec compliance here.
+  // CustomEvent custom fields all go under e.detail (so the VRDisplay ends up
+  // being e.detail.display, instead of e.display as per WebVR spec).
+  var event = new CustomEvent('vrdisplayconnect', {detail: {display: this}});
   window.dispatchEvent(event);
 };
 
@@ -1816,7 +1843,7 @@ module.exports = WGLUPreserveGLState;
  * limitations under the License.
  */
 
-var Distortion = __webpack_require__(10);
+var Distortion = __webpack_require__(11);
 var MathUtil = __webpack_require__(2);
 var Util = __webpack_require__(0);
 
@@ -2284,8 +2311,8 @@ module.exports.VRDisplayPositionSensorDevice = VRDisplayPositionSensorDevice;
  */
 
 var Util = __webpack_require__(0);
-var CardboardVRDisplay = __webpack_require__(9);
-var MouseKeyboardVRDisplay = __webpack_require__(14);
+var CardboardVRDisplay = __webpack_require__(10);
+var MouseKeyboardVRDisplay = __webpack_require__(15);
 // Uncomment to add positional tracking via webcam.
 //var WebcamPositionSensorVRDevice = require('./webcam-position-sensor-vr-device.js');
 var VRDisplay = __webpack_require__(1).VRDisplay;
@@ -2294,6 +2321,7 @@ var HMDVRDevice = __webpack_require__(1).HMDVRDevice;
 var PositionSensorVRDevice = __webpack_require__(1).PositionSensorVRDevice;
 var VRDisplayHMDDevice = __webpack_require__(6).VRDisplayHMDDevice;
 var VRDisplayPositionSensorDevice = __webpack_require__(6).VRDisplayPositionSensorDevice;
+var version = __webpack_require__(8).version;
 
 function WebVRPolyfill() {
   this.displays = [];
@@ -2324,6 +2352,11 @@ WebVRPolyfill.prototype.isDeprecatedWebVRAvailable = function() {
   return ('getVRDevices' in navigator) || ('mozGetVRDevices' in navigator);
 };
 
+WebVRPolyfill.prototype.connectDisplay = function(vrDisplay) {
+  vrDisplay.fireVRDisplayConnect_();
+  this.displays.push(vrDisplay);
+};
+
 WebVRPolyfill.prototype.populateDevices = function() {
   if (this.devicesPopulated) {
     return;
@@ -2335,7 +2368,8 @@ WebVRPolyfill.prototype.populateDevices = function() {
   // Add a Cardboard VRDisplay on compatible mobile devices
   if (this.isCardboardCompatible()) {
     vrDisplay = new CardboardVRDisplay();
-    this.displays.push(vrDisplay);
+
+    this.connectDisplay(vrDisplay);
 
     // For backwards compatibility
     if (window.WebVRConfig.ENABLE_DEPRECATED_API) {
@@ -2347,7 +2381,7 @@ WebVRPolyfill.prototype.populateDevices = function() {
   // Add a Mouse and Keyboard driven VRDisplay for desktops/laptops
   if (!this.isMobile() && !window.WebVRConfig.MOUSE_KEYBOARD_CONTROLS_DISABLED) {
     vrDisplay = new MouseKeyboardVRDisplay();
-    this.displays.push(vrDisplay);
+    this.connectDisplay(vrDisplay);
 
     // For backwards compatibility
     if (window.WebVRConfig.ENABLE_DEPRECATED_API) {
@@ -2423,23 +2457,32 @@ WebVRPolyfill.prototype.getVRDisplays = function() {
   this.populateDevices();
   var polyfillDisplays = this.displays;
 
-  if (this.nativeWebVRAvailable) {
-    return this.nativeGetVRDisplaysFunc.call(navigator).then(function(nativeDisplays) {
-      if (window.WebVRConfig.ALWAYS_APPEND_POLYFILL_DISPLAY) {
-        return nativeDisplays.concat(polyfillDisplays);
-      } else {
-        return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
-      }
-    });
-  } else {
-    return new Promise(function(resolve, reject) {
-      try {
-        resolve(polyfillDisplays);
-      } catch (e) {
-        reject(e);
-      }
-    });
+  if (!this.nativeWebVRAvailable) {
+    return Promise.resolve(polyfillDisplays);
   }
+
+  // Set up a race condition if this browser has a bug where
+  // `navigator.getVRDisplays()` never resolves.
+  var timeoutId;
+  var vrDisplaysNative = this.nativeGetVRDisplaysFunc.call(navigator);
+  var timeoutPromise = new Promise(function(resolve) {
+    timeoutId = setTimeout(function() {
+      console.warn('Native WebVR implementation detected, but `getVRDisplays()` failed to resolve. Falling back to polyfill.');
+      resolve([]);
+    }, window.WebVRConfig.GET_VR_DISPLAYS_TIMEOUT);
+  });
+
+  return Util.race([
+    vrDisplaysNative,
+    timeoutPromise
+  ]).then(function(nativeDisplays) {
+    clearTimeout(timeoutId);
+    if (window.WebVRConfig.ALWAYS_APPEND_POLYFILL_DISPLAY) {
+      return nativeDisplays.concat(polyfillDisplays);
+    } else {
+      return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
+    }
+  });
 };
 
 WebVRPolyfill.prototype.getVRDevices = function() {
@@ -2526,11 +2569,52 @@ function InstallWebVRSpecShim() {
   }
 };
 
+WebVRPolyfill.version = version;
+
 module.exports.WebVRPolyfill = WebVRPolyfill;
 
 
 /***/ }),
 /* 8 */
+/***/ (function(module, exports) {
+
+module.exports = {
+	"name": "webvr-polyfill",
+	"version": "0.9.31",
+	"homepage": "https://github.com/googlevr/webvr-polyfill",
+	"authors": [
+		"Boris Smus <boris@smus.com>",
+		"Brandon Jones <tojiro@gmail.com>",
+		"Jordan Santell <jordan@jsantell.com>"
+	],
+	"description": "Use WebVR today, on mobile or desktop, without requiring a special browser build.",
+	"devDependencies": {
+		"chai": "^3.5.0",
+		"jsdom": "^9.12.0",
+		"mocha": "^3.2.0",
+		"webpack": "^2.6.1",
+		"webpack-dev-server": "^2.4.5"
+	},
+	"main": "src/node-entry",
+	"keywords": [
+		"vr",
+		"webvr"
+	],
+	"license": "Apache-2.0",
+	"scripts": {
+		"start": "npm run watch",
+		"watch": "webpack-dev-server",
+		"build": "webpack",
+		"test": "mocha"
+	},
+	"repository": "googlevr/webvr-polyfill",
+	"bugs": {
+		"url": "https://github.com/googlevr/webvr-polyfill/issues"
+	}
+};
+
+/***/ }),
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -3184,7 +3268,7 @@ module.exports = CardboardDistorter;
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -3202,13 +3286,13 @@ module.exports = CardboardDistorter;
  * limitations under the License.
  */
 
-var CardboardDistorter = __webpack_require__(8);
+var CardboardDistorter = __webpack_require__(9);
 var CardboardUI = __webpack_require__(3);
 var DeviceInfo = __webpack_require__(5);
-var Dpdb = __webpack_require__(11);
-var FusionPoseSensor = __webpack_require__(17);
-var RotateInstructions = __webpack_require__(15);
-var ViewerSelector = __webpack_require__(21);
+var Dpdb = __webpack_require__(12);
+var FusionPoseSensor = __webpack_require__(18);
+var RotateInstructions = __webpack_require__(16);
+var ViewerSelector = __webpack_require__(22);
 var VRDisplay = __webpack_require__(1).VRDisplay;
 var Util = __webpack_require__(0);
 
@@ -3472,7 +3556,7 @@ module.exports = CardboardVRDisplay;
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports) {
 
 /**
@@ -3522,144 +3606,11 @@ Distortion.prototype.distort = function(radius) {
   return (ret + 1) * radius;
 };
 
-// Functions below roughly ported from
-// https://github.com/googlesamples/cardboard-unity/blob/master/Cardboard/Scripts/CardboardProfile.cs#L412
-
-// Solves a small linear equation via destructive gaussian
-// elimination and back substitution.  This isn't generic numeric
-// code, it's just a quick hack to work with the generally
-// well-behaved symmetric matrices for least-squares fitting.
-// Not intended for reuse.
-//
-// @param a Input positive definite symmetrical matrix. Destroyed
-//     during calculation.
-// @param y Input right-hand-side values. Destroyed during calculation.
-// @return Resulting x value vector.
-//
-Distortion.prototype.solveLinear_ = function(a, y) {
-  var n = a.length;
-
-  // Gaussian elimination (no row exchange) to triangular matrix.
-  // The input matrix is a A^T A product which should be a positive
-  // definite symmetrical matrix, and if I remember my linear
-  // algebra right this implies that the pivots will be nonzero and
-  // calculations sufficiently accurate without needing row
-  // exchange.
-  for (var j = 0; j < n - 1; ++j) {
-    for (var k = j + 1; k < n; ++k) {
-      var p = a[j][k] / a[j][j];
-      for (var i = j + 1; i < n; ++i) {
-        a[i][k] -= p * a[i][j];
-      }
-      y[k] -= p * y[j];
-    }
-  }
-  // From this point on, only the matrix elements a[j][i] with i>=j are
-  // valid. The elimination doesn't fill in eliminated 0 values.
-
-  var x = new Array(n);
-
-  // Back substitution.
-  for (var j = n - 1; j >= 0; --j) {
-    var v = y[j];
-    for (var i = j + 1; i < n; ++i) {
-      v -= a[i][j] * x[i];
-    }
-    x[j] = v / a[j][j];
-  }
-
-  return x;
-};
-
-// Solves a least-squares matrix equation.  Given the equation A * x = y, calculate the
-// least-square fit x = inverse(A * transpose(A)) * transpose(A) * y.  The way this works
-// is that, while A is typically not a square matrix (and hence not invertible), A * transpose(A)
-// is always square.  That is:
-//   A * x = y
-//   transpose(A) * (A * x) = transpose(A) * y   <- multiply both sides by transpose(A)
-//   (transpose(A) * A) * x = transpose(A) * y   <- associativity
-//   x = inverse(transpose(A) * A) * transpose(A) * y  <- solve for x
-// Matrix A's row count (first index) must match y's value count.  A's column count (second index)
-// determines the length of the result vector x.
-Distortion.prototype.solveLeastSquares_ = function(matA, vecY) {
-  var i, j, k, sum;
-  var numSamples = matA.length;
-  var numCoefficients = matA[0].length;
-  if (numSamples != vecY.Length) {
-    throw new Error("Matrix / vector dimension mismatch");
-  }
-
-  // Calculate transpose(A) * A
-  var matATA = new Array(numCoefficients);
-  for (k = 0; k < numCoefficients; ++k) {
-    matATA[k] = new Array(numCoefficients);
-    for (j = 0; j < numCoefficients; ++j) {
-      sum = 0;
-      for (i = 0; i < numSamples; ++i) {
-        sum += matA[j][i] * matA[k][i];
-      }
-      matATA[k][j] = sum;
-    }
-  }
-
-  // Calculate transpose(A) * y
-  var vecATY = new Array(numCoefficients);
-  for (j = 0; j < numCoefficients; ++j) {
-    sum = 0;
-    for (i = 0; i < numSamples; ++i) {
-      sum += matA[j][i] * vecY[i];
-    }
-    vecATY[j] = sum;
-  }
-
-  // Now solve (A * transpose(A)) * x = transpose(A) * y.
-  return this.solveLinear_(matATA, vecATY);
-};
-
-/// Calculates an approximate inverse to the given radial distortion parameters.
-Distortion.prototype.approximateInverse = function(maxRadius, numSamples) {
-  maxRadius = maxRadius || 1;
-  numSamples = numSamples || 100;
-  var numCoefficients = 6;
-  var i, j;
-
-  // R + K1*R^3 + K2*R^5 = r, with R = rp = distort(r)
-  // Repeating for numSamples:
-  //   [ R0^3, R0^5 ] * [ K1 ] = [ r0 - R0 ]
-  //   [ R1^3, R1^5 ]   [ K2 ]   [ r1 - R1 ]
-  //   [ R2^3, R2^5 ]            [ r2 - R2 ]
-  //   [ etc... ]                [ etc... ]
-  // That is:
-  //   matA * [K1, K2] = y
-  // Solve:
-  //   [K1, K2] = inverse(transpose(matA) * matA) * transpose(matA) * y
-  var matA = new Array(numCoefficients);
-  for (j = 0; j < numCoefficients; ++j) {
-    matA[j] = new Array(numSamples);
-  }
-  var vecY = new Array(numSamples);
-
-  for (i = 0; i < numSamples; ++i) {
-    var r = maxRadius * (i + 1) / numSamples;
-    var rp = this.distort(r);
-    var v = rp;
-    for (j = 0; j < numCoefficients; ++j) {
-      v *= rp * rp;
-      matA[j][i] = v;
-    }
-    vecY[i] = r - rp;
-  }
-
-  var inverseCoefficients = this.solveLeastSquares_(matA, vecY);
-
-  return new Distortion(inverseCoefficients);
-};
-
 module.exports = Distortion;
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -3679,7 +3630,7 @@ module.exports = Distortion;
 
 // Offline cache of the DPDB, to be used until we load the online one (and
 // as a fallback in case we can't load the online one).
-var DPDB_CACHE = __webpack_require__(12);
+var DPDB_CACHE = __webpack_require__(13);
 var Util = __webpack_require__(0);
 
 // Online DPDB URL.
@@ -3845,7 +3796,7 @@ module.exports = Dpdb;
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports) {
 
 module.exports = {
@@ -5355,7 +5306,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -5428,7 +5379,16 @@ window.WebVRConfig = Util.extend({
   // When set to true, this will cause a polyfilled VRDisplay to always be
   // appended to the list returned by navigator.getVRDisplays(), even if that
   // list includes a native VRDisplay.
-  ALWAYS_APPEND_POLYFILL_DISPLAY: false
+  ALWAYS_APPEND_POLYFILL_DISPLAY: false,
+
+  // There are versions of Chrome (M58-M60?) where the native WebVR API exists,
+  // and instead of returning 0 VR displays when none are detected,
+  // `navigator.getVRDisplays()`'s promise never resolves. This results
+  // in the polyfill hanging and not being able to provide fallback
+  // displays, so set a timeout in milliseconds to stop waiting for a response
+  // and just use polyfilled displays.
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=727969
+  GET_VR_DISPLAYS_TIMEOUT: 1000,
 }, window.WebVRConfig);
 
 if (!window.WebVRConfig.DEFER_INITIALIZATION) {
@@ -5443,7 +5403,7 @@ window.WebVRPolyfill = WebVRPolyfill;
 
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -5626,7 +5586,7 @@ module.exports = MouseKeyboardVRDisplay;
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -5776,7 +5736,7 @@ module.exports = RotateInstructions;
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -5794,7 +5754,7 @@ module.exports = RotateInstructions;
  * limitations under the License.
  */
 
-var SensorSample = __webpack_require__(19);
+var SensorSample = __webpack_require__(20);
 var MathUtil = __webpack_require__(2);
 var Util = __webpack_require__(0);
 
@@ -5948,7 +5908,7 @@ module.exports = ComplementaryFilter;
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -5965,9 +5925,9 @@ module.exports = ComplementaryFilter;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var ComplementaryFilter = __webpack_require__(16);
-var PosePredictor = __webpack_require__(18);
-var TouchPanner = __webpack_require__(20);
+var ComplementaryFilter = __webpack_require__(17);
+var PosePredictor = __webpack_require__(19);
+var TouchPanner = __webpack_require__(21);
 var MathUtil = __webpack_require__(2);
 var Util = __webpack_require__(0);
 
@@ -6183,7 +6143,7 @@ module.exports = FusionPoseSensor;
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -6270,7 +6230,7 @@ module.exports = PosePredictor;
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports) {
 
 function SensorSample(sample, timestampS) {
@@ -6290,7 +6250,7 @@ module.exports = SensorSample;
 
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -6374,7 +6334,7 @@ module.exports = TouchPanner;
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -6591,7 +6551,7 @@ module.exports = ViewerSelector;
 
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
