@@ -24,6 +24,7 @@ var HMDVRDevice = require('./base.js').HMDVRDevice;
 var PositionSensorVRDevice = require('./base.js').PositionSensorVRDevice;
 var VRDisplayHMDDevice = require('./display-wrappers.js').VRDisplayHMDDevice;
 var VRDisplayPositionSensorDevice = require('./display-wrappers.js').VRDisplayPositionSensorDevice;
+var version = require('../package.json').version;
 
 function WebVRPolyfill() {
   this.displays = [];
@@ -267,5 +268,7 @@ function InstallWebVRSpecShim() {
     }
   }
 };
+
+WebVRPolyfill.version = version;
 
 module.exports.WebVRPolyfill = WebVRPolyfill;
