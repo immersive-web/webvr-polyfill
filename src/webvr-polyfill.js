@@ -159,23 +159,29 @@ WebVRPolyfill.prototype.getVRDisplays = function() {
   this.populateDevices();
   var polyfillDisplays = this.displays;
 
-  if (this.nativeWebVRAvailable) {
-    return this.nativeGetVRDisplaysFunc.call(navigator).then(function(nativeDisplays) {
-      if (window.WebVRConfig.ALWAYS_APPEND_POLYFILL_DISPLAY) {
-        return nativeDisplays.concat(polyfillDisplays);
-      } else {
-        return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
-      }
-    });
-  } else {
-    return new Promise(function(resolve, reject) {
-      try {
-        resolve(polyfillDisplays);
-      } catch (e) {
-        reject(e);
-      }
-    });
+  if (!this.nativeWebVRAvailable) {
+    return Promise.resolve(polyfillDisplays);
   }
+
+  // Set up a race condition if this browser has a bug where
+  // `navigator.getVRDisplays()` never resolves.
+  var vrDisplaysNative = this.nativeGetVRDisplaysFunc.call(navigator);
+  var timeout = new Promise(function(resolve) {
+    setTimeout(function() {
+      resolve([])
+    }, window.WebVRConfig.GET_VR_DISPLAYS_TIMEOUT);
+  }).then(function (displays) {
+    console.warn('Native WebVR implementation detected, but `getVRDisplays()` failed to resolve. Falling back to polyfill.');
+    return displays;
+  });
+
+  return Util.race([vrDisplaysNative, timeout]).then(function(nativeDisplays) {
+    if (window.WebVRConfig.ALWAYS_APPEND_POLYFILL_DISPLAY) {
+      return nativeDisplays.concat(polyfillDisplays);
+    } else {
+      return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
+    }
+  });
 };
 
 WebVRPolyfill.prototype.getVRDevices = function() {
