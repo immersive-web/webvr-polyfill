@@ -1,6 +1,8 @@
-// if running in node and there is a window mock available,
-// globalize its members where needed
-if (global && global.window) {
+// This is the entry point if requiring/importing via node, or
+// a build tool that uses package.json entry (like browserify, webpack).
+// If running in node with a window mock available, globalize it's members
+// if needed. Otherwise, just continue to `./main`
+if (typeof global !== 'undefined' && global.window) {
   global.document = global.window.document;
   global.navigator = global.window.navigator;
 }
