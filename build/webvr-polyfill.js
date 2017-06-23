@@ -2405,11 +2405,17 @@ WebVRPolyfill.prototype.enablePolyfill = function() {
 
   // Polyfill native VRDisplay.getFrameData
   if (this.nativeWebVRAvailable && window.VRFrameData) {
+    var NativeVRFrameData = window.VRFrameData;
     var nativeFrameData = new window.VRFrameData();
     var nativeGetFrameData = window.VRDisplay.prototype.getFrameData;
     window.VRFrameData = VRFrameData;
 
     window.VRDisplay.prototype.getFrameData = function(frameData) {
+      if (frameData instanceof NativeVRFrameData) {
+        nativeGetFrameData.call(this, frameData);
+        return;
+      }
+
       /*
       Copy frame data from the native object into the polyfilled object.
       */
@@ -2526,6 +2532,8 @@ WebVRPolyfill.prototype.getVRDevices = function() {
   });
 };
 
+WebVRPolyfill.prototype.NativeVRFrameData = window.VRFrameData;
+
 /**
  * Determine if a device is mobile.
  */
@@ -2569,6 +2577,7 @@ function InstallWebVRSpecShim() {
   }
 };
 
+WebVRPolyfill.InstallWebVRSpecShim = InstallWebVRSpecShim;
 WebVRPolyfill.version = version;
 
 module.exports.WebVRPolyfill = WebVRPolyfill;
@@ -2580,7 +2589,7 @@ module.exports.WebVRPolyfill = WebVRPolyfill;
 
 module.exports = {
 	"name": "webvr-polyfill",
-	"version": "0.9.34",
+	"version": "0.9.35",
 	"homepage": "https://github.com/googlevr/webvr-polyfill",
 	"authors": [
 		"Boris Smus <boris@smus.com>",
@@ -3802,7 +3811,7 @@ module.exports = Dpdb;
 
 module.exports = {
 	"format": 1,
-	"last_updated": "2017-01-12T08:41:55Z",
+	"last_updated": "2017-06-01T22:33:42Z",
 	"devices": [
 		{
 			"type": "android",
@@ -3842,7 +3851,7 @@ module.exports = {
 			"type": "android",
 			"rules": [
 				{
-					"mdmh": "Google//Pixel XL/"
+					"mdmh": "Google/*/Pixel XL/*"
 				},
 				{
 					"ua": "Pixel XL"
@@ -3859,7 +3868,7 @@ module.exports = {
 			"type": "android",
 			"rules": [
 				{
-					"mdmh": "Google//Pixel/"
+					"mdmh": "Google/*/Pixel/*"
 				},
 				{
 					"ua": "Pixel"
@@ -4601,6 +4610,23 @@ module.exports = {
 			"dpi": [
 				217.7,
 				231.4
+			],
+			"bw": 3,
+			"ac": 1000
+		},
+		{
+			"type": "android",
+			"rules": [
+				{
+					"mdmh": "samsung/*/SGH-M919/*"
+				},
+				{
+					"ua": "SGH-M919"
+				}
+			],
+			"dpi": [
+				440.8,
+				437.7
 			],
 			"bw": 3,
 			"ac": 1000
