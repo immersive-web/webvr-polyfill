@@ -2589,7 +2589,7 @@ module.exports.WebVRPolyfill = WebVRPolyfill;
 
 module.exports = {
 	"name": "webvr-polyfill",
-	"version": "0.9.35",
+	"version": "0.9.36",
 	"homepage": "https://github.com/googlevr/webvr-polyfill",
 	"authors": [
 		"Boris Smus <boris@smus.com>",
@@ -6071,11 +6071,6 @@ FusionPoseSensor.prototype.updateDeviceMotion_ = function(deviceMotion) {
   var accGravity = deviceMotion.accelerationIncludingGravity;
   var rotRate = deviceMotion.rotationRate;
   var timestampS = deviceMotion.timeStamp / 1000;
-
-  // Firefox Android timeStamp returns one thousandth of a millisecond.
-  if (this.isFirefoxAndroid) {
-    timestampS /= 1000;
-  }
 
   var deltaS = timestampS - this.previousTimestampS;
   if (deltaS <= Util.MIN_TIMESTEP || deltaS > Util.MAX_TIMESTEP) {
