@@ -2613,7 +2613,7 @@ module.exports.WebVRPolyfill = WebVRPolyfill;
 
 module.exports = {
 	"name": "webvr-polyfill",
-	"version": "0.9.36",
+	"version": "0.9.37",
 	"homepage": "https://github.com/googlevr/webvr-polyfill",
 	"authors": [
 		"Boris Smus <boris@smus.com>",
