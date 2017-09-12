@@ -14,7 +14,7 @@
  */
 
 var Util = require('./util.js');
-var WakeLock = require('./wakelock.js');
+var WakeLock = require('./deps/nosleep');
 
 // Start at a higher number to reduce chance of conflict.
 var nextDisplayId = 1000;
@@ -255,7 +255,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
             screen.orientation.unlock();
           }
           self.removeFullscreenWrapper();
-          self.wakelock_.release();
+          self.wakelock_.disable();
           self.endPresent_();
           self.removeFullscreenListeners_();
         }
@@ -269,7 +269,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
         self.removeFullscreenWrapper();
         self.removeFullscreenListeners_();
 
-        self.wakelock_.release();
+        self.wakelock_.disable();
         self.waitingForPresent_ = false;
         self.isPresenting = false;
 
@@ -280,11 +280,11 @@ VRDisplay.prototype.requestPresent = function(layers) {
           onFullscreenChange, onFullscreenError);
 
       if (Util.requestFullscreen(fullscreenElement)) {
-        self.wakelock_.request();
+        self.wakelock_.enable();
         self.waitingForPresent_ = true;
       } else if (Util.isIOS() || Util.isWebViewAndroid()) {
         // *sigh* Just fake it.
-        self.wakelock_.request();
+        self.wakelock_.enable();
         self.isPresenting = true;
         self.beginPresent_();
         self.fireVRDisplayPresentChange_();
@@ -304,7 +304,7 @@ VRDisplay.prototype.exitPresent = function() {
   var self = this;
   this.isPresenting = false;
   this.layer_ = null;
-  this.wakelock_.release();
+  this.wakelock_.disable();
 
   return new Promise(function(resolve, reject) {
     if (wasPresenting) {
