@@ -2333,7 +2333,7 @@ function WebVRPolyfill() {
                                  navigator.getVRDisplays :
                                  null;
 
-  if (!this.nativeLegacyWebVRAvailable) {
+  if (!this.nativeLegacyWebVRAvailable && !this.nativeWebVRAvailable) {
     this.enablePolyfill();
     if (window.WebVRConfig.ENABLE_DEPRECATED_API) {
       this.enableDeprecatedPolyfill();
@@ -2434,7 +2434,7 @@ WebVRPolyfill.prototype.enablePolyfill = function() {
   window.VRDisplay = VRDisplay;
 
   // Provide the `navigator.vrEnabled` property.
-  if (navigator && !navigator.vrEnabled) {
+  if (navigator && typeof navigator.vrEnabled === 'undefined') {
     var self = this;
     Object.defineProperty(navigator, 'vrEnabled', {
       get: function () {
@@ -2589,7 +2589,7 @@ module.exports.WebVRPolyfill = WebVRPolyfill;
 
 module.exports = {
 	"name": "webvr-polyfill",
-	"version": "0.9.37",
+	"version": "0.9.38",
 	"homepage": "https://github.com/googlevr/webvr-polyfill",
 	"authors": [
 		"Boris Smus <boris@smus.com>",
@@ -3811,7 +3811,7 @@ module.exports = Dpdb;
 
 module.exports = {
 	"format": 1,
-	"last_updated": "2017-06-01T22:33:42Z",
+	"last_updated": "2017-08-27T14:39:31Z",
 	"devices": [
 		{
 			"type": "android",
@@ -3993,6 +3993,23 @@ module.exports = {
 			],
 			"bw": 3,
 			"ac": 1000
+		},
+		{
+			"type": "android",
+			"rules": [
+				{
+					"mdmh": "LENOVO/*/Lenovo PB2-690Y/*"
+				},
+				{
+					"ua": "Lenovo PB2-690Y"
+				}
+			],
+			"dpi": [
+				457.2,
+				454.713
+			],
+			"bw": 3,
+			"ac": 500
 		},
 		{
 			"type": "android",
@@ -5111,6 +5128,40 @@ module.exports = {
 				}
 			],
 			"dpi": 533,
+			"bw": 3,
+			"ac": 500
+		},
+		{
+			"type": "android",
+			"rules": [
+				{
+					"mdmh": "samsung/*/SM-G950F/*"
+				},
+				{
+					"ua": "SM-G950F"
+				}
+			],
+			"dpi": [
+				562.707,
+				565.293
+			],
+			"bw": 3,
+			"ac": 500
+		},
+		{
+			"type": "android",
+			"rules": [
+				{
+					"mdmh": "samsung/*/SM-G955U/*"
+				},
+				{
+					"ua": "SM-G955U"
+				}
+			],
+			"dpi": [
+				522.514,
+				525.762
+			],
 			"bw": 3,
 			"ac": 500
 		},
