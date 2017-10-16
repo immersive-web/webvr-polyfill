@@ -12,7 +12,7 @@ Take a look at [basic WebVR samples][samples] that use this polyfill.
 
 [moz]: http://mozvr.com/
 [cr]: https://drive.google.com/folderview?id=0BzudLt22BqGRbW9WTHMtOWMzNjQ
-[samples]: https://toji.github.io/webvr-samples/
+[samples]: https://webvr.info/samples/
 [spec]: https://mozvr.github.io/webvr-spec/
 
 ## Implementation
