@@ -45,10 +45,6 @@ canvas {
 </body>
 
 <script>
-WebVRConfig = {
-  BUFFER_SCALE: 1.0,
-};
-
 document.addEventListener('touchmove', function(e) {
   e.preventDefault();
 });
@@ -68,6 +64,11 @@ document.addEventListener('touchmove', function(e) {
 
 
 <script>
+var polyfill = new WebVRPolyfill({
+  BUFFER_SCALE: 1.0,
+  ALWAYS_APPEND_POLYFILL_DISPLAY: true,
+});
+
 var canvas = document.getElementById('webgl');
 var buttons = document.getElementById('buttons');
 

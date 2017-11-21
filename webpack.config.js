@@ -8,13 +8,15 @@ const license = fs.readFileSync(licensePath, 'utf8');
 
 module.exports = {
   entry: {
-    'webvr-polyfill': './src/main.js',
-    'webvr-polyfill.min': './src/main.js',
+    'webvr-polyfill': './src/index.js',
+    'webvr-polyfill.min': './src/index.js',
   },
   output: {
     path: path.join(__dirname, 'build'),
     filename: '[name].js',
     sourceMapFilename: '[name].js.map',
+    library: 'WebVRPolyfill',
+    libraryTarget: 'umd',
   },
   resolve: {
     extensions: ['.js', '.json'],

@@ -16,7 +16,7 @@
     "webpack": "^2.6.1",
     "webpack-dev-server": "2.7.1"
   },
-  "main": "src/node-entry",
+  "main": "src/index.js",
   "keywords": [
     "vr",
     "webvr"
@@ -31,5 +31,8 @@
   "repository": "googlevr/webvr-polyfill",
   "bugs": {
     "url": "https://github.com/googlevr/webvr-polyfill/issues"
+  },
+  "dependencies": {
+    "cardboard-vr-display": "1.0.0"
   }
 }

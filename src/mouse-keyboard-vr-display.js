@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-var VRDisplay = require('./base.js').VRDisplay;
+var VRDisplay = require('cardboard-vr-display/src/base.js').VRDisplay;
 var MathUtil = require('./math-util.js');
 var Util = require('./util.js');
 

@@ -12,13 +12,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var Util = require('./util.js');
-var WebVRPolyfill = require('./webvr-polyfill.js').WebVRPolyfill;
 
-// Initialize a WebVRConfig just in case.
-window.WebVRConfig = Util.extend({
+module.exports = {
   // Forces availability of VR mode, even for non-mobile devices.
   FORCE_ENABLE_VR: false,
+
+  // To disable keyboard and mouse controls, if you want to use your own
+  // implementation.
+  MOUSE_KEYBOARD_CONTROLS_DISABLED: false,
+
+  // Prevent the polyfill from initializing immediately. Requires the app
+  // to call InitializeWebVRPolyfill() before it can be used.
+  DEFER_INITIALIZATION: false,
+
+  // When set to true, this will cause a polyfilled VRDisplay to always be
+  // appended to the list returned by navigator.getVRDisplays(), even if that
+  // list includes a native VRDisplay.
+  ALWAYS_APPEND_POLYFILL_DISPLAY: false,
+
+  // There are versions of Chrome (M58-M60?) where the native WebVR API exists,
+  // and instead of returning 0 VR displays when none are detected,
+  // `navigator.getVRDisplays()`'s promise never resolves. This results
+  // in the polyfill hanging and not being able to provide fallback
+  // displays, so set a timeout in milliseconds to stop waiting for a response
+  // and just use polyfilled displays.
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=727969
+  GET_VR_DISPLAYS_TIMEOUT: 1000,
+
+  /**
+   * Options passed into the underlying CardboardVRDisplay
+   */
 
   // Complementary filter coefficient. 0 for accelerometer, 1 for gyro.
   K_FILTER: 0.98,
@@ -39,17 +62,6 @@ window.WebVRConfig = Util.extend({
   // for panoramas with nothing interesting above or below.
   YAW_ONLY: false,
 
-  // To disable keyboard and mouse controls, if you want to use your own
-  // implementation.
-  MOUSE_KEYBOARD_CONTROLS_DISABLED: false,
-
-  // Prevent the polyfill from initializing immediately. Requires the app
-  // to call InitializeWebVRPolyfill() before it can be used.
-  DEFER_INITIALIZATION: false,
-
-  // Enable the deprecated version of the API (navigator.getVRDevices).
-  ENABLE_DEPRECATED_API: false,
-
   // Scales the recommended buffer size reported by WebVR, which can improve
   // performance.
   // UPDATE(2016-05-03): Setting this to 0.5 by default since 1.0 does not
@@ -64,28 +76,4 @@ window.WebVRConfig = Util.extend({
   // gl.ARRAY_BUFFER_BINDING, gl.ELEMENT_ARRAY_BUFFER_BINDING,
   // and gl.TEXTURE_BINDING_2D for texture unit 0.
   DIRTY_SUBMIT_FRAME_BINDINGS: false,
-
-  // When set to true, this will cause a polyfilled VRDisplay to always be
-  // appended to the list returned by navigator.getVRDisplays(), even if that
-  // list includes a native VRDisplay.
-  ALWAYS_APPEND_POLYFILL_DISPLAY: false,
-
-  // There are versions of Chrome (M58-M60?) where the native WebVR API exists,
-  // and instead of returning 0 VR displays when none are detected,
-  // `navigator.getVRDisplays()`'s promise never resolves. This results
-  // in the polyfill hanging and not being able to provide fallback
-  // displays, so set a timeout in milliseconds to stop waiting for a response
-  // and just use polyfilled displays.
-  // https://bugs.chromium.org/p/chromium/issues/detail?id=727969
-  GET_VR_DISPLAYS_TIMEOUT: 1000,
-}, window.WebVRConfig);
-
-if (!window.WebVRConfig.DEFER_INITIALIZATION) {
-  new WebVRPolyfill();
-} else {
-  window.InitializeWebVRPolyfill = function() {
-    new WebVRPolyfill();
-  }
-}
-
-window.WebVRPolyfill = WebVRPolyfill;
+};
