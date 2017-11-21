@@ -9,8 +9,11 @@
   ],
   "description": "Use WebVR today, on mobile or desktop, without requiring a special browser build.",
   "devDependencies": {
+    "babel-core": "^6.24.1",
+    "babel-preset-env": "^1.6.1",
     "chai": "^3.5.0",
     "jsdom": "^9.12.0",
+    "localStorage": "^1.0.3",
     "mocha": "^3.2.0",
     "semver": "^5.3.0",
     "webpack": "^2.6.1",
@@ -26,13 +29,13 @@
     "start": "npm run watch",
     "watch": "webpack-dev-server",
     "build": "webpack",
-    "test": "mocha"
+    "test": "mocha -r test/init.js --compilers js:babel-core/register test/*.test.js"
   },
   "repository": "googlevr/webvr-polyfill",
   "bugs": {
     "url": "https://github.com/googlevr/webvr-polyfill/issues"
   },
   "dependencies": {
-    "cardboard-vr-display": "1.0.0"
+    "cardboard-vr-display": "1.0.1"
   }
 }

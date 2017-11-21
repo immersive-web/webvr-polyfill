@@ -72,6 +72,7 @@ WebVRPolyfill.prototype.populateDevices = function() {
   // Add a Cardboard VRDisplay on compatible mobile devices
   if (this.isCardboardCompatible()) {
     vrDisplay = new CardboardVRDisplay({
+      DPDB_URL:                     this.config.DPDB_URL,
       CARDBOARD_UI_DISABLED:        this.config.CARDBOARD_UI_DISABLED,
       K_FILTER:                     this.config.K_FILTER,
       PREDICTION_TIME_S:            this.config.PREDICTION_TIME_S,
@@ -184,7 +185,7 @@ WebVRPolyfill.prototype.NativeVRFrameData = window.VRFrameData;
 
 WebVRPolyfill.prototype.isCardboardCompatible = function() {
   // For now, support all iOS and Android devices.
-  // Also enable the FORCE_VR flag for debugging.
+  // Also enable the FORCE_ENABLE_VR flag for debugging.
   return Util.isMobile() || this.config.FORCE_ENABLE_VR;
 };
 

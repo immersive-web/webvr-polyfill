@@ -47,6 +47,12 @@ are supported:
 
 ```javascript
 WebVRConfig = {
+  // The URL to JSON of DPDB information. By default, uses the data
+  // from https://github.com/WebVRRocks/webvr-polyfill-dpdb; if left
+  // falsy, then no attempt is made.
+  // Added in 0.10.0
+  DPDB_URL: 'https://dpdb.webvr.rocks/dpdb.json',
+
   // Flag to disabled the UI in VR Mode.
   CARDBOARD_UI_DISABLED: false, // Default: false
 
