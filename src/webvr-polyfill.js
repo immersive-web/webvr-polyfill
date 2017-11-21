@@ -24,16 +24,37 @@ var DefaultConfig = require('./config');
 function WebVRPolyfill(config) {
   this.config = Util.extend(Util.extend({}, DefaultConfig), config);
   this.displays = [];
-  this.nativeWebVRAvailable = 'getVRDisplays' in navigator;
-  this.nativeGetVRDisplaysFunc = this.nativeWebVRAvailable ?
+  this.enabled = false;
+
+  // Must handle this in constructor before we
+  // polyfill `navigator`
+  this._native = {
+    '1.1': 'getVRDisplays' in navigator,
+  };
+
+  this.nativeGetVRDisplaysFunc = this.getNativeSupport() ?
                                  navigator.getVRDisplays :
                                  null;
 
-  if (!this.nativeWebVRAvailable ||
+  if (!this.getNativeSupport() ||
       this.config.ALWAYS_APPEND_POLYFILL_DISPLAY) {
-    this.enablePolyfill();
+    this.enable();
   }
 }
+
+/**
+ * Returns a string indicating rough WebVR versioning
+ * support, i.e. returns "1.1" if WebVR 1.1 is supported.
+ * Returns null if no native support provided. As standards
+ * are ever-changing and incomplete browser implementations existing,
+ * this string is used to indicate general versioning support and
+ * how the polyfill is handling things.
+ *
+ * @return {string?}
+ */
+WebVRPolyfill.prototype.getNativeSupport = function() {
+  return this._native['1.1'] ? '1.1' : null;
+};
 
 WebVRPolyfill.prototype.connectDisplay = function(vrDisplay) {
   vrDisplay.fireVRDisplayConnect_();
@@ -65,7 +86,7 @@ WebVRPolyfill.prototype.populateDevices = function() {
   }
 
   // Add a Mouse and Keyboard driven VRDisplay for desktops/laptops
-  if (!this.isMobile() && !this.config.MOUSE_KEYBOARD_CONTROLS_DISABLED) {
+  if (!Util.isMobile() && !this.config.MOUSE_KEYBOARD_CONTROLS_DISABLED) {
     vrDisplay = new MouseKeyboardVRDisplay();
     this.connectDisplay(vrDisplay);
   }
@@ -73,12 +94,14 @@ WebVRPolyfill.prototype.populateDevices = function() {
   this.devicesPopulated = true;
 };
 
-WebVRPolyfill.prototype.enablePolyfill = function() {
+WebVRPolyfill.prototype.enable = function() {
+  this.enabled = true;
+
   // Provide navigator.getVRDisplays.
   navigator.getVRDisplays = this.getVRDisplays.bind(this);
 
   // Polyfill native VRDisplay.getFrameData
-  if (this.nativeWebVRAvailable && window.VRFrameData) {
+  if (this.getNativeSupport() && window.VRFrameData) {
     var NativeVRFrameData = window.VRFrameData;
     var nativeFrameData = new window.VRFrameData();
     var nativeGetFrameData = window.VRDisplay.prototype.getFrameData;
@@ -113,7 +136,7 @@ WebVRPolyfill.prototype.enablePolyfill = function() {
     Object.defineProperty(navigator, 'vrEnabled', {
       get: function () {
         return self.isCardboardCompatible() &&
-            (self.isFullScreenAvailable() || Util.isIOS());
+            (Util.isFullScreenAvailable() || Util.isIOS());
       }
     });
   }
@@ -129,7 +152,7 @@ WebVRPolyfill.prototype.getVRDisplays = function() {
   var polyfillDisplays = this.displays;
   var config = this.config;
 
-  if (!this.nativeWebVRAvailable) {
+  if (!this.getNativeSupport()) {
     return Promise.resolve(polyfillDisplays);
   }
 
@@ -159,25 +182,10 @@ WebVRPolyfill.prototype.getVRDisplays = function() {
 
 WebVRPolyfill.prototype.NativeVRFrameData = window.VRFrameData;
 
-/**
- * Determine if a device is mobile.
- */
-WebVRPolyfill.prototype.isMobile = function() {
-  return /Android/i.test(navigator.userAgent) ||
-      /iPhone|iPad|iPod/i.test(navigator.userAgent);
-};
-
 WebVRPolyfill.prototype.isCardboardCompatible = function() {
   // For now, support all iOS and Android devices.
   // Also enable the FORCE_VR flag for debugging.
-  return this.isMobile() || this.config.FORCE_ENABLE_VR;
-};
-
-WebVRPolyfill.prototype.isFullScreenAvailable = function() {
-  return (document.fullscreenEnabled ||
-          document.mozFullScreenEnabled ||
-          document.webkitFullscreenEnabled ||
-          false);
+  return Util.isMobile() || this.config.FORCE_ENABLE_VR;
 };
 
 WebVRPolyfill.version = version;
