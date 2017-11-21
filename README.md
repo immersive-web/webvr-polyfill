@@ -73,10 +73,6 @@ WebVRConfig = {
   // implementation.
   MOUSE_KEYBOARD_CONTROLS_DISABLED: true, // Default: false.
 
-  // Prevent the polyfill from initializing immediately. Requires the app
-  // to call InitializeWebVRPolyfill() before it can be used.
-  DEFER_INITIALIZATION: true, // Default: false.
-
   // Enable the deprecated version of the API (navigator.getVRDevices).
   ENABLE_DEPRECATED_API: true, // Default: false.
 

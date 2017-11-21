@@ -38,20 +38,14 @@ Util.race = function(promises) {
   });
 };
 
-Util.isIOS = (function() {
-  var isIOS = /iPad|iPhone|iPod/.test(navigator.platform);
-  return function() {
-    return isIOS;
-  };
-})();
+Util.isIOS = function() {
+  return /iPad|iPhone|iPod/.test(navigator.platform);
+};
 
-Util.isMobile = (function() {
-  var isMobile = /Android/i.test(navigator.userAgent) ||
+Util.isMobile = function() {
+  return /Android/i.test(navigator.userAgent) ||
       /iPhone|iPad|iPod/i.test(navigator.userAgent);
-  return function() {
-    return isMobile;
-  };
-})();
+};
 
 Util.copyArray = function (source, dest) {
   for (var i = 0, n = source.length; i < n; i++) {

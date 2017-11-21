@@ -21,10 +21,6 @@ module.exports = {
   // implementation.
   MOUSE_KEYBOARD_CONTROLS_DISABLED: false,
 
-  // Prevent the polyfill from initializing immediately. Requires the app
-  // to call InitializeWebVRPolyfill() before it can be used.
-  DEFER_INITIALIZATION: false,
-
   // When set to true, this will cause a polyfilled VRDisplay to always be
   // appended to the list returned by navigator.getVRDisplays(), even if that
   // list includes a native VRDisplay.
