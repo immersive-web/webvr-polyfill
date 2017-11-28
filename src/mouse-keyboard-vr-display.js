@@ -34,11 +34,16 @@ function MouseKeyboardVRDisplay() {
 
   this.capabilities.hasOrientation = true;
 
+  this.onKeyDown_ = this.onKeyDown_.bind(this);
+  this.onMouseDown_ = this.onMouseDown_.bind(this);
+  this.onMouseMove_ = this.onMouseMove_.bind(this);
+  this.onMouseUp_ = this.onMouseUp_.bind(this);
+
   // Attach to mouse and keyboard events.
-  window.addEventListener('keydown', this.onKeyDown_.bind(this));
-  window.addEventListener('mousemove', this.onMouseMove_.bind(this));
-  window.addEventListener('mousedown', this.onMouseDown_.bind(this));
-  window.addEventListener('mouseup', this.onMouseUp_.bind(this));
+  window.addEventListener('keydown', this.onKeyDown_);
+  window.addEventListener('mousemove', this.onMouseMove_);
+  window.addEventListener('mousedown', this.onMouseDown_);
+  window.addEventListener('mouseup', this.onMouseUp_);
 
   // "Private" members.
   this.phi_ = 0;
