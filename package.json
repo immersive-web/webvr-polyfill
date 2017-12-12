@@ -10,14 +10,20 @@
   "description": "Use WebVR today, on mobile or desktop, without requiring a special browser build.",
   "devDependencies": {
     "babel-core": "^6.24.1",
+    "babel-plugin-external-helpers": "^6.22.0",
     "babel-preset-env": "^1.6.1",
     "chai": "^3.5.0",
     "jsdom": "^9.12.0",
     "localStorage": "^1.0.3",
     "mocha": "^3.2.0",
-    "semver": "^5.3.0",
-    "webpack": "^2.6.1",
-    "webpack-dev-server": "2.7.1"
+    "rollup": "^0.52.1",
+    "rollup-plugin-babel": "^3.0.2",
+    "rollup-plugin-cleanup": "^2.0.0",
+    "rollup-plugin-commonjs": "^8.2.6",
+    "rollup-plugin-json": "^2.3.0",
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-uglify": "^2.0.1",
+    "semver": "^5.3.0"
   },
   "main": "build/webvr-polyfill.js",
   "keywords": [
@@ -26,9 +32,10 @@
   ],
   "license": "Apache-2.0",
   "scripts": {
-    "start": "npm run watch",
-    "watch": "webpack-dev-server",
-    "build": "webpack",
+    "build": "rollup -c",
+    "build-min": "rollup -c rollup.config.min.js",
+    "build-all": "npm run build && npm run build-min",
+    "watch": "rollup -c -w",
     "test": "mocha -r test/init.js --compilers js:babel-core/register test/*.test.js"
   },
   "repository": "googlevr/webvr-polyfill",
