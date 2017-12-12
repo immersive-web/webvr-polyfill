@@ -72,24 +72,45 @@ Performance is critical for VR. If you find your application is too sluggish,
 consider tweaking some of the above parameters. In particular, keeping
 `BUFFER_SCALE` at 0.5 (the default) will likely help a lot.
 
-## Development
+## Developing
 
-If you'd like to contribute to the `webvr-poyfill` library, check out
-the repository and install
-[Node](https://nodejs.org/en/download/package-manager/) and the dependencies:
+If you're interested in developing and contributing on the polyfill itself, you'll need to
+have [npm] installed and familiarize yourself with some commands below. For full list
+of commands available, see `package.json` scripts.
 
-```bash
-git clone https://github.com/googlevr/webvr-polyfill
-cd webvr-polyfill
-npm install
+```
+$ git clone git@github.com:googlevr/webvr-polyfill.git
+$ cd webvr-polyfill/
+
+# Install dependencies
+$ npm install
+
+# Build uncompressed JS file
+$ npm run build
+
+# Run tests
+$ npm test
+
+# Watch src/* directory and auto-rebuild on changes
+$ npm watch
 ```
 
-### Development Commands
+### Testing
 
-* `npm install`: installs the dependencies.
-* `npm start`: auto-builds the module whenever any source changes and serves the example
-content on `http://0.0.0.0:8080/`.
-* `npm run build`: builds the module.
+Right now there are some unit tests in the configuration and logic for how things get polyfilled.
+Be sure to run tests before submitting any PRs, and bonus points for having new tests!
+
+```
+$ npm test
+```
+
+Due to the nature of the polyfill, be also sure to test the examples with your changes where appropriate.
+
+### Releasing a new version
+
+For maintainers only, to cut a new release for npm, use the [npm version] command. The `preversion`, `version` and `postversion` npm scripts will run tests, build, add built files and tag to git, push to github, and publish the new npm version.
+
+`npm version <semverstring>`
 
 ## License
 

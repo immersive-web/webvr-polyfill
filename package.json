@@ -36,7 +36,10 @@
     "build-min": "rollup -c rollup.config.min.js",
     "build-all": "npm run build && npm run build-min",
     "watch": "rollup -c -w",
-    "test": "mocha -r test/init.js --compilers js:babel-core/register test/*.test.js"
+    "test": "mocha -r test/init.js --compilers js:babel-core/register test/*.test.js",
+    "preversion": "npm test",
+    "version": "npm run build-all && git add build/*",
+    "postversion": "git push && git push --tags && npm publish"
   },
   "repository": "googlevr/webvr-polyfill",
   "bugs": {
