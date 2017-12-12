@@ -17,10 +17,6 @@ module.exports = {
   // Forces availability of VR mode, even for non-mobile devices.
   FORCE_ENABLE_VR: false,
 
-  // To disable keyboard and mouse controls, if you want to use your own
-  // implementation.
-  MOUSE_KEYBOARD_CONTROLS_DISABLED: false,
-
   // When set to true, this will cause a polyfilled VRDisplay to always be
   // appended to the list returned by navigator.getVRDisplays(), even if that
   // list includes a native VRDisplay.

@@ -15,7 +15,6 @@
 
 var Util = require('./util.js');
 var CardboardVRDisplay = require('cardboard-vr-display');
-var MouseKeyboardVRDisplay = require('./mouse-keyboard-vr-display.js');
 var VRDisplay = require('cardboard-vr-display/src/base.js').VRDisplay;
 var VRFrameData = require('cardboard-vr-display/src/base.js').VRFrameData;
 var version = require('../package.json').version;
@@ -84,12 +83,6 @@ WebVRPolyfill.prototype.populateDevices = function() {
       DIRTY_SUBMIT_FRAME_BINDINGS:  this.config.DIRTY_SUBMIT_FRAME_BINDINGS,
     });
 
-    this.connectDisplay(vrDisplay);
-  }
-
-  // Add a Mouse and Keyboard driven VRDisplay for desktops/laptops
-  if (!Util.isMobile() && !this.config.MOUSE_KEYBOARD_CONTROLS_DISABLED) {
-    vrDisplay = new MouseKeyboardVRDisplay();
     this.connectDisplay(vrDisplay);
   }
 

@@ -75,31 +75,20 @@ describe('WebVRPolyfill', function() {
       });
     });
 
-    it('provides MouseKeyboardVRDisplay on desktop', () => {
+    it('provides no displays on desktop', () => {
       const polyfill = new WebVRPolyfill(DEFAULT);
-      return global.navigator.getVRDisplays().then(displays => {
-        expect(displays.length).to.be.equal(1);
-        expect(displays[0].displayName).to.have.string('Mouse');
-      });
-    });
-
-    it('does not provide MouseKeyboardVRDisplay on desktop if MOUSE_KEYBOARD_CONTROLS_DISABLED', () => {
-      const polyfill = new WebVRPolyfill(Object.assign({
-        MOUSE_KEYBOARD_CONTROLS_DISABLED: true,
-      }, DEFAULT));
       return global.navigator.getVRDisplays().then(displays => {
         expect(displays.length).to.be.equal(0);
       });
     });
-    
+
     it('provides CardboardVRDisplay on desktop when FORCE_ENABLE_VR', () => {
       const polyfill = new WebVRPolyfill(Object.assign({
         FORCE_ENABLE_VR: true,
       }, DEFAULT));
       return global.navigator.getVRDisplays().then(displays => {
-        expect(displays.length).to.be.equal(2);
+        expect(displays.length).to.be.equal(1);
         expect(displays[0].displayName).to.have.string('Cardboard');
-        expect(displays[1].displayName).to.have.string('Mouse');
       });
     });
   });
