@@ -14,13 +14,10 @@
  */
 
 module.exports = {
-  // Forces availability of VR mode, even for non-mobile devices.
-  FORCE_ENABLE_VR: false,
-
-  // When set to true, this will cause a polyfilled VRDisplay to always be
-  // appended to the list returned by navigator.getVRDisplays(), even if that
-  // list includes a native VRDisplay.
-  ALWAYS_APPEND_POLYFILL_DISPLAY: false,
+  // Provides a CardboardVRDisplay when the native WebVR API exists on
+  // mobile platforms that do not have a native VRDisplay.
+  // Added in 0.10.0.
+  PROVIDE_MOBILE_VRDISPLAY: true,
 
   // There are versions of Chrome (M58-M60?) where the native WebVR API exists,
   // and instead of returning 0 VR displays when none are detected,

@@ -22,55 +22,35 @@ var DefaultConfig = require('./config');
 
 function WebVRPolyfill(config) {
   this.config = Util.extend(Util.extend({}, DefaultConfig), config);
-  this.displays = [];
+  this.polyfillDisplays = [];
   this.enabled = false;
 
-  // Must handle this in constructor before we
-  // polyfill `navigator`
-  this._native = {
-    '1.1': 'getVRDisplays' in navigator,
-  };
+  // Must handle this in constructor before we start
+  // destructively polyfilling `navigator`
+  this.hasNative = 'getVRDisplays' in navigator;
+  // Store initial references to native constructors
+  // and functions
+  this.native = {};
+  this.native.getVRDisplays = navigator.getVRDisplays;
+  this.native.VRFrameData = window.VRFrameData;
+  this.native.VRDisplay = window.VRDisplay;
 
-  this.nativeGetVRDisplaysFunc = this.getNativeSupport() ?
-                                 navigator.getVRDisplays :
-                                 null;
-
-  if (!this.getNativeSupport() ||
-      this.config.ALWAYS_APPEND_POLYFILL_DISPLAY) {
+  // If we don't have native 1.1 support, or if we want to provide
+  // a CardboardVRDisplay in the event of native support with no displays,
+  // inject our own polyfill
+  if (!this.hasNative || this.config.PROVIDE_MOBILE_VRDISPLAY && Util.isMobile()) {
     this.enable();
   }
 }
 
-/**
- * Returns a string indicating rough WebVR versioning
- * support, i.e. returns "1.1" if WebVR 1.1 is supported.
- * Returns null if no native support provided. As standards
- * are ever-changing and incomplete browser implementations existing,
- * this string is used to indicate general versioning support and
- * how the polyfill is handling things.
- *
- * @return {string?}
- */
-WebVRPolyfill.prototype.getNativeSupport = function() {
-  return this._native['1.1'] ? '1.1' : null;
-};
-
-WebVRPolyfill.prototype.connectDisplay = function(vrDisplay) {
-  vrDisplay.fireVRDisplayConnect_();
-  this.displays.push(vrDisplay);
-};
-
-WebVRPolyfill.prototype.populateDevices = function() {
-  if (this.devicesPopulated) {
-    return;
+WebVRPolyfill.prototype.getPolyfillDisplays = function() {
+  if (this._polyfillDisplaysPopulated) {
+    return this.polyfillDisplays;
   }
 
-  // Initialize our virtual VR devices.
-  var vrDisplay = null;
-
   // Add a Cardboard VRDisplay on compatible mobile devices
-  if (this.isCardboardCompatible()) {
-    vrDisplay = new CardboardVRDisplay({
+  if (Util.isMobile()) {
+    var vrDisplay = new CardboardVRDisplay({
       DEBUG:                        this.config.DEBUG,
       DPDB_URL:                     this.config.DPDB_URL,
       CARDBOARD_UI_DISABLED:        this.config.CARDBOARD_UI_DISABLED,
@@ -84,25 +64,30 @@ WebVRPolyfill.prototype.populateDevices = function() {
     });
 
     this.connectDisplay(vrDisplay);
+    vrDisplay.fireVRDisplayConnect_();
+    this.polyfillDisplays.push(vrDisplay);
   }
 
-  this.devicesPopulated = true;
+  this._polyfillDisplaysPopulated = true;
+  return this.polyfillDisplays;
 };
 
 WebVRPolyfill.prototype.enable = function() {
   this.enabled = true;
 
-  // Provide navigator.getVRDisplays.
-  navigator.getVRDisplays = this.getVRDisplays.bind(this);
+  // Polyfill native VRDisplay.getFrameData when the platform
+  // has native WebVR support, but for use with a polyfilled
+  // CardboardVRDisplay
+  if (this.hasNative && this.native.VRFrameData) {
+    var NativeVRFrameData = this.native.VRFrameData;
+    var nativeFrameData = new this.native.VRFrameData();
+    var nativeGetFrameData = this.native.VRDisplay.prototype.getFrameData;
 
-  // Polyfill native VRDisplay.getFrameData
-  if (this.getNativeSupport() && window.VRFrameData) {
-    var NativeVRFrameData = window.VRFrameData;
-    var nativeFrameData = new window.VRFrameData();
-    var nativeGetFrameData = window.VRDisplay.prototype.getFrameData;
-    window.VRFrameData = VRFrameData;
-
+    // When using a native display with a polyfilled VRFrameData
     window.VRDisplay.prototype.getFrameData = function(frameData) {
+      // This should only be called in the event of code instantiating
+      // `window.VRFrameData` before the polyfill kicks in, which is
+      // unrecommended, but happens anyway
       if (frameData instanceof NativeVRFrameData) {
         nativeGetFrameData.call(this, frameData);
         return;
@@ -122,39 +107,29 @@ WebVRPolyfill.prototype.enable = function() {
     };
   }
 
+  // Provide navigator.getVRDisplays.
+  navigator.getVRDisplays = this.getVRDisplays.bind(this);
+
   // Provide the `VRDisplay` object.
   window.VRDisplay = VRDisplay;
 
-  // Provide the `navigator.vrEnabled` property.
-  if (navigator && typeof navigator.vrEnabled === 'undefined') {
-    var self = this;
-    Object.defineProperty(navigator, 'vrEnabled', {
-      get: function () {
-        return self.isCardboardCompatible() &&
-            (Util.isFullScreenAvailable() || Util.isIOS());
-      }
-    });
-  }
-
-  if (!('VRFrameData' in window)) {
-    // Provide the VRFrameData object.
-    window.VRFrameData = VRFrameData;
-  }
+  // Provide the VRFrameData object.
+  window.VRFrameData = VRFrameData;
 };
 
 WebVRPolyfill.prototype.getVRDisplays = function() {
   this.populateDevices();
-  var polyfillDisplays = this.displays;
+  var polyfillDisplays = this.polyfillDisplays;
   var config = this.config;
 
-  if (!this.getNativeSupport()) {
+  if (!this.hasNative) {
     return Promise.resolve(polyfillDisplays);
   }
 
   // Set up a race condition if this browser has a bug where
   // `navigator.getVRDisplays()` never resolves.
   var timeoutId;
-  var vrDisplaysNative = this.nativeGetVRDisplaysFunc.call(navigator);
+  var vrDisplaysNative = this.native.getVRDisplays.call(navigator);
   var timeoutPromise = new Promise(function(resolve) {
     timeoutId = setTimeout(function() {
       console.warn('Native WebVR implementation detected, but `getVRDisplays()` failed to resolve. Falling back to polyfill.');
@@ -167,20 +142,8 @@ WebVRPolyfill.prototype.getVRDisplays = function() {
     timeoutPromise
   ]).then(function(nativeDisplays) {
     clearTimeout(timeoutId);
-    if (config.ALWAYS_APPEND_POLYFILL_DISPLAY) {
-      return nativeDisplays.concat(polyfillDisplays);
-    } else {
-      return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
-    }
+    return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
   });
-};
-
-WebVRPolyfill.prototype.NativeVRFrameData = window.VRFrameData;
-
-WebVRPolyfill.prototype.isCardboardCompatible = function() {
-  // For now, support all iOS and Android devices.
-  // Also enable the FORCE_ENABLE_VR flag for debugging.
-  return Util.isMobile() || this.config.FORCE_ENABLE_VR;
 };
 
 WebVRPolyfill.version = version;

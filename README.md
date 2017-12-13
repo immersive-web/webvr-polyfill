@@ -64,7 +64,7 @@ The three main components of the polyfill are:
 
 * Injects a [WebVR 1.1](spec) JavaScript implementation if one does not exist
 * Patches browsers that have an incomplete or inconsistent implementation of the API
-* Provide a synthesized [CardboardVRDisplay] on mobile when WebVR is not supported to provide a cardboard VR experience
+* Provide a synthesized [CardboardVRDisplay] on mobile when WebVR is not supported, or if it does have native support but no native VRDisplays and `PROVIDE_MOBILE_VRDISPLAY` is true (default).
 
 ## Performance
 
