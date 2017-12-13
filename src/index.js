@@ -18,8 +18,12 @@
 // If running in node with a window mock available, globalize its members
 // if needed. Otherwise, just continue to `./main`
 if (typeof global !== 'undefined' && global.window) {
-  global.document = global.window.document;
-  global.navigator = global.window.navigator;
+  if (!global.document) {
+    global.document = global.window.document;
+  }
+  if (!global.navigator) {
+    global.navigator = global.window.navigator;
+  }
 }
 
 module.exports = require('./webvr-polyfill');

@@ -1,8 +1,80 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="refresh" content="0; url=examples/">
-  </head>
-  <body></body>
+<!--
+/*
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<title>webvr-polyfill</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400" rel="stylesheet">
+<style>
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 300;
+  background-color: #fcfcfc;
+  color: #111;
+  margin: 0px;
+  padding: 0;
+  overflow: hidden;
+}
+
+h1 {
+  font-weight: 300;
+  text-align: center;
+}
+
+#wrapper {
+  width: 60vw;
+  margin: 10px auto;
+}
+
+a {
+  color: #000;
+  font-weight: 400;
+}
+
+</style>
+</head>
+
+<body>
+  <div id="wrapper">
+      <h1>webvr-polyfill</h1>
+      <p>
+        <a href='https://github.com/googlevr/webvr-polyfill'>webvr-polyfill</a>
+
+        A JavaScript implementation of the <a href='https://immersive-web.github.io/webvr/spec/1.1/'>WebVR spec</a>. This project ensures your WebVR content works on any platform, whether or not the browser/device has native WebVR support, or when there are inconsistencies in implementation.
+      </p>
+
+      <h2>Documentation</h2>
+      <p>Check out the <a href='https://github.com/googlevr/webvr-polyfill/blob/master/README.md'>README</a> for up to date documentation for usage and development.</p>
+
+      <h2>Demos</h2>
+      <p>The example parses the query params in the URL to pass configuration into the WebVRPolyfill constructor. Some examples links below.
+      </p>
+      <ul>
+          <li><a href='examples/index.html'>Defaults</a></li>
+          <li><a href='examples/index.html?PROVIDE_MOBILE_VRDISPLAY=false'>PROVIDE_MOBILE_VRDISPLAY=false</a></li>
+      </ul>
+  </div>
+</body>
 </html>

@@ -63,7 +63,6 @@ WebVRPolyfill.prototype.getPolyfillDisplays = function() {
       DIRTY_SUBMIT_FRAME_BINDINGS:  this.config.DIRTY_SUBMIT_FRAME_BINDINGS,
     });
 
-    this.connectDisplay(vrDisplay);
     vrDisplay.fireVRDisplayConnect_();
     this.polyfillDisplays.push(vrDisplay);
   }
@@ -118,7 +117,7 @@ WebVRPolyfill.prototype.enable = function() {
 };
 
 WebVRPolyfill.prototype.getVRDisplays = function() {
-  this.populateDevices();
+  this.getPolyfillDisplays();
   var polyfillDisplays = this.polyfillDisplays;
   var config = this.config;
 

@@ -122,5 +122,5 @@ distributed under the [Apache 2.0 License](LICENSE).
 [browserify]: http://browserify.org/
 [webpack]: https://webpack.github.io/
 [caniuse]: https://caniuse.com/#search=webvr
-[spec]: https://immersive-web.github.io/webxr/spec/1.1
+[spec]: https://immersive-web.github.io/webvr/spec/1.1
 [CardboardVRDisplay]: https://github.com/googlevr/cardboard-vr-display

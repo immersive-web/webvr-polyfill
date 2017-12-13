@@ -1,153 +1,261 @@
-<!doctype html>
-<html>
-  <head>
-    <title>WebVR Polyfill Examples</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-      html {
-        font-size: 14px;
-      }
+<!--
+/*
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
 
-      body {
-        background: rgb(94,45,239);
-        color: #fff;
-        font: normal 500 1.2rem/1.2 Inconsolata, Andale Mono, Courier New, monospace;
-        padding: 1rem 2rem;
-      }
+<!DOCTYPE html>
 
-      ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-      }
+<html lang="en">
+<head>
+<title>WebVR Polyfill Demo</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<style>
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  color: #fff;
+  margin: 0px;
+  padding: 0;
+  overflow: hidden;
+}
 
-      .header {
-        position: relative;
-      }
+canvas {
+  width: 100%;
+  height: 100%;
+}
 
-      .resources {
-        font-size: 0;  /* Collapse whitespace. */
-        text-transform: uppercase;
-      }
+#buttons {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  background: white;
+}
+</style>
+</head>
 
-      .resources li + li {
-        margin-top: 0.5rem;
-      }
+<body>
 
-      .resources a {
-        color: rgba(0,0,0,0.5);
-        display: inline-block;
-        font-size: 1.2rem;
-        margin: -0.25rem -0.5rem;
-        padding: 0.25rem 0.5rem;
-        text-decoration: none;
-        transition: all 0.075s ease-in-out;
-      }
+  <div id="buttons">
+    <button id="fullscreen">Fullscreen</button>
+    <button id="vr">VR (WebVR/Mobile only)</button>
+  </div>
 
-      .resources a:hover {
-        background-color: rgba(0,0,0,0.25);
-        color: #fff;
-      }
+</body>
 
-      h1, h2 {
-        line-height: 100%;
-      }
+<script>
+document.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+});
+</script>
 
-      h1 {
-        font-size: 1.6rem;
-        font-weight: 100;
-        letter-spacing: 0.04rem;
-        margin-bottom: 1.25rem;
-        text-transform: uppercase;
-      }
+<!-- three.js library -->
+<script src="third_party/three.js/three.js"></script>
 
-      h2 {
-        color: rgba(0,0,0,0.5);
-        font-size: 0.9rem;
-        font-weight: 300;
-        margin: 2rem 0 0.5rem;
-        padding: 0;
-        text-transform: uppercase;
-      }
+<!-- VRControls.js applies the WebVR transformations to a three.js camera object. -->
+<script src="third_party/three.js/VRControls.js"></script>
 
-      hr {
-        background: none;
-        border: 0;
-        border-bottom: 1px dashed rgba(255,255,255,0.25);
-        margin: 2rem 0;
-      }
+<!-- OrbitControls.js for controlling camera on desktop.  -->
+<script src="third_party/three.js/OrbitControls.js"></script>
 
-      .links li + li {
-        box-shadow: inset 0 0.15rem 0.1rem -0.15rem rgba(0,0,0,0.5);
-      }
+<!-- VREffect.js handles stereo camera setup and rendering.  -->
+<script src="third_party/three.js/VREffect.js"></script>
 
-      .links a {
-        color: #fff;
-        display: block;
-        font-size: 1.5rem;
-        letter-spacing: 0.01em;
-        padding: 0.75rem 0;
-        text-decoration: none;
-        transition: opacity 0.075s ease-in-out;
-      }
+<script src="../build/webvr-polyfill.js"></script>
 
-      .links a:hover {
-        background-color: rgba(0,0,0,0.15);
-        box-shadow: inset 0 0 0 0.15rem rgba(0,0,0,0.15);
-      }
 
-      .links a:active {
-        background-color: rgba(0,0,0,0.25);
-        opacity: 0.75;
-      }
+<script>
+// Get config from URL
+var config = (function() {
+  var config = {};
+  var q = window.location.search.substring(1);
+  if (q === '') {
+    return config;
+  }
+  var params = q.split('&');
+  var param, name, value;
+  for (var i = 0; i < params.length; i++) {
+    param = params[i].split('=');
+    name = param[0];
+    value = param[1];
 
-      .links li:hover,
-      .links li:hover + li {
-        margin: 0 -0.75rem;
-      }
+    // All config values are either boolean or float
+    config[name] = value === 'true' ? true :
+                   value === 'false' ? false :
+                   parseFloat(value);
+  }
+  return config;
+})();
 
-      .links li:hover a,
-      .links li:hover + li a {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-      }
+var polyfill = new WebVRPolyfill(config);
 
-      @media only screen and (min-width: 1000px) {
-        h1 {
-          font-size: 3rem;
-        }
+console.log("Using webvr-polyfill version " + WebVRPolyfill.version +
+            " with configuration: " + JSON.stringify(config));
+var renderer = new THREE.WebGLRenderer();
+renderer.setPixelRatio(Math.floor(window.devicePixelRatio));
 
-        .resources {
-          font-size: 1.2;
-        }
+// Append the canvas element created by the renderer to document body element.
+var canvas = renderer.domElement;
+document.body.appendChild(canvas);
 
-        .resources li {
-          display: inline-block;
-        }
+// Create a three.js scene.
+var scene = new THREE.Scene();
 
-        .resources li + li {
-          margin-left: 2.5rem;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <header class="header">
-      <h1>webvr-polyfill Examples</h1>
-      <ul id="resources" class="resources">
-        <li><a href="http://github.com/borismus/webvr-polyfill/">GitHub Repo</a></li>
-        <li><a href="http://github.com/borismus/webvr-polyfill/issues">Open Issues</a></li>
-        <li><a href="http://github.com/borismus/webvr-polyfill/issues/new">File an Issue</a></li>
-      </ul>
-    </header>
+// Create a three.js camera.
+var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
 
-    <hr>
+// Apply VR stereo rendering to renderer.
+var effect = new THREE.VREffect(renderer);
+effect.setSize(canvas.clientWidth, canvas.clientHeight, false);
 
-    <h2 id="examples">Examples</h2>
+var vrDisplay, controls;
 
-    <ul class="links">
-      <li><a href="basic/">Basic</a></li>
-    </ul>
-  </body>
+// Add a repeating grid as a skybox.
+var boxWidth = 5;
+
+// Create 3D objects.
+var geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+var material = new THREE.MeshNormalMaterial();
+var cube = new THREE.Mesh(geometry, material);
+
+// Position cube
+cube.position.z = -1;
+
+// Add cube mesh to your three.js scene
+scene.add(cube);
+
+// Load the skybox texture and cube
+var loader = new THREE.TextureLoader();
+loader.load('img/box.png', onTextureLoaded);
+function onTextureLoaded(texture) {
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(boxWidth, boxWidth);
+  var geometry = new THREE.BoxGeometry(boxWidth, boxWidth, boxWidth);
+  var material = new THREE.MeshBasicMaterial({
+    map: texture,
+    color: 0x01BE00,
+    side: THREE.BackSide
+  });
+  var skybox = new THREE.Mesh(geometry, material);
+  scene.add(skybox);
+}
+
+// The polyfill provides this in the event this browser
+// does not support WebVR 1.1
+navigator.getVRDisplays().then(function (vrDisplays) {
+  // If we have a native display, or we have a CardboardVRDisplay
+  // from the polyfill, use it
+  if (vrDisplays.length) {
+    vrDisplay = vrDisplays[0];
+
+    // Apply VR headset positional data to camera.
+    controls = new THREE.VRControls(camera);
+
+    // Kick off the render loop.
+    vrDisplay.requestAnimationFrame(animate);
+  }
+  // Otherwise, we're on a desktop environment with no native
+  // displays, so provide controls for a monoscopic desktop view
+  else {
+    controls = new THREE.OrbitControls(camera);
+    controls.target.set(0, 0, -1);
+
+    // Disable the "Enter VR" button
+    var enterVRButton = document.querySelector('#vr');
+    enterVRButton.disabled = true;
+
+    // Kick off the render loop.
+    requestAnimationFrame(animate);
+  }
+});
+
+// Request animation frame loop function
+var lastRender = 0;
+function animate(timestamp) {
+  var delta = Math.min(timestamp - lastRender, 500);
+  lastRender = timestamp;
+
+  // Apply rotation to cube mesh
+  cube.rotation.y += delta * 0.0002;
+
+  // Update VR headset position and apply to camera.
+  controls.update();
+
+  // Render the scene.
+  effect.render(scene, camera);
+
+  // Keep looping; if using a VRDisplay, call its requestAnimationFrame,
+  // otherwise call window.requestAnimationFrame.
+  if (vrDisplay) {
+    vrDisplay.requestAnimationFrame(animate);
+  } else {
+    requestAnimationFrame(animate);
+  }
+}
+
+function onResize() {
+  // The delay ensures the browser has a chance to layout
+  // the page and update the clientWidth/clientHeight.
+  // This problem particularly crops up under iOS.
+  if (!onResize.resizeDelay) {
+    onResize.resizeDelay = setTimeout(function () {
+      onResize.resizeDelay = null;
+      console.log('Resizing to %s x %s.', canvas.clientWidth, canvas.clientHeight);
+      effect.setSize(canvas.clientWidth, canvas.clientHeight, false);
+      camera.aspect = canvas.clientWidth / canvas.clientHeight;
+      camera.updateProjectionMatrix();
+    }, 250);
+  }
+}
+
+function onVRDisplayPresentChange() {
+  console.log('onVRDisplayPresentChange');
+  onResize();
+  buttons.hidden = vrDisplay.isPresenting;
+}
+
+// Resize the WebGL canvas when we resize and also when we change modes.
+window.addEventListener('resize', onResize);
+window.addEventListener('vrdisplaypresentchange', onVRDisplayPresentChange);
+
+// Button click handlers.
+document.querySelector('button#fullscreen').addEventListener('click', function() {
+  enterFullscreen(renderer.domElement);
+});
+document.querySelector('button#vr').addEventListener('click', function() {
+  vrDisplay.requestPresent([{source: renderer.domElement}]);
+});
+
+function enterFullscreen (el) {
+  if (el.requestFullscreen) {
+    el.requestFullscreen();
+  } else if (el.mozRequestFullScreen) {
+    el.mozRequestFullScreen();
+  } else if (el.webkitRequestFullscreen) {
+    el.webkitRequestFullscreen();
+  } else if (el.msRequestFullscreen) {
+    el.msRequestFullscreen();
+  }
+}
+
+</script>
+
 </html>

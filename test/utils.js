@@ -30,15 +30,19 @@ export const setAndroidUA = global => {
   setUA(global, 'Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19');
 };
 
-export const addNative = (win, api) => {
+export const addNativeNoDisplay = (win, api) => {
   if (api !== '1.1') {
     throw new Error('only 1.1 supported now');
   }
 
+  win.navigator.getVRDisplays = () => Promise.resolve([]);
+  win.VRDisplay = VRDisplay;
+  win.VRFrameData = VRFrameData;
+};
 
+export const addNativeWithDisplay = (win, api) => {
+  addNativeNoDisplay(win, api);
   const display = new VRDisplay();
   display.displayName = '1.1 test device';
   win.navigator.getVRDisplays = () => new Promise(res => res([display]));
-  win.VRDisplay = VRDisplay;
-  win.VRFrameData = VRFrameData;
 };

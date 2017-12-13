@@ -12,7 +12,7 @@ global.navigator = global.window.navigator;
 // Logic similar to https://github.com/webmodules/custom-event
 // but can't rely on it's feature detection due to timing
 // of including the shim and populating window/document
-global.CustomEvent = function CustomEvent (type, params) {
+global.CustomEvent = function CustomEvent(type, params) {
   const e = global.document.createEvent('CustomEvent');
   if (params) {
     e.initCustomEvent(type, params.bubbles, params.cancelable, params.detail);
