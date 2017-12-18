@@ -13,7 +13,7 @@ Take a look at [basic WebVR samples][samples] that use this polyfill.
 
 ### Script
 
-Download the build at [dist/webvr-polyfill.js](dist/webvr-polyfill.js) and include it as a script tag,
+Download the build at [build/webvr-polyfill.js](build/webvr-polyfill.js) and include it as a script tag,
 or use a CDN. You can also use the minified file in the same location as `webvr-polyfill.min.js`.
 
 ```html
