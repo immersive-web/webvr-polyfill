@@ -3032,7 +3032,7 @@ CardboardVRDisplay.prototype.fireVRDisplayDeviceParamsChange_ = function() {
 var cardboardVrDisplay = CardboardVRDisplay;
 
 var name = "webvr-polyfill";
-var version$1 = "0.9.41";
+var version$1 = "0.10.0";
 var homepage = "https://github.com/googlevr/webvr-polyfill";
 var authors = ["Boris Smus <boris@smus.com>", "Brandon Jones <tojiro@gmail.com>", "Jordan Santell <jordan@jsantell.com>"];
 var description = "Use WebVR today, on mobile or desktop, without requiring a special browser build.";
