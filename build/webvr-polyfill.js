@@ -3056,7 +3056,7 @@ CardboardVRDisplay.prototype.fireVRDisplayDeviceParamsChange_ = function() {
 var cardboardVrDisplay = CardboardVRDisplay;
 
 var name = "webvr-polyfill";
-var version$1 = "0.10.1";
+var version$1 = "0.10.2";
 var homepage = "https://github.com/googlevr/webvr-polyfill";
 var authors = ["Boris Smus <boris@smus.com>", "Brandon Jones <tojiro@gmail.com>", "Jordan Santell <jordan@jsantell.com>"];
 var description = "Use WebVR today, on mobile or desktop, without requiring a special browser build.";
@@ -3104,6 +3104,7 @@ var _package$1 = Object.freeze({
 var config = {
   PROVIDE_MOBILE_VRDISPLAY: true,
   GET_VR_DISPLAYS_TIMEOUT: 1000,
+  MOBILE_WAKE_LOCK: true,
   DEBUG: false,
   DPDB_URL: 'https://dpdb.webvr.rocks/dpdb.json',
   K_FILTER: 0.98,
@@ -3140,6 +3141,7 @@ WebVRPolyfill.prototype.getPolyfillDisplays = function () {
   }
   if (util.isMobile()) {
     var vrDisplay = new cardboardVrDisplay({
+      MOBILE_WAKE_LOCK: this.config.MOBILE_WAKE_LOCK,
       DEBUG: this.config.DEBUG,
       DPDB_URL: this.config.DPDB_URL,
       CARDBOARD_UI_DISABLED: this.config.CARDBOARD_UI_DISABLED,
