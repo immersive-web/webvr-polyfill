@@ -118,12 +118,10 @@ WebVRPolyfill.prototype.enable = function() {
 };
 
 WebVRPolyfill.prototype.getVRDisplays = function() {
-  this.getPolyfillDisplays();
-  var polyfillDisplays = this.polyfillDisplays;
   var config = this.config;
 
   if (!this.hasNative) {
-    return Promise.resolve(polyfillDisplays);
+    return Promise.resolve(this.getPolyfillDisplays());
   }
 
   // Set up a race condition if this browser has a bug where
@@ -142,7 +140,7 @@ WebVRPolyfill.prototype.getVRDisplays = function() {
     timeoutPromise
   ]).then(function(nativeDisplays) {
     clearTimeout(timeoutId);
-    return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
+    return nativeDisplays.length > 0 ? nativeDisplays : this.getPolyfillDisplays();
   });
 };
 
