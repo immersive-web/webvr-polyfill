@@ -46,6 +46,6 @@
     "url": "https://github.com/googlevr/webvr-polyfill/issues"
   },
   "dependencies": {
-    "cardboard-vr-display": "1.0.2"
+    "cardboard-vr-display": "1.0.3"
   }
 }
