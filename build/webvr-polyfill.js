@@ -73,6 +73,30 @@
  * THE SOFTWARE.
  */
 
+/**
+ * @license
+ * nosleep.js
+ * Copyright (c) 2017, Rich Tibbett
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
@@ -3032,7 +3056,7 @@ CardboardVRDisplay.prototype.fireVRDisplayDeviceParamsChange_ = function() {
 var cardboardVrDisplay = CardboardVRDisplay;
 
 var name = "webvr-polyfill";
-var version$1 = "0.10.0";
+var version$1 = "0.10.1";
 var homepage = "https://github.com/googlevr/webvr-polyfill";
 var authors = ["Boris Smus <boris@smus.com>", "Brandon Jones <tojiro@gmail.com>", "Jordan Santell <jordan@jsantell.com>"];
 var description = "Use WebVR today, on mobile or desktop, without requiring a special browser build.";
@@ -3043,7 +3067,7 @@ var license = "Apache-2.0";
 var scripts = { "build": "rollup -c", "build-min": "rollup -c rollup.config.min.js", "build-all": "npm run build && npm run build-min", "watch": "rollup -c -w", "test": "mocha -r test/init.js --compilers js:babel-core/register test/*.test.js", "preversion": "npm test", "version": "npm run build-all && git add build/*", "postversion": "git push && git push --tags && npm publish" };
 var repository = "googlevr/webvr-polyfill";
 var bugs = { "url": "https://github.com/googlevr/webvr-polyfill/issues" };
-var dependencies = { "cardboard-vr-display": "1.0.2" };
+var dependencies = { "cardboard-vr-display": "1.0.3" };
 var _package = {
 	name: name,
 	version: version$1,
