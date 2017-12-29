@@ -32,6 +32,12 @@ module.exports = {
    * Options passed into the underlying CardboardVRDisplay
    */
 
+  // By default, on mobile, a wakelock is necessary to prevent the device's screen
+  // from turning off without user input. Disable if you're keeping the screen awake through
+  // other means on mobile. A wakelock is never used on desktop.
+  // Added in 0.10.2.
+  MOBILE_WAKE_LOCK: true,
+
   // Whether or not CardboardVRDisplay is in debug mode. Logs extra
   // messages. Added in 0.10.0.
   DEBUG: false,

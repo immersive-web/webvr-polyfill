@@ -51,6 +51,7 @@ WebVRPolyfill.prototype.getPolyfillDisplays = function() {
   // Add a Cardboard VRDisplay on compatible mobile devices
   if (Util.isMobile()) {
     var vrDisplay = new CardboardVRDisplay({
+      MOBILE_WAKE_LOCK:             this.config.MOBILE_WAKE_LOCK,
       DEBUG:                        this.config.DEBUG,
       DPDB_URL:                     this.config.DPDB_URL,
       CARDBOARD_UI_DISABLED:        this.config.CARDBOARD_UI_DISABLED,
