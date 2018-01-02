@@ -54,6 +54,29 @@ import WebVRPolyfill from 'webvr-polyfill';
 const polyfill = WebVRPolyfill();
 ```
 
+Here's an example of querying displays and setting up controls based on
+environment. Remember, you'll still need to provide controls and code
+to support a desktop-like experience if no native VRDisplays are found,
+as the CardboardVRDisplay is only on mobile. See the [example](examples/index.html).
+
+```js
+// Polyfill always provides us with `navigator.getVRDisplays`
+navigator.getVRDisplays().then(displays => {
+  // If we have a native VRDisplay, or if the polyfill
+  // provided us with a CardboardVRDisplay, use it
+  if (displays.length) {
+    vrDisplay = displays[0];
+    controls = new THREE.VRControls(camera);
+    vrDisplay.requestAnimationFrame(animate);
+  } else {
+    // If we don't have a VRDisplay, we're probably on
+    // a desktop environment, so set up desktop-oriented controls
+    controls = new THREE.OrbitControls(camera);
+    requestAnimationFrame(animate);
+  }
+});
+```
+
 ## Goals
 
 The polyfill's goal is to provide a library so that developers can create
