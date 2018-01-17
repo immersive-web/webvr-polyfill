@@ -51,7 +51,7 @@ In a modular ES6 world, import and instantiate the constructor similarly.
 
 ```js
 import WebVRPolyfill from 'webvr-polyfill';
-const polyfill = WebVRPolyfill();
+const polyfill = new WebVRPolyfill();
 ```
 
 Here's an example of querying displays and setting up controls based on
