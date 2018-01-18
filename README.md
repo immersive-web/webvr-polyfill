@@ -1,6 +1,6 @@
 # WebVR Polyfill
 
-[![Build Status](http://img.shields.io/travis/googlevr/webvr-polyfill.svg?style=flat-square)](https://travis-ci.org/googlevr/webvr-polyfill)
+[![Build Status](http://img.shields.io/travis/immersive-web/webvr-polyfill.svg?style=flat-square)](https://travis-ci.org/immersive-web/webvr-polyfill)
 [![Build Status](http://img.shields.io/npm/v/webvr-polyfill.svg?style=flat-square)](https://www.npmjs.org/package/webvr-polyfill)
 
 A JavaScript implementation of the [WebVR spec][spec]. This project ensures
@@ -32,7 +32,7 @@ $ npm install --save webvr-polyfill
 
 ## Using
 
-Instructions for using versions `>=0.10.0`. For `<=0.9.x` versions, see [0.9.40 tag](https://github.com/googlevr/webvr-polyfill/tree/v0.9.40).
+Instructions for using versions `>=0.10.0`. For `<=0.9.x` versions, see [0.9.40 tag](https://github.com/immersive-web/webvr-polyfill/tree/v0.9.40).
 
 The webvr-polyfill exposes a single constructor, `WebVRPolyfill` that takes an
 object for configuration. See full configuration options at [src/config.js](src/config.js).
@@ -102,7 +102,7 @@ have [npm] installed and familiarize yourself with some commands below. For full
 of commands available, see `package.json` scripts.
 
 ```
-$ git clone git@github.com:googlevr/webvr-polyfill.git
+$ git clone git@github.com:immersive-web/webvr-polyfill.git
 $ cd webvr-polyfill/
 
 # Install dependencies
@@ -146,4 +146,4 @@ distributed under the [Apache 2.0 License](LICENSE).
 [webpack]: https://webpack.github.io/
 [caniuse]: https://caniuse.com/#search=webvr
 [spec]: https://immersive-web.github.io/webvr/spec/1.1
-[CardboardVRDisplay]: https://github.com/googlevr/cardboard-vr-display
+[CardboardVRDisplay]: https://github.com/immersive-web/cardboard-vr-display

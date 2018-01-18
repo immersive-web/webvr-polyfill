@@ -5,7 +5,7 @@ have [npm] installed and familiarize yourself with some commands below. For full
 of commands available, see `package.json` scripts.
 
 ```
-$ git clone git@github.com:googlevr/webvr-polyfill.git
+$ git clone git@github.com:immersive-web/webvr-polyfill.git
 $ cd webvr-polyfill/
 
 # Install dependencies

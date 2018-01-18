@@ -1,7 +1,7 @@
 {
   "name": "webvr-polyfill",
   "version": "0.10.2",
-  "homepage": "https://github.com/googlevr/webvr-polyfill",
+  "homepage": "https://github.com/immersive-web/webvr-polyfill",
   "authors": [
     "Boris Smus <boris@smus.com>",
     "Brandon Jones <tojiro@gmail.com>",
@@ -41,9 +41,9 @@
     "version": "npm run build-all && git add build/*",
     "postversion": "git push && git push --tags && npm publish"
   },
-  "repository": "googlevr/webvr-polyfill",
+  "repository": "immersive-web/webvr-polyfill",
   "bugs": {
-    "url": "https://github.com/googlevr/webvr-polyfill/issues"
+    "url": "https://github.com/immersive-web/webvr-polyfill/issues"
   },
   "dependencies": {
     "cardboard-vr-display": "1.0.3"
