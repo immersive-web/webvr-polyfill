@@ -13,12 +13,6 @@
  * limitations under the License.
  */
 
-var Util = window.Util || {};
-
-Util.clamp = function(value, min, max) {
-  return Math.min(Math.max(min, value), max);
-};
-
 /**
  * Light polyfill for `Promise.race`. Returns
  * a promise that resolves when the first promise
@@ -26,7 +20,7 @@ Util.clamp = function(value, min, max) {
  *
  * @param {Array<Promise>} promises
  */
-Util.race = function(promises) {
+export const race = function(promises) {
   if (Promise.race) {
     return Promise.race(promises);
   }
@@ -38,22 +32,22 @@ Util.race = function(promises) {
   });
 };
 
-Util.isIOS = function() {
+export const isIOS = function() {
   return /iPad|iPhone|iPod/.test(navigator.platform);
 };
 
-Util.isMobile = function() {
+export const isMobile = function() {
   return /Android/i.test(navigator.userAgent) ||
       /iPhone|iPad|iPod/i.test(navigator.userAgent);
 };
 
-Util.copyArray = function (source, dest) {
+export const copyArray = function (source, dest) {
   for (var i = 0, n = source.length; i < n; i++) {
     dest[i] = source[i];
   }
 };
 
-Util.extend = function(dest, src) {
+export const extend = function(dest, src) {
   for (var key in src) {
     if (src.hasOwnProperty(key)) {
       dest[key] = src[key];
@@ -62,12 +56,3 @@ Util.extend = function(dest, src) {
 
   return dest;
 }
-
-Util.isFullScreenAvailable = function() {
-  return (document.fullscreenEnabled ||
-          document.mozFullScreenEnabled ||
-          document.webkitFullscreenEnabled ||
-          false);
-};
-
-module.exports = Util;

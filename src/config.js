@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-module.exports = {
+export default {
   // Provides a CardboardVRDisplay when the native WebVR API exists on
   // mobile platforms that do not have a native VRDisplay.
   // Added in 0.10.0.
