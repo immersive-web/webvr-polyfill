@@ -143,12 +143,16 @@ WebVRPolyfill.prototype.getVRDisplays = function() {
   return race([
     vrDisplaysNative,
     timeoutPromise
-  ]).then(function(nativeDisplays) {
+  ]).then(nativeDisplays => {
     clearTimeout(timeoutId);
     return nativeDisplays.length > 0 ? nativeDisplays : this.getPolyfillDisplays();
   });
 };
 
 WebVRPolyfill.version = version;
+
+// Attach polyfilled constructors
+WebVRPolyfill.VRFrameData = VRFrameData;
+WebVRPolyfill.VRDisplay = VRDisplay;
 
 export default WebVRPolyfill;

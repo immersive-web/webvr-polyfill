@@ -1,4 +1,4 @@
-import WebVRPolyfill from '../';
+import WebVRPolyfill from '../build/webvr-polyfill';
 import { setupWindow, setIOSUA, setAndroidUA, addNativeNoDisplay, addNativeWithDisplay } from './utils';
 import chai from 'chai';
 const { expect } = chai;

@@ -6,6 +6,7 @@ import jsdom from 'jsdom';
 global.window = jsdom.jsdom().defaultView;
 global.document = global.window.document;
 global.navigator = global.window.navigator;
+global.screen = {};
 
 // cardboard-vr-display uses CustomEvent globals; shim
 // so this runs in node

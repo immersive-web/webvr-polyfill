@@ -1,4 +1,4 @@
-import { VRDisplay, VRFrameData } from 'cardboard-vr-display/src/base';
+import WebVRPolyfill from '../build/webvr-polyfill';
 import localStorage from 'localStorage';
 import jsdom from 'jsdom';
 
@@ -36,13 +36,13 @@ export const addNativeNoDisplay = (win, api) => {
   }
 
   win.navigator.getVRDisplays = () => Promise.resolve([]);
-  win.VRDisplay = VRDisplay;
-  win.VRFrameData = VRFrameData;
+  win.VRDisplay = WebVRPolyfill.VRDisplay;
+  win.VRFrameData = WebVRPolyfill.VRFrameData;
 };
 
 export const addNativeWithDisplay = (win, api) => {
   addNativeNoDisplay(win, api);
-  const display = new VRDisplay();
+  const display = new WebVRPolyfill.VRDisplay();
   display.displayName = '1.1 test device';
   win.navigator.getVRDisplays = () => new Promise(res => res([display]));
 };
