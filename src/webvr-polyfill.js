@@ -39,6 +39,13 @@ function WebVRPolyfill(config) {
   // inject our own polyfill
   if (!this.hasNative || this.config.PROVIDE_MOBILE_VRDISPLAY && isMobile()) {
     this.enable();
+    // If we need to create a CardboardVRDisplay, fire the `vrdisplayconnect`
+    // event when the polyfill is enabled
+    this.getVRDisplays().then(function (displays) {
+      if (displays && displays[0] && displays[0].fireVRDisplayConnect_) {
+        displays[0].fireVRDisplayConnect_();
+      }
+    });
   }
 }
 
