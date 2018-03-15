@@ -107,7 +107,9 @@ var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 
 
 
 
-
+function unwrapExports (x) {
+	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+}
 
 function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
@@ -2655,19 +2657,69 @@ ViewerSelector.prototype.createButton_ = function (label, onclick) {
   button.addEventListener('click', onclick);
   return button;
 };
-var media = 'data:video/mp4;base64,AAAAIGZ0eXBtcDQyAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAACKBtZGF0AAAC8wYF///v3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE0MiByMjQ3OSBkZDc5YTYxIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNCAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTEgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MToweDExMSBtZT1oZXggc3VibWU9MiBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0wIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MCA4eDhkY3Q9MCBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0wIHRocmVhZHM9NiBsb29rYWhlYWRfdGhyZWFkcz0xIHNsaWNlZF90aHJlYWRzPTAgbnI9MCBkZWNpbWF0ZT0xIGludGVybGFjZWQ9MCBibHVyYXlfY29tcGF0PTAgY29uc3RyYWluZWRfaW50cmE9MCBiZnJhbWVzPTMgYl9weXJhbWlkPTIgYl9hZGFwdD0xIGJfYmlhcz0wIGRpcmVjdD0xIHdlaWdodGI9MSBvcGVuX2dvcD0wIHdlaWdodHA9MSBrZXlpbnQ9MzAwIGtleWludF9taW49MzAgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD0xMCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIwLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IHZidl9tYXhyYXRlPTIwMDAwIHZidl9idWZzaXplPTI1MDAwIGNyZl9tYXg9MC4wIG5hbF9ocmQ9bm9uZSBmaWxsZXI9MCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMACAAAAAOWWIhAA3//p+C7v8tDDSTjf97w55i3SbRPO4ZY+hkjD5hbkAkL3zpJ6h/LR1CAABzgB1kqqzUorlhQAAAAxBmiQYhn/+qZYADLgAAAAJQZ5CQhX/AAj5IQAD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';
-const oldIOS = typeof navigator !== 'undefined' && parseFloat(
-  ('' + (/CPU.*OS ([0-9_]{3,4})[0-9_]{0,1}|(CPU like).*AppleWebKit.*Mobile/i.exec(navigator.userAgent) || [0, ''])[1])
-    .replace('undefined', '3_2').replace('_', '.').replace('_', '')
-) < 10 && !window.MSStream;
-class NoSleep {
-  constructor () {
+var commonjsGlobal$$1 = typeof window !== 'undefined' ? window : typeof commonjsGlobal !== 'undefined' ? commonjsGlobal : typeof self !== 'undefined' ? self : {};
+function unwrapExports$$1 (x) {
+	return x && x.__esModule ? x['default'] : x;
+}
+function createCommonjsModule$$1(fn, module) {
+	return module = { exports: {} }, fn(module, module.exports), module.exports;
+}
+var NoSleep = createCommonjsModule$$1(function (module, exports) {
+(function webpackUniversalModuleDefinition(root, factory) {
+	module.exports = factory();
+})(commonjsGlobal$$1, function() {
+return          (function(modules) {
+         	var installedModules = {};
+         	function __webpack_require__(moduleId) {
+         		if(installedModules[moduleId]) {
+         			return installedModules[moduleId].exports;
+         		}
+         		var module = installedModules[moduleId] = {
+         			i: moduleId,
+         			l: false,
+         			exports: {}
+         		};
+         		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+         		module.l = true;
+         		return module.exports;
+         	}
+         	__webpack_require__.m = modules;
+         	__webpack_require__.c = installedModules;
+         	__webpack_require__.d = function(exports, name, getter) {
+         		if(!__webpack_require__.o(exports, name)) {
+         			Object.defineProperty(exports, name, {
+         				configurable: false,
+         				enumerable: true,
+         				get: getter
+         			});
+         		}
+         	};
+         	__webpack_require__.n = function(module) {
+         		var getter = module && module.__esModule ?
+         			function getDefault() { return module['default']; } :
+         			function getModuleExports() { return module; };
+         		__webpack_require__.d(getter, 'a', getter);
+         		return getter;
+         	};
+         	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+         	__webpack_require__.p = "";
+         	return __webpack_require__(__webpack_require__.s = 0);
+         })
+         ([
+      (function(module, exports, __webpack_require__) {
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+var mediaFile = __webpack_require__(1);
+var oldIOS = typeof navigator !== 'undefined' && parseFloat(('' + (/CPU.*OS ([0-9_]{3,4})[0-9_]{0,1}|(CPU like).*AppleWebKit.*Mobile/i.exec(navigator.userAgent) || [0, ''])[1]).replace('undefined', '3_2').replace('_', '.').replace('_', '')) < 10 && !window.MSStream;
+var NoSleep = function () {
+  function NoSleep() {
+    _classCallCheck(this, NoSleep);
     if (oldIOS) {
       this.noSleepTimer = null;
     } else {
       this.noSleepVideo = document.createElement('video');
       this.noSleepVideo.setAttribute('playsinline', '');
-      this.noSleepVideo.setAttribute('src', media);
+      this.noSleepVideo.setAttribute('src', mediaFile);
       this.noSleepVideo.addEventListener('timeupdate', function (e) {
         if (this.noSleepVideo.currentTime > 0.5) {
           this.noSleepVideo.currentTime = Math.random();
@@ -2675,34 +2727,55 @@ class NoSleep {
       }.bind(this));
     }
   }
-  enable () {
-    if (oldIOS) {
-      this.disable();
-      this.noSleepTimer = window.setInterval(function () {
-        window.location.href = '/';
-        window.setTimeout(window.stop, 0);
-      }, 15000);
-    } else {
-      this.noSleepVideo.play();
-    }
-  }
-  disable () {
-    if (oldIOS) {
-      if (this.noSleepTimer) {
-        window.clearInterval(this.noSleepTimer);
-        this.noSleepTimer = null;
+  _createClass(NoSleep, [{
+    key: 'enable',
+    value: function enable() {
+      if (oldIOS) {
+        this.disable();
+        this.noSleepTimer = window.setInterval(function () {
+          window.location.href = '/';
+          window.setTimeout(window.stop, 0);
+        }, 15000);
+      } else {
+        this.noSleepVideo.play();
       }
-    } else {
-      this.noSleepVideo.pause();
     }
-  }
-}
-var src = NoSleep;
+  }, {
+    key: 'disable',
+    value: function disable() {
+      if (oldIOS) {
+        if (this.noSleepTimer) {
+          window.clearInterval(this.noSleepTimer);
+          this.noSleepTimer = null;
+        }
+      } else {
+        this.noSleepVideo.pause();
+      }
+    }
+  }]);
+  return NoSleep;
+}();
+module.exports = NoSleep;
+      }),
+      (function(module, exports, __webpack_require__) {
+module.exports = 'data:video/mp4;base64,AAAAIGZ0eXBtcDQyAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAACKBtZGF0AAAC8wYF///v3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE0MiByMjQ3OSBkZDc5YTYxIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNCAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTEgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MToweDExMSBtZT1oZXggc3VibWU9MiBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0wIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MCA4eDhkY3Q9MCBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0wIHRocmVhZHM9NiBsb29rYWhlYWRfdGhyZWFkcz0xIHNsaWNlZF90aHJlYWRzPTAgbnI9MCBkZWNpbWF0ZT0xIGludGVybGFjZWQ9MCBibHVyYXlfY29tcGF0PTAgY29uc3RyYWluZWRfaW50cmE9MCBiZnJhbWVzPTMgYl9weXJhbWlkPTIgYl9hZGFwdD0xIGJfYmlhcz0wIGRpcmVjdD0xIHdlaWdodGI9MSBvcGVuX2dvcD0wIHdlaWdodHA9MSBrZXlpbnQ9MzAwIGtleWludF9taW49MzAgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD0xMCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIwLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IHZidl9tYXhyYXRlPTIwMDAwIHZidl9idWZzaXplPTI1MDAwIGNyZl9tYXg9MC4wIG5hbF9ocmQ9bm9uZSBmaWxsZXI9MCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMACAAAAAOWWIhAA3//p+C7v8tDDSTjf97w55i3SbRPO4ZY+hkjD5hbkAkL3zpJ6h/LR1CAABzgB1kqqzUorlhQAAAAxBmiQYhn/+qZYADLgAAAAJQZ5CQhX/AAj5IQAD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';
+      })
+         ]);
+});
+});
+var NoSleep$1 = unwrapExports$$1(NoSleep);
 var nextDisplayId = 1000;
 var defaultLeftBounds = [0, 0, 0.5, 1];
 var defaultRightBounds = [0.5, 0, 0.5, 1];
 var raf = window.requestAnimationFrame;
 var caf = window.cancelAnimationFrame;
+function VRFrameData() {
+  this.leftProjectionMatrix = new Float32Array(16);
+  this.leftViewMatrix = new Float32Array(16);
+  this.rightProjectionMatrix = new Float32Array(16);
+  this.rightViewMatrix = new Float32Array(16);
+  this.pose = null;
+}
 function VRDisplayCapabilities(config) {
   Object.defineProperties(this, {
     hasPosition: {
@@ -2758,7 +2831,7 @@ function VRDisplay(config) {
   this.fullscreenChangeHandler_ = null;
   this.fullscreenErrorHandler_ = null;
   if (USE_WAKELOCK && isMobile()) {
-    this.wakelock_ = new src();
+    this.wakelock_ = new NoSleep$1();
   }
 }
 VRDisplay.prototype.getFrameData = function (frameData) {
@@ -3280,717 +3353,14 @@ CardboardVRDisplay.prototype.fireVRDisplayDeviceParamsChange_ = function () {
   });
   window.dispatchEvent(event);
 };
+CardboardVRDisplay.VRFrameData = VRFrameData;
+CardboardVRDisplay.VRDisplay = VRDisplay;
 return CardboardVRDisplay;
 })));
 });
+var CardboardVRDisplay = unwrapExports(cardboardVrDisplay);
 
-const isIOS$1 = (function() {
-  var isIOS = /iPad|iPhone|iPod/.test(navigator.platform);
-  return function() {
-    return isIOS;
-  };
-})();
-const isWebViewAndroid = (function() {
-  var isWebViewAndroid = navigator.userAgent.indexOf('Version') !== -1 &&
-      navigator.userAgent.indexOf('Android') !== -1 &&
-      navigator.userAgent.indexOf('Chrome') !== -1;
-  return function() {
-    return isWebViewAndroid;
-  };
-})();
-const isSafari = (function() {
-  var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-  return function() {
-    return isSafari;
-  };
-})();
-const isFirefoxAndroid = (function() {
-  var isFirefoxAndroid = navigator.userAgent.indexOf('Firefox') !== -1 &&
-      navigator.userAgent.indexOf('Android') !== -1;
-  return function() {
-    return isFirefoxAndroid;
-  };
-})();
-const getChromeVersion = (function() {
-  const match = navigator.userAgent.match(/.*Chrome\/([0-9]+)/);
-  const value = match ? parseInt(match[1], 10) : null;
-  return function() {
-    return value;
-  };
-})();
-const isChromeWithoutDeviceMotion = (function() {
-  let value = false;
-  if (getChromeVersion() === 65) {
-    const match = navigator.userAgent.match(/.*Chrome\/([0-9\.]*)/);
-    if (match) {
-      const [major, minor, branch, build] = match[1].split('.');
-      value = parseInt(branch, 10) === 3325 && parseInt(build, 10) < 148;
-    }
-  }
-  return function() {
-    return value;
-  };
-})();
-const isR7 = (function() {
-  var isR7 = navigator.userAgent.indexOf('R7 Build') !== -1;
-  return function() {
-    return isR7;
-  };
-})();
-
-
-
-
-const requestFullscreen = function(element) {
-  if (isWebViewAndroid()) {
-      return false;
-  }
-  if (element.requestFullscreen) {
-    element.requestFullscreen();
-  } else if (element.webkitRequestFullscreen) {
-    element.webkitRequestFullscreen();
-  } else if (element.mozRequestFullScreen) {
-    element.mozRequestFullScreen();
-  } else if (element.msRequestFullscreen) {
-    element.msRequestFullscreen();
-  } else {
-    return false;
-  }
-  return true;
-};
-const exitFullscreen = function() {
-  if (document.exitFullscreen) {
-    document.exitFullscreen();
-  } else if (document.webkitExitFullscreen) {
-    document.webkitExitFullscreen();
-  } else if (document.mozCancelFullScreen) {
-    document.mozCancelFullScreen();
-  } else if (document.msExitFullscreen) {
-    document.msExitFullscreen();
-  } else {
-    return false;
-  }
-  return true;
-};
-const getFullscreenElement = function() {
-  return document.fullscreenElement ||
-      document.webkitFullscreenElement ||
-      document.mozFullScreenElement ||
-      document.msFullscreenElement;
-};
-
-
-
-
-const isMobile$1 = function() {
-  var check = false;
-  (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4)))check = true;})(navigator.userAgent||navigator.vendor||window.opera);
-  return check;
-};
-
-
-const frameDataFromPose = (function() {
-  var piOver180 = Math.PI / 180.0;
-  var rad45 = Math.PI * 0.25;
-  function mat4_perspectiveFromFieldOfView(out, fov, near, far) {
-    var upTan = Math.tan(fov ? (fov.upDegrees * piOver180) : rad45),
-    downTan = Math.tan(fov ? (fov.downDegrees * piOver180) : rad45),
-    leftTan = Math.tan(fov ? (fov.leftDegrees * piOver180) : rad45),
-    rightTan = Math.tan(fov ? (fov.rightDegrees * piOver180) : rad45),
-    xScale = 2.0 / (leftTan + rightTan),
-    yScale = 2.0 / (upTan + downTan);
-    out[0] = xScale;
-    out[1] = 0.0;
-    out[2] = 0.0;
-    out[3] = 0.0;
-    out[4] = 0.0;
-    out[5] = yScale;
-    out[6] = 0.0;
-    out[7] = 0.0;
-    out[8] = -((leftTan - rightTan) * xScale * 0.5);
-    out[9] = ((upTan - downTan) * yScale * 0.5);
-    out[10] = far / (near - far);
-    out[11] = -1.0;
-    out[12] = 0.0;
-    out[13] = 0.0;
-    out[14] = (far * near) / (near - far);
-    out[15] = 0.0;
-    return out;
-  }
-  function mat4_fromRotationTranslation(out, q, v) {
-    var x = q[0], y = q[1], z = q[2], w = q[3],
-        x2 = x + x,
-        y2 = y + y,
-        z2 = z + z,
-        xx = x * x2,
-        xy = x * y2,
-        xz = x * z2,
-        yy = y * y2,
-        yz = y * z2,
-        zz = z * z2,
-        wx = w * x2,
-        wy = w * y2,
-        wz = w * z2;
-    out[0] = 1 - (yy + zz);
-    out[1] = xy + wz;
-    out[2] = xz - wy;
-    out[3] = 0;
-    out[4] = xy - wz;
-    out[5] = 1 - (xx + zz);
-    out[6] = yz + wx;
-    out[7] = 0;
-    out[8] = xz + wy;
-    out[9] = yz - wx;
-    out[10] = 1 - (xx + yy);
-    out[11] = 0;
-    out[12] = v[0];
-    out[13] = v[1];
-    out[14] = v[2];
-    out[15] = 1;
-    return out;
-  }
-  function mat4_translate(out, a, v) {
-    var x = v[0], y = v[1], z = v[2],
-        a00, a01, a02, a03,
-        a10, a11, a12, a13,
-        a20, a21, a22, a23;
-    if (a === out) {
-      out[12] = a[0] * x + a[4] * y + a[8] * z + a[12];
-      out[13] = a[1] * x + a[5] * y + a[9] * z + a[13];
-      out[14] = a[2] * x + a[6] * y + a[10] * z + a[14];
-      out[15] = a[3] * x + a[7] * y + a[11] * z + a[15];
-    } else {
-      a00 = a[0]; a01 = a[1]; a02 = a[2]; a03 = a[3];
-      a10 = a[4]; a11 = a[5]; a12 = a[6]; a13 = a[7];
-      a20 = a[8]; a21 = a[9]; a22 = a[10]; a23 = a[11];
-      out[0] = a00; out[1] = a01; out[2] = a02; out[3] = a03;
-      out[4] = a10; out[5] = a11; out[6] = a12; out[7] = a13;
-      out[8] = a20; out[9] = a21; out[10] = a22; out[11] = a23;
-      out[12] = a00 * x + a10 * y + a20 * z + a[12];
-      out[13] = a01 * x + a11 * y + a21 * z + a[13];
-      out[14] = a02 * x + a12 * y + a22 * z + a[14];
-      out[15] = a03 * x + a13 * y + a23 * z + a[15];
-    }
-    return out;
-  }
-  function mat4_invert(out, a) {
-    var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
-        a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
-        a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
-        a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15],
-        b00 = a00 * a11 - a01 * a10,
-        b01 = a00 * a12 - a02 * a10,
-        b02 = a00 * a13 - a03 * a10,
-        b03 = a01 * a12 - a02 * a11,
-        b04 = a01 * a13 - a03 * a11,
-        b05 = a02 * a13 - a03 * a12,
-        b06 = a20 * a31 - a21 * a30,
-        b07 = a20 * a32 - a22 * a30,
-        b08 = a20 * a33 - a23 * a30,
-        b09 = a21 * a32 - a22 * a31,
-        b10 = a21 * a33 - a23 * a31,
-        b11 = a22 * a33 - a23 * a32,
-        det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
-    if (!det) {
-      return null;
-    }
-    det = 1.0 / det;
-    out[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;
-    out[1] = (a02 * b10 - a01 * b11 - a03 * b09) * det;
-    out[2] = (a31 * b05 - a32 * b04 + a33 * b03) * det;
-    out[3] = (a22 * b04 - a21 * b05 - a23 * b03) * det;
-    out[4] = (a12 * b08 - a10 * b11 - a13 * b07) * det;
-    out[5] = (a00 * b11 - a02 * b08 + a03 * b07) * det;
-    out[6] = (a32 * b02 - a30 * b05 - a33 * b01) * det;
-    out[7] = (a20 * b05 - a22 * b02 + a23 * b01) * det;
-    out[8] = (a10 * b10 - a11 * b08 + a13 * b06) * det;
-    out[9] = (a01 * b08 - a00 * b10 - a03 * b06) * det;
-    out[10] = (a30 * b04 - a31 * b02 + a33 * b00) * det;
-    out[11] = (a21 * b02 - a20 * b04 - a23 * b00) * det;
-    out[12] = (a11 * b07 - a10 * b09 - a12 * b06) * det;
-    out[13] = (a00 * b09 - a01 * b07 + a02 * b06) * det;
-    out[14] = (a31 * b01 - a30 * b03 - a32 * b00) * det;
-    out[15] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
-    return out;
-  }
-  var defaultOrientation = new Float32Array([0, 0, 0, 1]);
-  var defaultPosition = new Float32Array([0, 0, 0]);
-  function updateEyeMatrices(projection, view, pose, fov, offset, vrDisplay) {
-    mat4_perspectiveFromFieldOfView(projection, fov || null, vrDisplay.depthNear, vrDisplay.depthFar);
-    var orientation = pose.orientation || defaultOrientation;
-    var position = pose.position || defaultPosition;
-    mat4_fromRotationTranslation(view, orientation, position);
-    if (offset)
-      mat4_translate(view, view, offset);
-    mat4_invert(view, view);
-  }
-  return function(frameData, pose, vrDisplay) {
-    if (!frameData || !pose)
-      return false;
-    frameData.pose = pose;
-    frameData.timestamp = pose.timestamp;
-    updateEyeMatrices(
-        frameData.leftProjectionMatrix, frameData.leftViewMatrix,
-        pose, vrDisplay._getFieldOfView("left"), vrDisplay._getEyeOffset("left"), vrDisplay);
-    updateEyeMatrices(
-        frameData.rightProjectionMatrix, frameData.rightViewMatrix,
-        pose, vrDisplay._getFieldOfView("right"), vrDisplay._getEyeOffset("right"), vrDisplay);
-    return true;
-  };
-})();
-
-
-
-const warnOnce = (function() {
-  var observedWarnings = {};
-  return function(key, message) {
-    if (observedWarnings[key] === undefined) {
-      console.warn('webvr-polyfill: ' + message);
-      observedWarnings[key] = true;
-    }
-  };
-})();
-const deprecateWarning = function(deprecated, suggested) {
-  var alternative = suggested ? ('Please use ' + suggested + ' instead.') : '';
-  warnOnce(deprecated, deprecated + ' has been deprecated. ' +
-           'This may not work on native WebVR displays. ' +
-           alternative);
-};
-
-var media = 'data:video/mp4;base64,AAAAIGZ0eXBtcDQyAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAACKBtZGF0AAAC8wYF///v3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE0MiByMjQ3OSBkZDc5YTYxIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNCAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTEgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MToweDExMSBtZT1oZXggc3VibWU9MiBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0wIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MCA4eDhkY3Q9MCBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0wIHRocmVhZHM9NiBsb29rYWhlYWRfdGhyZWFkcz0xIHNsaWNlZF90aHJlYWRzPTAgbnI9MCBkZWNpbWF0ZT0xIGludGVybGFjZWQ9MCBibHVyYXlfY29tcGF0PTAgY29uc3RyYWluZWRfaW50cmE9MCBiZnJhbWVzPTMgYl9weXJhbWlkPTIgYl9hZGFwdD0xIGJfYmlhcz0wIGRpcmVjdD0xIHdlaWdodGI9MSBvcGVuX2dvcD0wIHdlaWdodHA9MSBrZXlpbnQ9MzAwIGtleWludF9taW49MzAgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD0xMCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIwLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IHZidl9tYXhyYXRlPTIwMDAwIHZidl9idWZzaXplPTI1MDAwIGNyZl9tYXg9MC4wIG5hbF9ocmQ9bm9uZSBmaWxsZXI9MCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMACAAAAAOWWIhAA3//p+C7v8tDDSTjf97w55i3SbRPO4ZY+hkjD5hbkAkL3zpJ6h/LR1CAABzgB1kqqzUorlhQAAAAxBmiQYhn/+qZYADLgAAAAJQZ5CQhX/AAj5IQAD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';
-
-const oldIOS = typeof navigator !== 'undefined' && parseFloat(
-  ('' + (/CPU.*OS ([0-9_]{3,4})[0-9_]{0,1}|(CPU like).*AppleWebKit.*Mobile/i.exec(navigator.userAgent) || [0, ''])[1])
-    .replace('undefined', '3_2').replace('_', '.').replace('_', '')
-) < 10 && !window.MSStream;
-class NoSleep {
-  constructor () {
-    if (oldIOS) {
-      this.noSleepTimer = null;
-    } else {
-      this.noSleepVideo = document.createElement('video');
-      this.noSleepVideo.setAttribute('playsinline', '');
-      this.noSleepVideo.setAttribute('src', media);
-      this.noSleepVideo.addEventListener('timeupdate', function (e) {
-        if (this.noSleepVideo.currentTime > 0.5) {
-          this.noSleepVideo.currentTime = Math.random();
-        }
-      }.bind(this));
-    }
-  }
-  enable () {
-    if (oldIOS) {
-      this.disable();
-      this.noSleepTimer = window.setInterval(function () {
-        window.location.href = '/';
-        window.setTimeout(window.stop, 0);
-      }, 15000);
-    } else {
-      this.noSleepVideo.play();
-    }
-  }
-  disable () {
-    if (oldIOS) {
-      if (this.noSleepTimer) {
-        window.clearInterval(this.noSleepTimer);
-        this.noSleepTimer = null;
-      }
-    } else {
-      this.noSleepVideo.pause();
-    }
-  }
-}
-var src$2 = NoSleep;
-
-var nextDisplayId = 1000;
-var defaultLeftBounds = [0, 0, 0.5, 1];
-var defaultRightBounds = [0.5, 0, 0.5, 1];
-var raf = window.requestAnimationFrame;
-var caf = window.cancelAnimationFrame;
-function VRFrameData() {
-  this.leftProjectionMatrix = new Float32Array(16);
-  this.leftViewMatrix = new Float32Array(16);
-  this.rightProjectionMatrix = new Float32Array(16);
-  this.rightViewMatrix = new Float32Array(16);
-  this.pose = null;
-}
-function VRDisplayCapabilities (config) {
-  Object.defineProperties(this, {
-    hasPosition: {
-      writable: false, enumerable: true, value: config.hasPosition,
-    },
-    hasExternalDisplay: {
-      writable: false, enumerable: true, value: config.hasExternalDisplay,
-    },
-    canPresent: {
-      writable: false, enumerable: true, value: config.canPresent,
-    },
-    maxLayers: {
-      writable: false, enumerable: true, value: config.maxLayers,
-    },
-    hasOrientation: {
-      enumerable: true, get: function() {
-        deprecateWarning('VRDisplayCapabilities.prototype.hasOrientation',
-                              'VRDisplay.prototype.getFrameData');
-        return config.hasOrientation;
-      },
-    },
-  });
-}
-function VRDisplay(config) {
-  config = config || {};
-  var USE_WAKELOCK = 'wakelock' in config ? config.wakelock : true;
-  this.isPolyfilled = true;
-  this.displayId = nextDisplayId++;
-  this.displayName = '';
-  this.depthNear = 0.01;
-  this.depthFar = 10000.0;
-  this.isPresenting = false;
-  Object.defineProperty(this, 'isConnected', {
-    get: function() {
-      deprecateWarning('VRDisplay.prototype.isConnected',
-                            'VRDisplayCapabilities.prototype.hasExternalDisplay');
-      return false;
-    },
-  });
-  this.capabilities = new VRDisplayCapabilities({
-    hasPosition: false,
-    hasOrientation: false,
-    hasExternalDisplay: false,
-    canPresent: false,
-    maxLayers: 1
-  });
-  this.stageParameters = null;
-  this.waitingForPresent_ = false;
-  this.layer_ = null;
-  this.originalParent_ = null;
-  this.fullscreenElement_ = null;
-  this.fullscreenWrapper_ = null;
-  this.fullscreenElementCachedStyle_ = null;
-  this.fullscreenEventTarget_ = null;
-  this.fullscreenChangeHandler_ = null;
-  this.fullscreenErrorHandler_ = null;
-  if (USE_WAKELOCK && isMobile$1()) {
-    this.wakelock_ = new src$2();
-  }
-}
-VRDisplay.prototype.getFrameData = function(frameData) {
-  return frameDataFromPose(frameData, this._getPose(), this);
-};
-VRDisplay.prototype.getPose = function() {
-  deprecateWarning('VRDisplay.prototype.getPose',
-                        'VRDisplay.prototype.getFrameData');
-  return this._getPose();
-};
-VRDisplay.prototype.resetPose = function() {
-  deprecateWarning('VRDisplay.prototype.resetPose');
-  return this._resetPose();
-};
-VRDisplay.prototype.getImmediatePose = function() {
-  deprecateWarning('VRDisplay.prototype.getImmediatePose',
-                        'VRDisplay.prototype.getFrameData');
-  return this._getPose();
-};
-VRDisplay.prototype.requestAnimationFrame = function(callback) {
-  return raf(callback);
-};
-VRDisplay.prototype.cancelAnimationFrame = function(id) {
-  return caf(id);
-};
-VRDisplay.prototype.wrapForFullscreen = function(element) {
-  if (isIOS$1()) {
-    return element;
-  }
-  if (!this.fullscreenWrapper_) {
-    this.fullscreenWrapper_ = document.createElement('div');
-    var cssProperties = [
-      'height: ' + Math.min(screen.height, screen.width) + 'px !important',
-      'top: 0 !important',
-      'left: 0 !important',
-      'right: 0 !important',
-      'border: 0',
-      'margin: 0',
-      'padding: 0',
-      'z-index: 999999 !important',
-      'position: fixed',
-    ];
-    this.fullscreenWrapper_.setAttribute('style', cssProperties.join('; ') + ';');
-    this.fullscreenWrapper_.classList.add('webvr-polyfill-fullscreen-wrapper');
-  }
-  if (this.fullscreenElement_ == element) {
-    return this.fullscreenWrapper_;
-  }
-  if (this.fullscreenElement_) {
-    if (this.originalParent_) {
-      this.originalParent_.appendChild(this.fullscreenElement_);
-    } else {
-      this.fullscreenElement_.parentElement.removeChild(this.fullscreenElement_);
-    }
-  }
-  this.fullscreenElement_ = element;
-  this.originalParent_ = element.parentElement;
-  if (!this.originalParent_) {
-    document.body.appendChild(element);
-  }
-  if (!this.fullscreenWrapper_.parentElement) {
-    var parent = this.fullscreenElement_.parentElement;
-    parent.insertBefore(this.fullscreenWrapper_, this.fullscreenElement_);
-    parent.removeChild(this.fullscreenElement_);
-  }
-  this.fullscreenWrapper_.insertBefore(this.fullscreenElement_, this.fullscreenWrapper_.firstChild);
-  this.fullscreenElementCachedStyle_ = this.fullscreenElement_.getAttribute('style');
-  var self = this;
-  function applyFullscreenElementStyle() {
-    if (!self.fullscreenElement_) {
-      return;
-    }
-    var cssProperties = [
-      'position: absolute',
-      'top: 0',
-      'left: 0',
-      'width: ' + Math.max(screen.width, screen.height) + 'px',
-      'height: ' + Math.min(screen.height, screen.width) + 'px',
-      'border: 0',
-      'margin: 0',
-      'padding: 0',
-    ];
-    self.fullscreenElement_.setAttribute('style', cssProperties.join('; ') + ';');
-  }
-  applyFullscreenElementStyle();
-  return this.fullscreenWrapper_;
-};
-VRDisplay.prototype.removeFullscreenWrapper = function() {
-  if (!this.fullscreenElement_) {
-    return;
-  }
-  var element = this.fullscreenElement_;
-  if (this.fullscreenElementCachedStyle_) {
-    element.setAttribute('style', this.fullscreenElementCachedStyle_);
-  } else {
-    element.removeAttribute('style');
-  }
-  this.fullscreenElement_ = null;
-  this.fullscreenElementCachedStyle_ = null;
-  var parent = this.fullscreenWrapper_.parentElement;
-  this.fullscreenWrapper_.removeChild(element);
-  if (this.originalParent_ === parent) {
-    parent.insertBefore(element, this.fullscreenWrapper_);
-  }
-  else if (this.originalParent_) {
-    this.originalParent_.appendChild(element);
-  }
-  parent.removeChild(this.fullscreenWrapper_);
-  return element;
-};
-VRDisplay.prototype.requestPresent = function(layers) {
-  var wasPresenting = this.isPresenting;
-  var self = this;
-  if (!(layers instanceof Array)) {
-    deprecateWarning('VRDisplay.prototype.requestPresent with non-array argument',
-                          'an array of VRLayers as the first argument');
-    layers = [layers];
-  }
-  return new Promise(function(resolve, reject) {
-    if (!self.capabilities.canPresent) {
-      reject(new Error('VRDisplay is not capable of presenting.'));
-      return;
-    }
-    if (layers.length == 0 || layers.length > self.capabilities.maxLayers) {
-      reject(new Error('Invalid number of layers.'));
-      return;
-    }
-    var incomingLayer = layers[0];
-    if (!incomingLayer.source) {
-      resolve();
-      return;
-    }
-    var leftBounds = incomingLayer.leftBounds || defaultLeftBounds;
-    var rightBounds = incomingLayer.rightBounds || defaultRightBounds;
-    if (wasPresenting) {
-      var layer = self.layer_;
-      if (layer.source !== incomingLayer.source) {
-        layer.source = incomingLayer.source;
-      }
-      for (var i = 0; i < 4; i++) {
-        layer.leftBounds[i] = leftBounds[i];
-        layer.rightBounds[i] = rightBounds[i];
-      }
-      self.wrapForFullscreen(self.layer_.source);
-      self.updatePresent_();
-      resolve();
-      return;
-    }
-    self.layer_ = {
-      predistorted: incomingLayer.predistorted,
-      source: incomingLayer.source,
-      leftBounds: leftBounds.slice(0),
-      rightBounds: rightBounds.slice(0)
-    };
-    self.waitingForPresent_ = false;
-    if (self.layer_ && self.layer_.source) {
-      var fullscreenElement = self.wrapForFullscreen(self.layer_.source);
-      var onFullscreenChange = function() {
-        var actualFullscreenElement = getFullscreenElement();
-        self.isPresenting = (fullscreenElement === actualFullscreenElement);
-        if (self.isPresenting) {
-          if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape-primary').catch(function(error){
-                    console.error('screen.orientation.lock() failed due to', error.message);
-            });
-          }
-          self.waitingForPresent_ = false;
-          self.beginPresent_();
-          resolve();
-        } else {
-          if (screen.orientation && screen.orientation.unlock) {
-            screen.orientation.unlock();
-          }
-          self.removeFullscreenWrapper();
-          self.disableWakeLock();
-          self.endPresent_();
-          self.removeFullscreenListeners_();
-        }
-        self.fireVRDisplayPresentChange_();
-      };
-      var onFullscreenError = function() {
-        if (!self.waitingForPresent_) {
-          return;
-        }
-        self.removeFullscreenWrapper();
-        self.removeFullscreenListeners_();
-        self.disableWakeLock();
-        self.waitingForPresent_ = false;
-        self.isPresenting = false;
-        reject(new Error('Unable to present.'));
-      };
-      self.addFullscreenListeners_(fullscreenElement,
-          onFullscreenChange, onFullscreenError);
-      if (requestFullscreen(fullscreenElement)) {
-        self.enableWakeLock();
-        self.waitingForPresent_ = true;
-      } else if (isIOS$1() || isWebViewAndroid()) {
-        self.enableWakeLock();
-        self.isPresenting = true;
-        self.beginPresent_();
-        self.fireVRDisplayPresentChange_();
-        resolve();
-      }
-    }
-    if (!self.waitingForPresent_ && !isIOS$1()) {
-      exitFullscreen();
-      reject(new Error('Unable to present.'));
-    }
-  });
-};
-VRDisplay.prototype.exitPresent = function() {
-  var wasPresenting = this.isPresenting;
-  var self = this;
-  this.isPresenting = false;
-  this.layer_ = null;
-  this.disableWakeLock();
-  return new Promise(function(resolve, reject) {
-    if (wasPresenting) {
-      if (!exitFullscreen() && isIOS$1()) {
-        self.endPresent_();
-        self.fireVRDisplayPresentChange_();
-      }
-      if (isWebViewAndroid()) {
-        self.removeFullscreenWrapper();
-        self.removeFullscreenListeners_();
-        self.endPresent_();
-        self.fireVRDisplayPresentChange_();
-      }
-      resolve();
-    } else {
-      reject(new Error('Was not presenting to VRDisplay.'));
-    }
-  });
-};
-VRDisplay.prototype.getLayers = function() {
-  if (this.layer_) {
-    return [this.layer_];
-  }
-  return [];
-};
-VRDisplay.prototype.fireVRDisplayPresentChange_ = function() {
-  var event = new CustomEvent('vrdisplaypresentchange', {detail: {display: this}});
-  window.dispatchEvent(event);
-};
-VRDisplay.prototype.fireVRDisplayConnect_ = function() {
-  var event = new CustomEvent('vrdisplayconnect', {detail: {display: this}});
-  window.dispatchEvent(event);
-};
-VRDisplay.prototype.addFullscreenListeners_ = function(element, changeHandler, errorHandler) {
-  this.removeFullscreenListeners_();
-  this.fullscreenEventTarget_ = element;
-  this.fullscreenChangeHandler_ = changeHandler;
-  this.fullscreenErrorHandler_ = errorHandler;
-  if (changeHandler) {
-    if (document.fullscreenEnabled) {
-      element.addEventListener('fullscreenchange', changeHandler, false);
-    } else if (document.webkitFullscreenEnabled) {
-      element.addEventListener('webkitfullscreenchange', changeHandler, false);
-    } else if (document.mozFullScreenEnabled) {
-      document.addEventListener('mozfullscreenchange', changeHandler, false);
-    } else if (document.msFullscreenEnabled) {
-      element.addEventListener('msfullscreenchange', changeHandler, false);
-    }
-  }
-  if (errorHandler) {
-    if (document.fullscreenEnabled) {
-      element.addEventListener('fullscreenerror', errorHandler, false);
-    } else if (document.webkitFullscreenEnabled) {
-      element.addEventListener('webkitfullscreenerror', errorHandler, false);
-    } else if (document.mozFullScreenEnabled) {
-      document.addEventListener('mozfullscreenerror', errorHandler, false);
-    } else if (document.msFullscreenEnabled) {
-      element.addEventListener('msfullscreenerror', errorHandler, false);
-    }
-  }
-};
-VRDisplay.prototype.removeFullscreenListeners_ = function() {
-  if (!this.fullscreenEventTarget_)
-    return;
-  var element = this.fullscreenEventTarget_;
-  if (this.fullscreenChangeHandler_) {
-    var changeHandler = this.fullscreenChangeHandler_;
-    element.removeEventListener('fullscreenchange', changeHandler, false);
-    element.removeEventListener('webkitfullscreenchange', changeHandler, false);
-    document.removeEventListener('mozfullscreenchange', changeHandler, false);
-    element.removeEventListener('msfullscreenchange', changeHandler, false);
-  }
-  if (this.fullscreenErrorHandler_) {
-    var errorHandler = this.fullscreenErrorHandler_;
-    element.removeEventListener('fullscreenerror', errorHandler, false);
-    element.removeEventListener('webkitfullscreenerror', errorHandler, false);
-    document.removeEventListener('mozfullscreenerror', errorHandler, false);
-    element.removeEventListener('msfullscreenerror', errorHandler, false);
-  }
-  this.fullscreenEventTarget_ = null;
-  this.fullscreenChangeHandler_ = null;
-  this.fullscreenErrorHandler_ = null;
-};
-VRDisplay.prototype.enableWakeLock = function() {
-  if (this.wakelock_) {
-    this.wakelock_.enable();
-  }
-};
-VRDisplay.prototype.disableWakeLock = function() {
-  if (this.wakelock_) {
-    this.wakelock_.disable();
-  }
-};
-VRDisplay.prototype.beginPresent_ = function() {
-};
-VRDisplay.prototype.endPresent_ = function() {
-};
-VRDisplay.prototype.submitFrame = function(pose) {
-};
-VRDisplay.prototype.getEyeParameters = function(whichEye) {
-  return null;
-};
-
-var version = "0.10.2";
+var version = "0.10.3";
 
 var DefaultConfig = {
   PROVIDE_MOBILE_VRDISPLAY: true,
@@ -4031,7 +3401,7 @@ WebVRPolyfill.prototype.getPolyfillDisplays = function () {
     return this.polyfillDisplays;
   }
   if (isMobile()) {
-    var vrDisplay = new cardboardVrDisplay({
+    var vrDisplay = new CardboardVRDisplay({
       MOBILE_WAKE_LOCK: this.config.MOBILE_WAKE_LOCK,
       DEBUG: this.config.DEBUG,
       DPDB_URL: this.config.DPDB_URL,
@@ -4069,8 +3439,8 @@ WebVRPolyfill.prototype.enable = function () {
     };
   }
   navigator.getVRDisplays = this.getVRDisplays.bind(this);
-  window.VRDisplay = VRDisplay;
-  window.VRFrameData = VRFrameData;
+  window.VRDisplay = CardboardVRDisplay.VRDisplay;
+  window.VRFrameData = CardboardVRDisplay.VRFrameData;
 };
 WebVRPolyfill.prototype.getVRDisplays = function () {
   var _this = this;
@@ -4092,8 +3462,8 @@ WebVRPolyfill.prototype.getVRDisplays = function () {
   });
 };
 WebVRPolyfill.version = version;
-WebVRPolyfill.VRFrameData = VRFrameData;
-WebVRPolyfill.VRDisplay = VRDisplay;
+WebVRPolyfill.VRFrameData = CardboardVRDisplay.VRFrameData;
+WebVRPolyfill.VRDisplay = CardboardVRDisplay.VRDisplay;
 
 
 var webvrPolyfill = Object.freeze({
