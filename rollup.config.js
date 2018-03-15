@@ -44,7 +44,9 @@ export default {
       exclude: 'node_modules/**',
     }),
     resolve(),
-    commonjs(),
+    commonjs({
+      include: ['src/**', 'node_modules/**'],
+    }),
     cleanup(),
   ],
 };

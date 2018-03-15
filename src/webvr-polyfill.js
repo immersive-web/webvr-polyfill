@@ -15,7 +15,6 @@
 
 import { extend, isMobile, race, copyArray } from './util';
 import CardboardVRDisplay from 'cardboard-vr-display';
-import { VRDisplay, VRFrameData } from 'cardboard-vr-display/src/base';
 import { version } from '../package.json';
 import DefaultConfig from './config';
 
@@ -116,10 +115,10 @@ WebVRPolyfill.prototype.enable = function() {
   navigator.getVRDisplays = this.getVRDisplays.bind(this);
 
   // Provide the `VRDisplay` object.
-  window.VRDisplay = VRDisplay;
+  window.VRDisplay = CardboardVRDisplay.VRDisplay;
 
   // Provide the VRFrameData object.
-  window.VRFrameData = VRFrameData;
+  window.VRFrameData = CardboardVRDisplay.VRFrameData;
 };
 
 WebVRPolyfill.prototype.getVRDisplays = function() {
@@ -152,7 +151,7 @@ WebVRPolyfill.prototype.getVRDisplays = function() {
 WebVRPolyfill.version = version;
 
 // Attach polyfilled constructors
-WebVRPolyfill.VRFrameData = VRFrameData;
-WebVRPolyfill.VRDisplay = VRDisplay;
+WebVRPolyfill.VRFrameData = CardboardVRDisplay.VRFrameData;
+WebVRPolyfill.VRDisplay = CardboardVRDisplay.VRDisplay;
 
 export default WebVRPolyfill;
