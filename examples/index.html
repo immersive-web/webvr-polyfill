@@ -78,9 +78,6 @@ document.addEventListener('touchmove', function(e) {
 <!-- VREffect.js handles stereo camera setup and rendering.  -->
 <script src="third_party/three.js/VREffect.js"></script>
 
-<!--
-    <script src="../build/webvr-polyfill-0.10.0.js"></script>
--->
 <script src="../build/webvr-polyfill.js"></script>
 
 
@@ -130,12 +127,6 @@ var reticle = new THREE.Mesh(
   new THREE.MeshBasicMaterial({ color: 0xffffff })
 );
 reticle.position.z = -0.5;
-camera.add(reticle);
-scene.add(camera);
-
-// Create a reticle to test depth
-var reticle = new THREE.Mesh(new THREE.RingGeometry(1, 2, 10), new THREE.MeshBasicMaterial({ color: 0xffffff }));
-reticle.position.z = -1;
 camera.add(reticle);
 scene.add(camera);
 
