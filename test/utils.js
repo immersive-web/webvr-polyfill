@@ -3,7 +3,7 @@ import localStorage from 'localStorage';
 import jsdom from 'jsdom';
 
 export const setupWindow = global => {
-  global.window = jsdom.jsdom().defaultView;
+  global.window = new jsdom.JSDOM().window;
   global.document = global.window.document;
   global.navigator = global.window.navigator;
   global.localStorage = global.window.localStorage = localStorage;
