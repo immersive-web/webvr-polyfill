@@ -77,6 +77,10 @@ navigator.getVRDisplays().then(displays => {
 });
 ```
 
+### iframes
+
+There are some concerns and caveats when embedding polyfilled WebVR content inside iframes. [More information is documented in the cardboard-vr-display README](https://github.com/immersive-web/cardboard-vr-display#iframes).
+
 ## Goals
 
 The polyfill's goal is to provide a library so that developers can create
