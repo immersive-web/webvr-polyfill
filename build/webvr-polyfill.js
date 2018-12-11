@@ -115,17 +115,6 @@ function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
 
-var race = function race(promises) {
-  if (Promise.race) {
-    return Promise.race(promises);
-  }
-  return new Promise(function (resolve, reject) {
-    for (var i = 0; i < promises.length; i++) {
-      promises[i].then(resolve, reject);
-    }
-  });
-};
-
 var isMobile = function isMobile() {
   return (/Android/i.test(navigator.userAgent) || /iPhone|iPad|iPod/i.test(navigator.userAgent)
   );
@@ -3363,13 +3352,12 @@ return CardboardVRDisplay;
 });
 var CardboardVRDisplay = unwrapExports(cardboardVrDisplay);
 
-var version = "0.10.8";
+var version = "0.10.9";
 
 var DefaultConfig = {
   ADDITIONAL_VIEWERS: [],
   DEFAULT_VIEWER: '',
   PROVIDE_MOBILE_VRDISPLAY: true,
-  GET_VR_DISPLAYS_TIMEOUT: 1000,
   MOBILE_WAKE_LOCK: true,
   DEBUG: false,
   DPDB_URL: 'https://dpdb.webvr.rocks/dpdb.json',
@@ -3453,16 +3441,7 @@ WebVRPolyfill.prototype.getVRDisplays = function () {
   if (!this.hasNative) {
     return Promise.resolve(this.getPolyfillDisplays());
   }
-  var timeoutId;
-  var vrDisplaysNative = this.native.getVRDisplays.call(navigator);
-  var timeoutPromise = new Promise(function (resolve) {
-    timeoutId = setTimeout(function () {
-      console.warn('Native WebVR implementation detected, but `getVRDisplays()` failed to resolve. Falling back to polyfill.');
-      resolve([]);
-    }, config.GET_VR_DISPLAYS_TIMEOUT);
-  });
-  return race([vrDisplaysNative, timeoutPromise]).then(function (nativeDisplays) {
-    clearTimeout(timeoutId);
+  return this.native.getVRDisplays.call(navigator).then(function (nativeDisplays) {
     return nativeDisplays.length > 0 ? nativeDisplays : _this.getPolyfillDisplays();
   });
 };
