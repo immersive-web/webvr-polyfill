@@ -307,6 +307,13 @@ var getChromeVersion = function () {
     return value;
   };
 }();
+var isSafariWithoutDeviceMotion = function () {
+  var value = false;
+  value = isIOS() && isSafari() && navigator.userAgent.indexOf('13_4') !== -1;
+  return function () {
+    return value;
+  };
+}();
 var isChromeWithoutDeviceMotion = function () {
   var value = false;
   if (getChromeVersion() === 65) {
@@ -782,6 +789,7 @@ function CardboardDistorter(gl, cardboardUI, bufferScale, dirtySubmitFrameBindin
   this.bufferScale = bufferScale;
   this.dirtySubmitFrameBindings = dirtySubmitFrameBindings;
   this.ctxAttribs = gl.getContextAttributes();
+  this.instanceExt = gl.getExtension('ANGLE_instanced_arrays');
   this.meshWidth = 20;
   this.meshHeight = 20;
   this.bufferWidth = gl.drawingBufferWidth;
@@ -1059,6 +1067,12 @@ CardboardDistorter.prototype.submitFrame = function () {
   }
   glPreserveState(gl, glState, function (gl) {
     self.realBindFramebuffer.call(gl, gl.FRAMEBUFFER, null);
+    var positionDivisor = 0;
+    var texCoordDivisor = 0;
+    if (self.instanceExt) {
+      positionDivisor = gl.getVertexAttrib(self.attribs.position, self.instanceExt.VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE);
+      texCoordDivisor = gl.getVertexAttrib(self.attribs.texCoord, self.instanceExt.VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE);
+    }
     if (self.cullFace) {
       self.realDisable.call(gl, gl.CULL_FACE);
     }
@@ -1087,6 +1101,14 @@ CardboardDistorter.prototype.submitFrame = function () {
     gl.enableVertexAttribArray(self.attribs.texCoord);
     gl.vertexAttribPointer(self.attribs.position, 2, gl.FLOAT, false, 20, 0);
     gl.vertexAttribPointer(self.attribs.texCoord, 3, gl.FLOAT, false, 20, 8);
+    if (self.instanceExt) {
+      if (positionDivisor != 0) {
+        self.instanceExt.vertexAttribDivisorANGLE(self.attribs.position, 0);
+      }
+      if (texCoordDivisor != 0) {
+        self.instanceExt.vertexAttribDivisorANGLE(self.attribs.texCoord, 0);
+      }
+    }
     gl.activeTexture(gl.TEXTURE0);
     gl.uniform1i(self.uniforms.diffuse, 0);
     gl.bindTexture(gl.TEXTURE_2D, self.renderTarget);
@@ -1122,6 +1144,14 @@ CardboardDistorter.prototype.submitFrame = function () {
     self.realViewport.apply(gl, self.viewport);
     if (self.ctxAttribs.alpha || !self.ctxAttribs.preserveDrawingBuffer) {
       self.realClearColor.apply(gl, self.clearColor);
+    }
+    if (self.instanceExt) {
+      if (positionDivisor != 0) {
+        self.instanceExt.vertexAttribDivisorANGLE(self.attribs.position, positionDivisor);
+      }
+      if (texCoordDivisor != 0) {
+        self.instanceExt.vertexAttribDivisorANGLE(self.attribs.texCoord, texCoordDivisor);
+      }
     }
   });
   if (isIOS()) {
@@ -2118,7 +2148,7 @@ function FusionPoseSensor(kFilter, predictionTime, yawOnly, isDebug) {
   this.isIOS = isIOS();
   var chromeVersion = getChromeVersion();
   this.isDeviceMotionInRadians = !this.isIOS && chromeVersion && chromeVersion < 66;
-  this.isWithoutDeviceMotion = isChromeWithoutDeviceMotion();
+  this.isWithoutDeviceMotion = isChromeWithoutDeviceMotion() || isSafariWithoutDeviceMotion();
   this.filterToWorldQ = new Quaternion();
   if (isIOS()) {
     this.filterToWorldQ.setFromAxisAngle(new Vector3(1, 0, 0), Math.PI / 2);
@@ -2234,16 +2264,18 @@ FusionPoseSensor.prototype.updateDeviceMotion_ = function (deviceMotion) {
     return;
   }
   this.accelerometer.set(-accGravity.x, -accGravity.y, -accGravity.z);
-  if (isR7()) {
-    this.gyroscope.set(-rotRate.beta, rotRate.alpha, rotRate.gamma);
-  } else {
-    this.gyroscope.set(rotRate.alpha, rotRate.beta, rotRate.gamma);
-  }
-  if (!this.isDeviceMotionInRadians) {
-    this.gyroscope.multiplyScalar(Math.PI / 180);
+  if (rotRate) {
+    if (isR7()) {
+      this.gyroscope.set(-rotRate.beta, rotRate.alpha, rotRate.gamma);
+    } else {
+      this.gyroscope.set(rotRate.alpha, rotRate.beta, rotRate.gamma);
+    }
+    if (!this.isDeviceMotionInRadians) {
+      this.gyroscope.multiplyScalar(Math.PI / 180);
+    }
+    this.filter.addGyroMeasurement(this.gyroscope, timestampS);
   }
   this.filter.addAccelMeasurement(this.accelerometer, timestampS);
-  this.filter.addGyroMeasurement(this.gyroscope, timestampS);
   this.previousTimestampS = timestampS;
 };
 FusionPoseSensor.prototype.onOrientationChange_ = function (screenOrientation) {
@@ -3357,7 +3389,7 @@ return CardboardVRDisplay;
 });
 var CardboardVRDisplay = unwrapExports(cardboardVrDisplay);
 
-var version = "0.10.10";
+var version = "0.10.12";
 
 var DefaultConfig = {
   ADDITIONAL_VIEWERS: [],
