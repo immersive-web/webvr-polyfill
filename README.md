@@ -1,8 +1,8 @@
-# WebVR is Deprecated!
+# WebVR is Deprecated! 
 
-The WebVR API had been developed under WebVR Community Group, but was marked as deprecated and fully replaced by the WebXR Device API and its modules which have wider support, more features, better performance, and supports both VR and XR (collectively called as XR). The WebXR Device API and its modules are under development by the W3C Immersive Web Working Group (WG) initiated at Sep 2018, was initially shipped in browsers in 2019 and are now available on many XR devices. This document is preserved out of historial interest, but the APIs described will not be implemented in any major browser.
+The WebVR API had been developed under [WebVR Community Group](https://www.w3.org/community/immersive-web/2016/03/01/call-for-participation-in-webvr-community-group/), but was marked as deprecated and fully replaced by the [WebXR Device API](https://immersive-web.github.io/webxr/) and its modules which have wider support, more features, better performance, and supports both VR and XR (collectively called as XR). The WebXR Device API and its modules are under development by the [W3C Immersive Web Working Group (WG)](https://www.w3.org/groups/wg/immersive-web/) initiated at Sep 2018, was initially shipped in browsers in 2019 and are now available on many XR devices. This document is preserved out of historial interest, but the APIs described will not be implemented in any major browser.
 
-No further development will be held on WebVR specifications. If you have any new idea of incubation around XR, please check the proposals repository of the W3C Immersive Web Community Group (CG) for further expanding XR in the Web and file as issue on any new idea there.
+No further development will be held on WebVR specifications. If you have any new idea of incubation around XR, please check the [proposals repository](https://github.com/immersive-web/proposals/) of the [W3C Immersive Web Community Group (CG)](https://www.w3.org/community/immersive-web/) for further expanding XR in the Web and file as issue on any new idea there.
 
 # WebVR Polyfill
 
